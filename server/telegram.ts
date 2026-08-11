@@ -1,4 +1,4 @@
-import { SurveyAnalytics } from '../src/types';
+import { SurveyAnalytics, AiReportResponse } from '../src/types';
 
 // Default user-configured Telegram Bot & Channel
 export const DEFAULT_TELEGRAM_BOT_TOKEN = '8731468553:AAFk8GM8EKAnt1-_Q8iRjS1ZV7isiBqOFpU';
@@ -16,7 +16,8 @@ export function formatTelegramChatId(rawId?: string): string {
 export async function sendTelegramReport(
   analytics: SurveyAnalytics,
   botToken?: string,
-  chatId?: string
+  chatId?: string,
+  aiReport?: AiReportResponse
 ): Promise<{ success: boolean; message: string }> {
   const token = botToken || process.env.TELEGRAM_BOT_TOKEN || DEFAULT_TELEGRAM_BOT_TOKEN;
   const rawChatId = chatId || process.env.TELEGRAM_CHAT_ID || DEFAULT_TELEGRAM_CHAT_ID;
@@ -31,12 +32,39 @@ export async function sendTelegramReport(
 
   const { survey, total_responses, questions_analytics } = analytics;
 
-  let textMsg = `📊 *የሕዝብ አስተያየት ጥናት ሪፖርት / PUBLIC OPINION REPORT*\n\n`;
-  textMsg += `📌 *ርዕስ:* ${survey.title}\n`;
+  let textMsg = `🏢 *የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ*\n`;
+  textMsg += `📜 *ኦፊሴላዊ የሕዝብ አስተያየትና AI ፖሊሲ ሪፖርት*\n\n`;
+
+  textMsg += `📌 *የጥናቱ ርዕስ:* ${survey.title}\n`;
   textMsg += `📁 *መደብ:* ${survey.category}\n`;
-  textMsg += `👥 *አጠቃላይ የመለሱ ሰዎች ብዛት:* *${total_responses}*\n`;
-  textMsg += `📅 *የተዘጋጀበት ቀን:* ${new Date().toLocaleDateString('am-ET', { year: 'numeric', month: 'long', day: 'numeric' })}\n`;
-  textMsg += `------------------------------------\n\n`;
+  textMsg += `👥 *የተሳተፉ ዜጎች ብዛት:* *${total_responses}*\n`;
+  textMsg += `📅 *ቀን:* ${new Date().toLocaleDateString('am-ET', { year: 'numeric', month: 'long', day: 'numeric' })}\n`;
+
+  if (aiReport) {
+    textMsg += `🔢 *የመዝገብ ቁጥር (Ref):* \`${aiReport.official_header.ref_code}\` \n`;
+    textMsg += `🌟 *የሕዝብ እርካታ ደረጃ:* *${aiReport.satisfaction_score}%*\n\n`;
+
+    textMsg += `📝 *[የኤአይ ፖሊሲ ማጠቃለያ]*\n${aiReport.executive_summary}\n\n`;
+
+    if (aiReport.key_findings && aiReport.key_findings.length > 0) {
+      textMsg += `🔑 *[ዋና ዋና ግኝቶች]*\n`;
+      aiReport.key_findings.forEach((kf) => {
+        textMsg += `  • ${kf}\n`;
+      });
+      textMsg += `\n`;
+    }
+
+    if (aiReport.policy_recommendations && aiReport.policy_recommendations.length > 0) {
+      textMsg += `💡 *[የፖሊሲ ማሻሻያ ጥቆማዎች]*\n`;
+      aiReport.policy_recommendations.forEach((pr) => {
+        textMsg += `  • ${pr}\n`;
+      });
+      textMsg += `\n`;
+    }
+  }
+
+  textMsg += `------------------------------------\n`;
+  textMsg += `📊 *[የጥያቄዎች እና የመልሶች ስቲስቲክስ]*\n\n`;
 
   questions_analytics.forEach((q, idx) => {
     textMsg += `*${idx + 1}. ${q.question_text}*\n`;
@@ -52,18 +80,18 @@ export async function sendTelegramReport(
       });
     } else if (q.question_type === 'text' && q.text_responses) {
       textMsg += `  💬 *አጠቃላይ የጽሁፍ አስተያየቶች:* *${q.total_answers_count}*\n`;
-      const recent = q.text_responses.slice(0, 3);
+      const recent = q.text_responses.slice(0, 2);
       if (recent.length > 0) {
         textMsg += `  *ምሳሌዎች:*\n`;
         recent.forEach((t) => {
-          textMsg += `  - "${t.answer_text}"\n`;
+          textMsg += `  - "${t.answer_text.substring(0, 80)}..."\n`;
         });
       }
     }
     textMsg += `\n`;
   });
 
-  textMsg += `🔒 *የድሬዳዋ አስተዳደር የመንግስት ኮሙዩኒኬሽን ጉዳዮች ቢሮ*`;
+  textMsg += `🔒 *የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ - Dire Dawa, Ethiopia*`;
 
   try {
     const url = `https://api.telegram.org/bot${token}/sendMessage`;
@@ -79,7 +107,7 @@ export async function sendTelegramReport(
 
     const data = await res.json();
     if (data.ok) {
-      return { success: true, message: 'ሪፖርቱ ወደ Telegram በስኬት ተልኳል!' };
+      return { success: true, message: 'የኤአይ ፖሊሲ ሪፖርትና ስቲስቲክሱ ወደ Telegram በስኬት ተልኳል!' };
     } else {
       return { success: false, message: `Telegram Error: ${data.description || 'ለማላክ አልተቻለም'}` };
     }
@@ -87,3 +115,4 @@ export async function sendTelegramReport(
     return { success: false, message: `ለTelegram መላክ አልተቻለም: ${err.message}` };
   }
 }
+

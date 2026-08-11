@@ -27,10 +27,16 @@ import {
   Building2,
   FileText,
   UserCheck,
+  Sparkles,
+  RefreshCw,
+  Lightbulb,
+  Award,
+  ShieldCheck,
 } from 'lucide-react';
-import { Survey, SurveyAnalytics } from '../types';
+import { Survey, SurveyAnalytics, AiReportResponse } from '../types';
 import { toEthiopianDate } from '../lib/ethiopianDate';
 import { DireDawaMapVisual } from './DireDawaMapVisual';
+import { DgcLogo } from './DgcLogo';
 
 interface VisualAnalyticsProps {
   surveys: Survey[];
@@ -51,7 +57,11 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [textSearch, setTextSearch] = useState<string>('');
   
-  // Telegram Modal State
+  // AI Policy Report State
+  const [aiReport, setAiReport] = useState<AiReportResponse | null>(null);
+  const [loadingAiReport, setLoadingAiReport] = useState<boolean>(false);
+
+  // Telegram Modal & Export State
   const [isTelegramModalOpen, setIsTelegramModalOpen] = useState<boolean>(false);
   const [telegramBotToken, setTelegramBotToken] = useState<string>('');
   const [telegramChatId, setTelegramChatId] = useState<string>('');
@@ -67,6 +77,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
 
     const fetchAnalytics = async () => {
       setLoading(true);
+      setAiReport(null);
       try {
         const res = await fetch(`/api/admin/surveys/${selectedSurveyId}/analytics`, {
           headers: { Authorization: `Bearer ${adminToken}` },
@@ -74,6 +85,8 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
         const data = await res.json();
         if (res.ok) {
           setAnalytics(data.analytics);
+          // Automatically fetch AI Report after analytics loads
+          fetchAiReport(selectedSurveyId);
         }
       } catch (err) {
         console.error('Analytics fetch error:', err);
@@ -84,6 +97,27 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
 
     fetchAnalytics();
   }, [selectedSurveyId, adminToken]);
+
+  const fetchAiReport = async (surveyId: number) => {
+    setLoadingAiReport(true);
+    try {
+      const res = await fetch(`/api/admin/surveys/${surveyId}/generate-ai-report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminToken}`,
+        },
+      });
+      const data = await res.json();
+      if (res.ok && data.report) {
+        setAiReport(data.report);
+      }
+    } catch (err) {
+      console.error('AI Report fetch error:', err);
+    } finally {
+      setLoadingAiReport(false);
+    }
+  };
 
   const handleExportTelegram = async () => {
     if (!selectedSurveyId) return;
@@ -99,6 +133,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
         body: JSON.stringify({
           botToken: telegramBotToken || undefined,
           chatId: telegramChatId || undefined,
+          aiReport: aiReport || undefined,
         }),
       });
 
@@ -107,7 +142,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
         setTelegramStatus({
           loading: false,
           success: true,
-          message: data.message || 'ሪፖርቱ በስኬት ወደ ቴሌግራም ተልኳል!',
+          message: data.message || 'የኤአይ ፖሊሲ ሪፖርትና ስቲስቲክሱ ወደ Telegram በስኬት ተልኳል!',
         });
       } else {
         setTelegramStatus({
@@ -141,7 +176,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `dgc_survey_${selectedSurveyId}_full_report.csv`;
+      a.download = `dgc_survey_${selectedSurveyId}_ai_policy_report.csv`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -187,31 +222,34 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
           </select>
         </div>
 
-        {/* Action buttons */}
+        {/* 3 Main Integrated Buttons: Print/PDF, CSV/Excel, Export to Telegram */}
         <div className="flex flex-wrap items-center gap-2.5 no-print">
           <button
-            onClick={() => window.print()}
+            onClick={handlePrintPdf}
             className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs font-black transition-all shadow-lg shadow-blue-600/20 flex items-center space-x-2 border border-blue-400/30"
+            title="የAI ፖሊሲ ሪፖርትና ስቲስቲክሱን በA4 ፕሪንት ያድርጉ ወይም በPDF ያስቀምጡ"
           >
             <Printer className="w-4 h-4 text-amber-300" />
-            <span>ፕሪንት / PDF አውርድ (Print / Save PDF)</span>
+            <span>1. ፕሪንት / PDF አውርድ (Print / Save PDF)</span>
           </button>
 
           <button
             onClick={handleDownloadCsv}
-            className="px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-2xl text-xs font-black transition-all shadow-sm flex items-center space-x-2"
+            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400/30 rounded-2xl text-xs font-black transition-all shadow-lg shadow-emerald-600/20 flex items-center space-x-2"
+            title="የAI ፖሊሲ ሪፖርትና የጥያቄዎችን ዳታ በExcel/CSV ያውርዱ"
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-            <span>CSV / Excel ማውረጃ</span>
+            <FileSpreadsheet className="w-4 h-4 text-emerald-300" />
+            <span>2. CSV / Excel ማውረጃ</span>
           </button>
 
           <button
             onClick={handleExportTelegram}
             disabled={telegramStatus.loading}
-            className="px-4 py-2.5 bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded-2xl text-xs font-black transition-all shadow-md flex items-center space-x-2 disabled:opacity-50"
+            className="px-4 py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white border border-sky-400/30 rounded-2xl text-xs font-black transition-all shadow-lg shadow-sky-600/20 flex items-center space-x-2 disabled:opacity-50"
+            title="የAI ፖሊሲ ሪፖርትና አጠቃላይ ስቲስቲክሱን በ1-ክሊክ ወደ ቴሌግራም ይላኩ"
           >
-            <Send className={`w-4 h-4 ${telegramStatus.loading ? 'animate-spin' : ''}`} />
-            <span>{telegramStatus.loading ? 'በመላክ ላይ...' : 'Export to Telegram (1-Click)'}</span>
+            <Send className={`w-4 h-4 text-sky-200 ${telegramStatus.loading ? 'animate-spin' : ''}`} />
+            <span>3. {telegramStatus.loading ? 'በመላክ ላይ...' : 'Export to Telegram (1-Click)'}</span>
           </button>
         </div>
       </div>
@@ -219,13 +257,20 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
       {/* Telegram Export Notification Status Toast */}
       {telegramStatus.message && (
         <div
-          className={`p-3 rounded-2xl text-xs font-bold flex items-center justify-between border shadow-sm ${
+          className={`p-3.5 rounded-2xl text-xs font-bold flex items-center justify-between border shadow-sm ${
             telegramStatus.success
               ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
               : 'bg-red-50 text-red-800 border-red-300'
           }`}
         >
-          <span>{telegramStatus.message}</span>
+          <div className="flex items-center space-x-2">
+            {telegramStatus.success ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+            )}
+            <span>{telegramStatus.message}</span>
+          </div>
           <button
             onClick={() => setTelegramStatus({ loading: false })}
             className="text-slate-400 hover:text-slate-700 font-bold ml-2"
@@ -243,7 +288,134 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
         </div>
       ) : (
         <>
-          {/* Survey Summary Banner */}
+          {/* Official AI Policy Report Box (Gemini AI Powered) */}
+          <div className="bg-white rounded-3xl border-2 border-slate-300 shadow-xl overflow-hidden p-6 sm:p-8 space-y-6 relative">
+            {/* Bureau Letterhead Header */}
+            <div className="flex flex-col md:flex-row items-center justify-between border-b-2 border-slate-900 pb-5 gap-4">
+              <div className="flex items-center space-x-3">
+                <DgcLogo className="scale-90 origin-left shrink-0" />
+                <div>
+                  <h1 className="text-base sm:text-lg font-black text-slate-900 uppercase tracking-tight">
+                    የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ
+                  </h1>
+                  <p className="text-xs font-bold text-slate-600">
+                    DIRE DAWA ADMINISTRATION GOVERNMENT COMMUNICATION AFFAIRS BUREAU
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    የህዝብ አስተያየትና የፖሊሲ አናሊቲክስ ዋና ክፍል | DIRE DAWA, ETHIOPIA
+                  </p>
+                </div>
+              </div>
+
+              {/* Official Ref & Date Badge */}
+              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-300 text-right space-y-1 shrink-0">
+                <div className="text-[11px] font-mono font-bold text-slate-600 flex items-center justify-end gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                  <span>REF: {aiReport?.official_header?.ref_code || 'DGC-AI-RPT-2026'}</span>
+                </div>
+                <div className="text-[11px] font-bold text-slate-800">
+                  ቀን: {aiReport?.official_header?.generated_date || new Date().toISOString().split('T')[0]}
+                </div>
+              </div>
+            </div>
+
+            {/* AI Report Title & Re-generate action */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white p-5 rounded-2xl shadow-md">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-amber-400/20 border border-amber-400/40 text-amber-300 rounded-xl flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-sm sm:text-base font-black flex items-center gap-2">
+                    <span>🤖 የኤአይ ፖሊሲና የሕዝብ እርካታ ትንተና ሪፖርት (Gemini AI Report)</span>
+                  </h2>
+                  <p className="text-xs text-blue-200 mt-0.5">
+                    በGemini AI ሞዴል የቀረበ የፖሊሲ ማጠቃለያ፣ ዋና ዋና ግኝቶች እና ምክረ ሀሳቦች::
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => fetchAiReport(selectedSurveyId)}
+                disabled={loadingAiReport}
+                className="no-print px-3.5 py-2 bg-white/10 hover:bg-white/20 text-amber-300 rounded-xl text-xs font-bold transition-all border border-amber-400/30 flex items-center space-x-1.5 shrink-0"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loadingAiReport ? 'animate-spin' : ''}`} />
+                <span>{loadingAiReport ? 'በማፍለቅ ላይ...' : 'ሪፖርት እንደገና አፍልቅ'}</span>
+              </button>
+            </div>
+
+            {loadingAiReport ? (
+              <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200 space-y-3 animate-pulse">
+                <Sparkles className="w-8 h-8 text-amber-500 mx-auto animate-spin" />
+                <p className="text-xs font-bold text-slate-600">
+                  የGemini AI ሞዴል የድሬዳዋን ነዋሪዎች ምላሽ እየተነተነ የፖሊሲ ሪፖርት እያዘጋጀ ነው...
+                </p>
+              </div>
+            ) : aiReport ? (
+              <div className="space-y-6">
+                {/* Score Meter & Executive Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-gradient-to-br from-emerald-500 to-teal-700 text-white p-5 rounded-2xl flex flex-col justify-center items-center text-center shadow-md">
+                    <Award className="w-8 h-8 text-amber-300 mb-1" />
+                    <span className="text-[11px] font-black uppercase text-emerald-100 tracking-wider">
+                      የሕዝብ እርካታ ደረጃ
+                    </span>
+                    <div className="text-3xl sm:text-4xl font-black text-white mt-1">
+                      {aiReport.satisfaction_score}%
+                    </div>
+                    <span className="text-[10px] text-emerald-100 mt-1 font-bold">Public Satisfaction Score</span>
+                  </div>
+
+                  <div className="md:col-span-3 bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2">
+                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <FileText className="w-4 h-4 text-blue-600" />
+                      1. የፖሊሲ አጭር ማጠቃለያ (Executive Summary)
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-normal">
+                      {aiReport.executive_summary}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Key Findings */}
+                <div className="bg-blue-50/60 p-5 rounded-2xl border border-blue-200 space-y-3">
+                  <h3 className="text-xs font-black text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                    2. ዋና ዋና ግኝቶች (Key Findings)
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {aiReport.key_findings.map((kf, idx) => (
+                      <div key={idx} className="bg-white p-3.5 rounded-xl border border-blue-200/80 shadow-sm flex items-start space-x-2.5">
+                        <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                          {idx + 1}
+                        </span>
+                        <p className="text-xs text-slate-800 font-medium leading-relaxed">{kf}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Policy Recommendations */}
+                <div className="bg-amber-50/60 p-5 rounded-2xl border border-amber-200 space-y-3">
+                  <h3 className="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <Lightbulb className="w-4 h-4 text-amber-600" />
+                    3. የፖሊሲ ማሻሻያ ጥቆማዎች (Policy Recommendations)
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {aiReport.policy_recommendations.map((pr, idx) => (
+                      <div key={idx} className="bg-white p-3.5 rounded-xl border border-amber-200 shadow-sm flex items-start space-x-2.5">
+                        <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                        <p className="text-xs text-slate-800 font-medium leading-relaxed">{pr}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          {/* Survey Overview Metadata Banner */}
           <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 text-white p-6 rounded-2xl shadow-lg border border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <span className="bg-emerald-500/20 text-emerald-300 text-xs px-2.5 py-0.5 rounded-full font-medium border border-emerald-500/30">
@@ -561,7 +733,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                 <span>Export Analytics to Telegram Bot</span>
               </h3>
               <p className="text-xs text-sky-100 mt-1">
-                የተሰበሰበውን ሙሉ የስቲስቲክስ ሪፖርት ወደ አድሚን Telegram ቻት በስኬት ይላኩ::
+                የተሰበሰበውን የAI ፖሊሲ ሪፖርትና ሙሉ የስቲስቲክስ መረጃ ወደ አድሚን Telegram ቻናል በስኬት ይላኩ::
               </p>
             </div>
 
@@ -635,3 +807,4 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
     </div>
   );
 };
+

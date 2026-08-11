@@ -244,19 +244,35 @@ app.get('/api/admin/surveys/:id/analytics', authMiddleware, async (req: Authenti
   }
 });
 
-// Export Survey Analytics to Telegram
+// Export Survey Analytics to Telegram with AI Policy Insights
 app.post('/api/admin/surveys/:id/export-telegram', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const surveyId = parseInt(req.params.id, 10);
-    const { botToken, chatId } = req.body;
+    const { botToken, chatId, aiReport: clientAiReport } = req.body;
 
     if (isNaN(surveyId)) return res.status(400).json({ error: 'ትክክለኛ ያልሆነ መለያ' });
 
     const analytics = await db.getSurveyAnalytics(surveyId);
     if (!analytics) return res.status(404).json({ error: 'መጠይቁ አልተገኘም' });
 
-    const result = await sendTelegramReport(analytics, botToken || activeBotToken, chatId || activeChatId);
+    // Generate AI report if not provided by client
+    let aiReport = clientAiReport;
+    if (!aiReport) {
+      try {
+        aiReport = await generateSurveyAiReport(analytics);
+      } catch (e) {
+        console.warn('AI Report generation fallback:', e);
+      }
+    }
+
+    const result = await sendTelegramReport(analytics, botToken || activeBotToken, chatId || activeChatId, aiReport);
     if (result.success) {
+      await db.addAuditLog(
+        req.adminUser?.email || 'admin@dgc.gov.et',
+        'EXPORT_TELEGRAM',
+        `ለጥናት ID ${surveyId} ("${analytics.survey.title.substring(0, 30)}...") የኤአይ ፖሊሲ ሪፖርት ወደ Telegram ተልኳል::`,
+        req.ip
+      );
       res.json(result);
     } else {
       res.status(400).json(result);
@@ -300,7 +316,7 @@ app.get('/api/admin/audit-logs', authMiddleware, async (req: AuthenticatedReques
   }
 });
 
-// CSV Export Download Endpoint with Demographics
+// CSV Export Download Endpoint with AI Policy Report & Demographics
 app.get('/api/admin/surveys/:id/export-csv', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const surveyId = parseInt(req.params.id, 10);
@@ -311,23 +327,48 @@ app.get('/api/admin/surveys/:id/export-csv', authMiddleware, async (req: Authent
 
     const { survey, total_responses, questions_analytics, demographics_analytics } = analytics;
 
+    // Generate AI Report to embed in CSV
+    let aiReport: any = null;
+    try {
+      aiReport = await generateSurveyAiReport(analytics);
+    } catch (e) {
+      console.warn('AI report generation error for CSV:', e);
+    }
+
     let csvContent = `Dire Dawa Administration Government Communication Affairs Bureau\n`;
     csvContent += `Office Location,"Finance Building, 3rd Floor, Dire Dawa, Ethiopia"\n`;
     csvContent += `Phone / Support,"+251-25-1116061"\n`;
     csvContent += `Email Contact,"info@dgc.com / support@dgc.com"\n`;
-    csvContent += `Survey Title,${survey.title.replace(/,/g, ' ')}\n`;
-    csvContent += `Category,${survey.category.replace(/,/g, ' ')}\n`;
+    csvContent += `Survey Title,"${survey.title.replace(/"/g, '""')}"\n`;
+    csvContent += `Category,"${survey.category.replace(/"/g, '""')}"\n`;
     csvContent += `Total Respondents,${total_responses}\n\n`;
+
+    if (aiReport) {
+      csvContent += `--- AI POLICY & ANALYTICS REPORT (Gemini AI Insights) ---\n`;
+      csvContent += `Official Ref Code,"${aiReport.official_header.ref_code}"\n`;
+      csvContent += `Generated Date,"${aiReport.official_header.generated_date}"\n`;
+      csvContent += `Public Satisfaction Score,"${aiReport.satisfaction_score}%"\n`;
+      csvContent += `Executive Summary,"${aiReport.executive_summary.replace(/"/g, '""').replace(/\n/g, ' ')}"\n`;
+      csvContent += `Demographic Insights,"${aiReport.demographic_insights.replace(/"/g, '""').replace(/\n/g, ' ')}"\n`;
+
+      if (aiReport.key_findings && aiReport.key_findings.length > 0) {
+        csvContent += `Key Findings,"${aiReport.key_findings.map((f: string) => `• ${f}`).join(' | ').replace(/"/g, '""')}"\n`;
+      }
+      if (aiReport.policy_recommendations && aiReport.policy_recommendations.length > 0) {
+        csvContent += `Policy Recommendations,"${aiReport.policy_recommendations.map((p: string) => `• ${p}`).join(' | ').replace(/"/g, '""')}"\n`;
+      }
+      csvContent += `\n`;
+    }
 
     csvContent += `--- QUESTION ANALYTICS ---\n`;
     csvContent += `Question ID,Question Text,Question Type,Option / Rating / Response,Count,Percentage (%)\n`;
 
     questions_analytics.forEach((q) => {
-      const qText = q.question_text.replace(/,/g, ' ').replace(/\n/g, ' ');
+      const qText = q.question_text.replace(/"/g, '""').replace(/\n/g, ' ');
 
       if (q.question_type === 'radio' && q.radio_data) {
         q.radio_data.forEach((r) => {
-          csvContent += `${q.question_id},"${qText}",Radio,"${r.option}",${r.count},${r.percentage}%\n`;
+          csvContent += `${q.question_id},"${qText}",Radio,"${r.option.replace(/"/g, '""')}",${r.count},${r.percentage}%\n`;
         });
       } else if (q.question_type === 'rating' && q.rating_distribution) {
         q.rating_distribution.forEach((rd) => {
@@ -362,7 +403,7 @@ app.get('/api/admin/surveys/:id/export-csv', authMiddleware, async (req: Authent
     await db.addAuditLog(
       req.adminUser?.email || 'admin@dgc.gov.et',
       'EXPORT_CSV',
-      `ለጥናት ID ${surveyId} CSV ሪፖርት ዳውንሎድ ተደርጓል::`,
+      `ለጥናት ID ${surveyId} AI ፖሊሲ ሪፖርት ያካተተ CSV ዳውንሎድ ተደርጓል::`,
       req.ip
     );
 
