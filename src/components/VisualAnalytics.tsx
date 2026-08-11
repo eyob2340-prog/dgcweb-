@@ -32,6 +32,8 @@ import {
   Lightbulb,
   Award,
   ShieldCheck,
+  Bot,
+  X,
 } from 'lucide-react';
 import { Survey, SurveyAnalytics, AiReportResponse } from '../types';
 import { toEthiopianDate } from '../lib/ethiopianDate';
@@ -43,6 +45,7 @@ interface VisualAnalyticsProps {
   selectedSurveyId: number | null;
   onSelectSurvey: (id: number) => void;
   adminToken: string;
+  initialShowReport?: boolean;
 }
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
@@ -52,14 +55,26 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
   selectedSurveyId,
   onSelectSurvey,
   adminToken,
+  initialShowReport = false,
 }) => {
   const [analytics, setAnalytics] = useState<SurveyAnalytics | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [textSearch, setTextSearch] = useState<string>('');
   
-  // AI Policy Report State
+  // Official Policy Report State
   const [aiReport, setAiReport] = useState<AiReportResponse | null>(null);
   const [loadingAiReport, setLoadingAiReport] = useState<boolean>(false);
+  const [showAiReport, setShowAiReport] = useState<boolean>(initialShowReport);
+
+  // Sync show report state when initialShowReport changes
+  useEffect(() => {
+    if (initialShowReport) {
+      setShowAiReport(true);
+      if (!aiReport && selectedSurveyId) {
+        fetchAiReport(selectedSurveyId);
+      }
+    }
+  }, [initialShowReport, selectedSurveyId]);
 
   // Telegram Modal & Export State
   const [isTelegramModalOpen, setIsTelegramModalOpen] = useState<boolean>(false);
@@ -78,6 +93,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
     const fetchAnalytics = async () => {
       setLoading(true);
       setAiReport(null);
+      setShowAiReport(false);
       try {
         const res = await fetch(`/api/admin/surveys/${selectedSurveyId}/analytics`, {
           headers: { Authorization: `Bearer ${adminToken}` },
@@ -85,8 +101,6 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
         const data = await res.json();
         if (res.ok) {
           setAnalytics(data.analytics);
-          // Automatically fetch AI Report after analytics loads
-          fetchAiReport(selectedSurveyId);
         }
       } catch (err) {
         console.error('Analytics fetch error:', err);
@@ -222,34 +236,64 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
           </select>
         </div>
 
-        {/* 3 Main Integrated Buttons: Print/PDF, CSV/Excel, Export to Telegram */}
+        {/* 4 Main Integrated Buttons: Print/PDF, CSV/Excel, Export to Telegram, AI Policy Report */}
         <div className="flex flex-wrap items-center gap-2.5 no-print">
           <button
             onClick={handlePrintPdf}
             className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs font-black transition-all shadow-lg shadow-blue-600/20 flex items-center space-x-2 border border-blue-400/30"
-            title="የAI ፖሊሲ ሪፖርትና ስቲስቲክሱን በA4 ፕሪንት ያድርጉ ወይም በPDF ያስቀምጡ"
+            title="የA4 ፕሪንት ያድርጉ ወይም በPDF ያስቀምጡ"
           >
             <Printer className="w-4 h-4 text-amber-300" />
-            <span>1. ፕሪንት / PDF አውርድ (Print / Save PDF)</span>
+            <span>1. ፕሪንት / PDF</span>
           </button>
 
           <button
             onClick={handleDownloadCsv}
             className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400/30 rounded-2xl text-xs font-black transition-all shadow-lg shadow-emerald-600/20 flex items-center space-x-2"
-            title="የAI ፖሊሲ ሪፖርትና የጥያቄዎችን ዳታ በExcel/CSV ያውርዱ"
+            title="የጥያቄዎችንና የAI ፖሊሲ ዳታ በExcel/CSV ያውርዱ"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-300" />
-            <span>2. CSV / Excel ማውረጃ</span>
+            <span>2. CSV / Excel</span>
           </button>
 
           <button
             onClick={handleExportTelegram}
             disabled={telegramStatus.loading}
             className="px-4 py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white border border-sky-400/30 rounded-2xl text-xs font-black transition-all shadow-lg shadow-sky-600/20 flex items-center space-x-2 disabled:opacity-50"
-            title="የAI ፖሊሲ ሪፖርትና አጠቃላይ ስቲስቲክሱን በ1-ክሊክ ወደ ቴሌግራም ይላኩ"
+            title="የAI ፖሊሲ ሪፖርትና ስቲስቲክሱን ወደ ቴሌግራም ይላኩ"
           >
             <Send className={`w-4 h-4 text-sky-200 ${telegramStatus.loading ? 'animate-spin' : ''}`} />
-            <span>3. {telegramStatus.loading ? 'በመላክ ላይ...' : 'Export to Telegram (1-Click)'}</span>
+            <span>3. Telegram (1-Click)</span>
+          </button>
+
+          {/* Official Policy Report Toggle Button */}
+          <button
+            onClick={() => {
+              if (!showAiReport) {
+                setShowAiReport(true);
+                if (!aiReport) {
+                  fetchAiReport(selectedSurveyId);
+                }
+              } else {
+                setShowAiReport(false);
+              }
+            }}
+            disabled={loadingAiReport}
+            className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all shadow-lg flex items-center space-x-2 border ${
+              showAiReport
+                ? 'bg-blue-600 hover:bg-blue-500 text-white border-blue-300/50 shadow-blue-600/30 ring-2 ring-blue-400/50'
+                : 'bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 hover:from-blue-800 hover:to-indigo-800 text-blue-100 border-blue-400/30 shadow-blue-900/40'
+            }`}
+            title="የፖሊሲና የሕዝብ እርካታ ሪፖርት ተመልከት"
+          >
+            <FileText className={`w-4 h-4 text-amber-300 ${loadingAiReport ? 'animate-spin' : ''}`} />
+            <span>
+              {loadingAiReport
+                ? 'በማዘጋጀት ላይ...'
+                : showAiReport
+                ? '4. ሪፖርት ደብቅ'
+                : '4. የፖሊሲና የሕዝብ እርካታ ሪፖርት'}
+            </span>
           </button>
         </div>
       </div>
@@ -288,132 +332,144 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
         </div>
       ) : (
         <>
-          {/* Official AI Policy Report Box (Gemini AI Powered) */}
-          <div className="bg-white rounded-3xl border-2 border-slate-300 shadow-xl overflow-hidden p-6 sm:p-8 space-y-6 relative">
-            {/* Bureau Letterhead Header */}
-            <div className="flex flex-col md:flex-row items-center justify-between border-b-2 border-slate-900 pb-5 gap-4">
-              <div className="flex items-center space-x-3">
-                <DgcLogo className="scale-90 origin-left shrink-0" />
-                <div>
-                  <h1 className="text-base sm:text-lg font-black text-slate-900 uppercase tracking-tight">
-                    የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ
-                  </h1>
-                  <p className="text-xs font-bold text-slate-600">
-                    DIRE DAWA ADMINISTRATION GOVERNMENT COMMUNICATION AFFAIRS BUREAU
-                  </p>
-                  <p className="text-[11px] text-slate-500">
-                    የህዝብ አስተያየትና የፖሊሲ አናሊቲክስ ዋና ክፍል | DIRE DAWA, ETHIOPIA
-                  </p>
-                </div>
-              </div>
-
-              {/* Official Ref & Date Badge */}
-              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-300 text-right space-y-1 shrink-0">
-                <div className="text-[11px] font-mono font-bold text-slate-600 flex items-center justify-end gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-                  <span>REF: {aiReport?.official_header?.ref_code || 'DGC-AI-RPT-2026'}</span>
-                </div>
-                <div className="text-[11px] font-bold text-slate-800">
-                  ቀን: {aiReport?.official_header?.generated_date || new Date().toISOString().split('T')[0]}
-                </div>
-              </div>
-            </div>
-
-            {/* AI Report Title & Re-generate action */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white p-5 rounded-2xl shadow-md">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-amber-400/20 border border-amber-400/40 text-amber-300 rounded-xl flex items-center justify-center shrink-0">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-sm sm:text-base font-black flex items-center gap-2">
-                    <span>🤖 የኤአይ ፖሊሲና የሕዝብ እርካታ ትንተና ሪፖርት (Gemini AI Report)</span>
-                  </h2>
-                  <p className="text-xs text-blue-200 mt-0.5">
-                    በGemini AI ሞዴል የቀረበ የፖሊሲ ማጠቃለያ፣ ዋና ዋና ግኝቶች እና ምክረ ሀሳቦች::
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => fetchAiReport(selectedSurveyId)}
-                disabled={loadingAiReport}
-                className="no-print px-3.5 py-2 bg-white/10 hover:bg-white/20 text-amber-300 rounded-xl text-xs font-bold transition-all border border-amber-400/30 flex items-center space-x-1.5 shrink-0"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${loadingAiReport ? 'animate-spin' : ''}`} />
-                <span>{loadingAiReport ? 'በማፍለቅ ላይ...' : 'ሪፖርት እንደገና አፍልቅ'}</span>
-              </button>
-            </div>
-
-            {loadingAiReport ? (
-              <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200 space-y-3 animate-pulse">
-                <Sparkles className="w-8 h-8 text-amber-500 mx-auto animate-spin" />
-                <p className="text-xs font-bold text-slate-600">
-                  የGemini AI ሞዴል የድሬዳዋን ነዋሪዎች ምላሽ እየተነተነ የፖሊሲ ሪፖርት እያዘጋጀ ነው...
-                </p>
-              </div>
-            ) : aiReport ? (
-              <div className="space-y-6">
-                {/* Score Meter & Executive Summary */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-gradient-to-br from-emerald-500 to-teal-700 text-white p-5 rounded-2xl flex flex-col justify-center items-center text-center shadow-md">
-                    <Award className="w-8 h-8 text-amber-300 mb-1" />
-                    <span className="text-[11px] font-black uppercase text-emerald-100 tracking-wider">
-                      የሕዝብ እርካታ ደረጃ
-                    </span>
-                    <div className="text-3xl sm:text-4xl font-black text-white mt-1">
-                      {aiReport.satisfaction_score}%
-                    </div>
-                    <span className="text-[10px] text-emerald-100 mt-1 font-bold">Public Satisfaction Score</span>
-                  </div>
-
-                  <div className="md:col-span-3 bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2">
-                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                      <FileText className="w-4 h-4 text-blue-600" />
-                      1. የፖሊሲ አጭር ማጠቃለያ (Executive Summary)
-                    </h3>
-                    <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-normal">
-                      {aiReport.executive_summary}
+          {/* Official AI Policy Report Box (Gemini AI Powered) - Shown when toggled */}
+          {showAiReport && (
+            <div className="bg-white rounded-3xl border-2 border-purple-300 shadow-2xl overflow-hidden p-6 sm:p-8 space-y-6 relative transition-all duration-300">
+              {/* Bureau Letterhead Header */}
+              <div className="flex flex-col md:flex-row items-center justify-between border-b-2 border-slate-900 pb-5 gap-4">
+                <div className="flex items-center space-x-3">
+                  <DgcLogo className="scale-90 origin-left shrink-0" />
+                  <div>
+                    <h1 className="text-base sm:text-lg font-black text-slate-900 uppercase tracking-tight">
+                      የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ
+                    </h1>
+                    <p className="text-xs font-bold text-slate-600">
+                      DIRE DAWA ADMINISTRATION GOVERNMENT COMMUNICATION AFFAIRS BUREAU
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      የህዝብ አስተያየትና የፖሊሲ አናሊቲክስ ዋና ክፍል | DIRE DAWA, ETHIOPIA
                     </p>
                   </div>
                 </div>
 
-                {/* Key Findings */}
-                <div className="bg-blue-50/60 p-5 rounded-2xl border border-blue-200 space-y-3">
-                  <h3 className="text-xs font-black text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                    2. ዋና ዋና ግኝቶች (Key Findings)
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {aiReport.key_findings.map((kf, idx) => (
-                      <div key={idx} className="bg-white p-3.5 rounded-xl border border-blue-200/80 shadow-sm flex items-start space-x-2.5">
-                        <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
-                          {idx + 1}
-                        </span>
-                        <p className="text-xs text-slate-800 font-medium leading-relaxed">{kf}</p>
-                      </div>
-                    ))}
+                {/* Official Ref & Date Badge */}
+                <div className="flex items-center gap-3">
+                  <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-300 text-right space-y-1 shrink-0">
+                    <div className="text-[11px] font-mono font-bold text-slate-600 flex items-center justify-end gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                      <span>REF: {aiReport?.official_header?.ref_code || 'DGC-POL-RPT-2026'}</span>
+                    </div>
+                    <div className="text-[11px] font-bold text-slate-800">
+                      ቀን: {aiReport?.official_header?.generated_date || new Date().toISOString().split('T')[0]}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setShowAiReport(false)}
+                    className="no-print p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all"
+                    title="ሪፖርቱን ዝጋ"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Official Report Title & Refresh action */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-5 rounded-2xl shadow-md border border-blue-900/40">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-amber-400/20 border border-amber-400/40 text-amber-300 rounded-xl flex items-center justify-center shrink-0">
+                    <Award className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm sm:text-base font-black flex items-center gap-2">
+                      <span>📑 የፖሊሲና የሕዝብ እርካታ ትንተና ሪፖርት (Official Policy Analysis Report)</span>
+                    </h2>
+                    <p className="text-xs text-blue-200 mt-0.5">
+                      በድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ የተዘጋጀ የፖሊሲ ማጠቃለያ፣ ዋና ዋና ግኝቶች እና ምክረ ሀሳቦች::
+                    </p>
                   </div>
                 </div>
 
-                {/* Policy Recommendations */}
-                <div className="bg-amber-50/60 p-5 rounded-2xl border border-amber-200 space-y-3">
-                  <h3 className="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <Lightbulb className="w-4 h-4 text-amber-600" />
-                    3. የፖሊሲ ማሻሻያ ጥቆማዎች (Policy Recommendations)
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {aiReport.policy_recommendations.map((pr, idx) => (
-                      <div key={idx} className="bg-white p-3.5 rounded-xl border border-amber-200 shadow-sm flex items-start space-x-2.5">
-                        <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                        <p className="text-xs text-slate-800 font-medium leading-relaxed">{pr}</p>
+                <button
+                  onClick={() => fetchAiReport(selectedSurveyId)}
+                  disabled={loadingAiReport}
+                  className="no-print px-3.5 py-2 bg-white/10 hover:bg-white/20 text-amber-300 rounded-xl text-xs font-bold transition-all border border-amber-400/30 flex items-center space-x-1.5 shrink-0"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loadingAiReport ? 'animate-spin' : ''}`} />
+                  <span>{loadingAiReport ? 'በማዘጋጀት ላይ...' : 'ሪፖርት እንደገና አዝምን'}</span>
+                </button>
+              </div>
+
+              {loadingAiReport ? (
+                <div className="p-8 text-center bg-blue-50/50 rounded-2xl border border-blue-200 space-y-3 animate-pulse">
+                  <RefreshCw className="w-8 h-8 text-blue-600 mx-auto animate-spin" />
+                  <p className="text-xs font-bold text-slate-700">
+                    የድሬዳዋ ነዋሪዎች ምላሽ እየተነተነ ኦፊሴላዊ የፖሊሲና የሕዝብ እርካታ ሪፖርት እያዘጋጀ ነው...
+                  </p>
+                </div>
+              ) : aiReport ? (
+                <div className="space-y-6">
+                  {/* Score Meter & Executive Summary */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="bg-gradient-to-br from-emerald-500 to-teal-700 text-white p-5 rounded-2xl flex flex-col justify-center items-center text-center shadow-md">
+                      <Award className="w-8 h-8 text-amber-300 mb-1" />
+                      <span className="text-[11px] font-black uppercase text-emerald-100 tracking-wider">
+                        የሕዝብ እርካታ ደረጃ
+                      </span>
+                      <div className="text-3xl sm:text-4xl font-black text-white mt-1">
+                        {aiReport.satisfaction_score}%
                       </div>
-                    ))}
+                      <span className="text-[10px] text-emerald-100 mt-1 font-bold">Public Satisfaction Score</span>
+                    </div>
+
+                    <div className="md:col-span-3 bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2">
+                      <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                        <FileText className="w-4 h-4 text-blue-600" />
+                        1. የፖሊሲ አጭር ማጠቃለያ (Executive Summary)
+                      </h3>
+                      <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-normal">
+                        {aiReport.executive_summary}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Key Findings */}
+                  <div className="bg-blue-50/60 p-5 rounded-2xl border border-blue-200 space-y-3">
+                    <h3 className="text-xs font-black text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                      2. ዋና ዋና ግኝቶች (Key Findings)
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {aiReport.key_findings.map((kf, idx) => (
+                        <div key={idx} className="bg-white p-3.5 rounded-xl border border-blue-200/80 shadow-sm flex items-start space-x-2.5">
+                          <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                            {idx + 1}
+                          </span>
+                          <p className="text-xs text-slate-800 font-medium leading-relaxed">{kf}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Policy Recommendations */}
+                  <div className="bg-amber-50/60 p-5 rounded-2xl border border-amber-200 space-y-3">
+                    <h3 className="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <Lightbulb className="w-4 h-4 text-amber-600" />
+                      3. የፖሊሲ ማሻሻያ ጥቆማዎች (Policy Recommendations)
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {aiReport.policy_recommendations.map((pr, idx) => (
+                        <div key={idx} className="bg-white p-3.5 rounded-xl border border-amber-200 shadow-sm flex items-start space-x-2.5">
+                          <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                          <p className="text-xs text-slate-800 font-medium leading-relaxed">{pr}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : null}
-          </div>
+              ) : null}
+            </div>
+          )}
 
           {/* Survey Overview Metadata Banner */}
           <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 text-white p-6 rounded-2xl shadow-lg border border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -725,7 +781,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
 
       {/* Export to Telegram Modal */}
       {isTelegramModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
             <div className="bg-sky-600 text-white p-6">
               <h3 className="text-lg font-bold flex items-center gap-2">

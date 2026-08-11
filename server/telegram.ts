@@ -33,7 +33,7 @@ export async function sendTelegramReport(
   const { survey, total_responses, questions_analytics } = analytics;
 
   let textMsg = `🏢 *የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ*\n`;
-  textMsg += `📜 *ኦፊሴላዊ የሕዝብ አስተያየትና AI ፖሊሲ ሪፖርት*\n\n`;
+  textMsg += `📜 *ኦፊሴላዊ የሕዝብ አስተያየትና የፖሊሲ ሪፖርት*\n\n`;
 
   textMsg += `📌 *የጥናቱ ርዕስ:* ${survey.title}\n`;
   textMsg += `📁 *መደብ:* ${survey.category}\n`;
@@ -44,7 +44,7 @@ export async function sendTelegramReport(
     textMsg += `🔢 *የመዝገብ ቁጥር (Ref):* \`${aiReport.official_header.ref_code}\` \n`;
     textMsg += `🌟 *የሕዝብ እርካታ ደረጃ:* *${aiReport.satisfaction_score}%*\n\n`;
 
-    textMsg += `📝 *[የኤአይ ፖሊሲ ማጠቃለያ]*\n${aiReport.executive_summary}\n\n`;
+    textMsg += `📝 *[የፖሊሲ ማጠቃለያ]*\n${aiReport.executive_summary}\n\n`;
 
     if (aiReport.key_findings && aiReport.key_findings.length > 0) {
       textMsg += `🔑 *[ዋና ዋና ግኝቶች]*\n`;

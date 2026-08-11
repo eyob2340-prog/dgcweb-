@@ -87,9 +87,22 @@ export default function App() {
     };
   }, [syncOfflineQueue, updateOfflineCount]);
 
-  // Handle Hash Routing (#survey-123)
+  // Handle Routing (?survey=123, ?surveyId=123, or #survey-123)
   useEffect(() => {
-    const parseHash = () => {
+    const parseUrl = () => {
+      // 1. Check Search Query Parameters (?survey=123 or ?surveyId=123)
+      const params = new URLSearchParams(window.location.search);
+      const queryId = params.get('survey') || params.get('surveyId');
+      if (queryId) {
+        const id = parseInt(queryId, 10);
+        if (!isNaN(id)) {
+          setSelectedSurveyId(id);
+          setCurrentTab('public');
+          return;
+        }
+      }
+
+      // 2. Check Hash Routing (#survey-123)
       const hash = window.location.hash;
       if (hash && hash.startsWith('#survey-')) {
         const idStr = hash.replace('#survey-', '');
@@ -101,9 +114,13 @@ export default function App() {
       }
     };
 
-    parseHash();
-    window.addEventListener('hashchange', parseHash);
-    return () => window.removeEventListener('hashchange', parseHash);
+    parseUrl();
+    window.addEventListener('hashchange', parseUrl);
+    window.addEventListener('popstate', parseUrl);
+    return () => {
+      window.removeEventListener('hashchange', parseUrl);
+      window.removeEventListener('popstate', parseUrl);
+    };
   }, []);
 
   // Fetch Public Surveys List
@@ -269,7 +286,7 @@ export default function App() {
       {/* Main Content */}
 
       {/* Main Content Area */}
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 relative z-10">
+      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-12 sm:pt-6 sm:pb-16 relative z-10">
         {currentTab === 'public' ? (
           selectedSurveyDetails ? (
             <SurveyForm

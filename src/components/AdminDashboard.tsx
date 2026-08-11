@@ -32,7 +32,7 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) => {
-  const [activeTab, setActiveTab] = useState<'analytics' | 'manage' | 'audit' | 'db'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'policy_report' | 'manage' | 'audit' | 'db'>('analytics');
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [selectedSurveyId, setSelectedSurveyId] = useState<number | null>(null);
@@ -226,6 +226,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
           </button>
 
           <button
+            onClick={() => setActiveTab('policy_report')}
+            className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 flex items-center space-x-2 ${
+              activeTab === 'policy_report'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/30'
+                : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
+            }`}
+          >
+            <FileText className="w-4 h-4 text-amber-300" />
+            <span>የፖሊሲና የሕዝብ እርካታ ሪፖርት</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('manage')}
             className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 flex items-center space-x-2 ${
               activeTab === 'manage'
@@ -287,6 +299,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
               selectedSurveyId={selectedSurveyId}
               onSelectSurvey={(id) => setSelectedSurveyId(id)}
               adminToken={adminToken}
+              initialShowReport={false}
+            />
+          </motion.div>
+        )}
+
+        {activeTab === 'policy_report' && (
+          <motion.div
+            key="policy_report"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <VisualAnalytics
+              surveys={surveys}
+              selectedSurveyId={selectedSurveyId}
+              onSelectSurvey={(id) => setSelectedSurveyId(id)}
+              adminToken={adminToken}
+              initialShowReport={true}
             />
           </motion.div>
         )}

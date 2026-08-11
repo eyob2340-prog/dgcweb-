@@ -46,34 +46,35 @@ export const DgcQrCard: React.FC<DgcQrCardProps> = ({ url, surveyTitle, onClose 
   const generateBrandedQr = async () => {
     setIsGenerating(true);
     try {
-      // Generate basic QR code data URL first as a safe fallback
+      // 1. Generate crisp high-contrast QR Code data URL fallback
       const simpleQrDataUrl = await QRCodeLib.toDataURL(url, {
-        width: 360,
-        margin: 2,
-        color: { dark: '#0252c4', light: '#ffffff' },
+        width: 400,
+        margin: 4,
+        color: { dark: '#022b69', light: '#ffffff' },
+        errorCorrectionLevel: 'H',
       });
       setFallbackDataUrl(simpleQrDataUrl);
 
-      // 1. Generate QR Code Matrix on offscreen canvas
+      // 2. Generate pure QR matrix on offscreen canvas
       const qrCanvas = document.createElement('canvas');
       await QRCodeLib.toCanvas(qrCanvas, url, {
         width: 480,
-        margin: 2,
+        margin: 4, // Clean 4-module quiet zone
         color: {
-          dark: '#032b69', // Royal DGC Blue for QR modules
-          light: '#ffffff',
+          dark: '#022b69', // Deep High-Contrast Royal DGC Blue
+          light: '#ffffff', // Pure white background
         },
-        errorCorrectionLevel: 'H',
+        errorCorrectionLevel: 'H', // High error correction allowance (up to 30%)
       });
 
-      // 2. Main Template Canvas (800 x 920 px high-res)
+      // 3. Main Poster Canvas (800 x 950 px high-res)
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
       const width = 800;
-      const height = 920;
+      const height = 950;
       canvas.width = width;
       canvas.height = height;
 
@@ -81,140 +82,118 @@ export const DgcQrCard: React.FC<DgcQrCardProps> = ({ url, surveyTitle, onClose 
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, width, height);
 
-      // --- Outer Shield / Fan Border Outline ---
+      // --- Outer Card Frame Line ---
       ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(180, 20);
-      ctx.lineTo(620, 20);
-      ctx.bezierCurveTo(720, 20, 780, 100, 750, 240);
-      ctx.lineTo(680, 840);
-      ctx.bezierCurveTo(675, 880, 640, 900, 600, 900);
-      ctx.lineTo(200, 900);
-      ctx.bezierCurveTo(160, 900, 125, 880, 120, 840);
-      ctx.lineTo(50, 240);
-      ctx.bezierCurveTo(20, 100, 80, 20, 180, 20);
-      ctx.closePath();
-
-      ctx.strokeStyle = '#cbd5e1';
-      ctx.lineWidth = 3;
+      safeRoundRect(ctx, 24, 24, width - 48, height - 48, 36);
+      ctx.strokeStyle = '#0252c4';
+      ctx.lineWidth = 4;
       ctx.stroke();
+
+      // Top Gold Accent Stripe
+      safeRoundRect(ctx, 40, 24, width - 80, 10, 5);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fill();
       ctx.restore();
 
-      // --- TOP HEADER: DGC LOGO ---
-      // D
-      ctx.fillStyle = '#0252c4';
-      ctx.font = '900 85px sans-serif';
-      ctx.fillText('D', 260, 120);
+      // --- TOP HEADER: DGC BRANDING ---
+      ctx.textAlign = 'center';
 
-      // G
+      // "D G C" Large Display Logo
+      ctx.font = '900 64px sans-serif';
+      ctx.textBaseline = 'top';
+
+      // Draw D G C
+      ctx.fillStyle = '#0252c4';
+      ctx.fillText('D', 330, 52);
       ctx.fillStyle = '#f59e0b';
-      ctx.fillText('G', 355, 120);
-
-      // C
+      ctx.fillText('G', 400, 52);
       ctx.fillStyle = '#0252c4';
-      ctx.fillText('C', 450, 120);
+      ctx.fillText('C', 470, 52);
 
       // Subtitle Amharic & English
-      ctx.textAlign = 'center';
       ctx.fillStyle = '#0252c4';
       ctx.font = 'bold 22px sans-serif';
-      ctx.fillText('ድሬዳዋ መንግስት ኮሙዩኒኬሽን', 400, 160);
+      ctx.fillText('ድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ', 400, 132);
 
       ctx.fillStyle = '#d97706';
-      ctx.font = 'bold 18px sans-serif';
-      ctx.fillText('Dire Dawa Government Communication', 400, 188);
+      ctx.font = 'bold 15px sans-serif';
+      ctx.fillText('DIRE DAWA GOVERNMENT COMMUNICATION AFFAIRS BUREAU', 400, 164);
 
-      // --- INNER QR FRAME ---
-      const frameX = 140;
-      const frameY = 220;
-      const frameSize = 520;
-      const cornerRadius = 36;
-
-      // Draw Outer Frame Box
-      ctx.save();
-      safeRoundRect(ctx, frameX, frameY, frameSize, frameSize, cornerRadius);
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
-      ctx.lineWidth = 14;
-      ctx.strokeStyle = '#0252c4';
+      // Small Divider Line
+      ctx.beginPath();
+      ctx.moveTo(150, 192);
+      ctx.lineTo(650, 192);
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Top Gold Accent Bar
-      safeRoundRect(ctx, frameX + 30, frameY - 2, frameSize - 60, 12, 6);
-      ctx.fillStyle = '#f59e0b';
+      // --- INNER QR FRAME CONTAINER ---
+      const frameX = 140;
+      const frameY = 210;
+      const frameSize = 520;
+      const cornerRadius = 28;
+
+      // Outer Frame Box
+      ctx.save();
+      safeRoundRect(ctx, frameX, frameY, frameSize, frameSize, cornerRadius);
+      ctx.fillStyle = '#f8fafc';
       ctx.fill();
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#0252c4';
+      ctx.stroke();
       ctx.restore();
 
-      // --- DRAW GENERATED QR CODE ---
-      const qrOffset = 40;
-      const qrDrawSize = frameSize - qrOffset * 2;
+      // --- DRAW PRISTINE GENERATED QR CODE (DO NOT OVERDRAW CORNER FINDERS!) ---
+      const qrOffset = 30;
+      const qrDrawSize = frameSize - qrOffset * 2; // 460 x 460
       ctx.drawImage(qrCanvas, frameX + qrOffset, frameY + qrOffset, qrDrawSize, qrDrawSize);
 
-      // --- 3 CORNER FINDER BADGES ---
-      const drawCustomFinder = (cx: number, cy: number) => {
-        ctx.save();
-        // Outer Blue Rounded Box
-        safeRoundRect(ctx, cx - 36, cy - 36, 72, 72, 18);
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
-        ctx.lineWidth = 10;
-        ctx.strokeStyle = '#0252c4';
-        ctx.stroke();
-
-        // Inner Yellow Dot
-        safeRoundRect(ctx, cx - 16, cy - 16, 32, 32, 8);
-        ctx.fillStyle = '#f59e0b';
-        ctx.fill();
-        ctx.restore();
-      };
-
-      drawCustomFinder(frameX + 60, frameY + 60); // Top Left
-      drawCustomFinder(frameX + frameSize - 60, frameY + 60); // Top Right
-      drawCustomFinder(frameX + 60, frameY + frameSize - 60); // Bottom Left
-
-      // --- CENTER CIRCULAR DGC BADGE ---
+      // --- MINI CENTER LOGO BADGE (Small & safe for Error Correction H) ---
       const centerX = frameX + frameSize / 2;
       const centerY = frameY + frameSize / 2;
-      const badgeRadius = 60;
+      const miniBadgeRadius = 26; // Very small circle (52px in 460px QR = <1.3% area)
 
       ctx.save();
-      // Black Background Circle
+      // White Base Circle
       ctx.beginPath();
-      ctx.arc(centerX, centerY, badgeRadius, 0, Math.PI * 2);
-      ctx.fillStyle = '#0b1329';
+      ctx.arc(centerX, centerY, miniBadgeRadius, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
       ctx.fill();
 
-      // Double Gold/Blue Outer Border Ring
-      ctx.lineWidth = 6;
+      // Gold & Blue Outer Border
+      ctx.lineWidth = 3;
       ctx.strokeStyle = '#f59e0b';
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(centerX, centerY, badgeRadius - 4, 0, Math.PI * 2);
-      ctx.lineWidth = 2;
+      ctx.arc(centerX, centerY, miniBadgeRadius - 3, 0, Math.PI * 2);
+      ctx.lineWidth = 1.5;
       ctx.strokeStyle = '#0252c4';
       ctx.stroke();
 
-      // Center DGC Text
-      ctx.font = '900 32px sans-serif';
+      // Mini "DGC" Text
+      ctx.font = '900 16px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-
-      // Mini D, G, C
-      ctx.fillStyle = '#0284c7';
-      ctx.fillText('D', centerX - 26, centerY - 6);
-      ctx.fillStyle = '#f59e0b';
-      ctx.fillText('G', centerX, centerY - 6);
-      ctx.fillStyle = '#0284c7';
-      ctx.fillText('C', centerX + 26, centerY - 6);
-
-      // Mini text underneath logo
-      ctx.font = 'bold 9px sans-serif';
-      ctx.fillStyle = '#38bdf8';
-      ctx.fillText('ድሬዳዋ ኮሙዩኒኬሽን', centerX, centerY + 20);
+      ctx.fillStyle = '#0252c4';
+      ctx.fillText('DGC', centerX, centerY);
       ctx.restore();
 
-      // Convert canvas to data URL for download
+      // --- BOTTOM CARD FOOTER ---
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 20px sans-serif';
+      ctx.fillText('የሕዝብ አስተያየትና የፖሊሲ ጥናት መጠይቅ', 400, 755);
+
+      ctx.fillStyle = '#0252c4';
+      ctx.font = 'bold 15px sans-serif';
+      ctx.fillText('📱 በስልክዎ ካሜራ QR ኮዱን ስካን በማድረግ በስነ-ስርዓት ይሳተፉ', 400, 792);
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'medium 13px sans-serif';
+      ctx.fillText('Scan with phone camera or QR reader to participate directly', 400, 820);
+
+      // Convert canvas to high-res PNG
       const dataUrl = canvas.toDataURL('image/png');
       setDownloadUrl(dataUrl);
     } catch (err) {
@@ -228,10 +207,19 @@ export const DgcQrCard: React.FC<DgcQrCardProps> = ({ url, surveyTitle, onClose 
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      setTimeout(() => {
+        setCopied(false);
+        if (onClose) onClose();
+      }, 900);
     } catch (e) {
       console.error('Copy failed', e);
     }
+  };
+
+  const handleDownloadClick = () => {
+    setTimeout(() => {
+      if (onClose) onClose();
+    }, 600);
   };
 
   const currentDownloadUrl = downloadUrl || fallbackDataUrl;
@@ -299,6 +287,7 @@ export const DgcQrCard: React.FC<DgcQrCardProps> = ({ url, surveyTitle, onClose 
           <a
             href={currentDownloadUrl}
             download="DireDawa_Communication_Survey_QR.png"
+            onClick={handleDownloadClick}
             className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 border border-slate-700 shadow-sm"
           >
             <Download className="w-4 h-4 text-emerald-400" />

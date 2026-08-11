@@ -45,15 +45,15 @@ export const PublicSurveyList: React.FC<PublicSurveyListProps> = ({
   const openQrModal = (e: React.MouseEvent, survey: Survey) => {
     e.stopPropagation();
     setQrModalSurvey(survey);
-    const shareUrl = `${window.location.origin}/#survey-${survey.id}`;
-    QRCodeLib.toDataURL(shareUrl, { width: 280, margin: 2 })
+    const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/?survey=${survey.id}` : `https://dgc.gov.et/?survey=${survey.id}`;
+    QRCodeLib.toDataURL(shareUrl, { width: 320, margin: 2, color: { dark: '#022b69', light: '#ffffff' } })
       .then((url) => setQrDataUrl(url))
       .catch((err) => console.error('QR generation error:', err));
   };
 
   const copyShareLink = () => {
     if (!qrModalSurvey) return;
-    const link = `${window.location.origin}/#survey-${qrModalSurvey.id}`;
+    const link = typeof window !== 'undefined' ? `${window.location.origin}/?survey=${qrModalSurvey.id}` : `https://dgc.gov.et/?survey=${qrModalSurvey.id}`;
     navigator.clipboard.writeText(link);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2500);
@@ -186,7 +186,7 @@ export const PublicSurveyList: React.FC<PublicSurveyListProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
             onClick={() => setQrModalSurvey(null)}
           >
             <motion.div

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ShieldAlert, Mail, KeyRound, Zap, AlertCircle, ArrowLeft } from 'lucide-react';
+import { X, ShieldAlert, Mail, KeyRound, AlertCircle, ArrowLeft } from 'lucide-react';
 import { AuthResponse } from '../types';
 
 interface AdminLoginModalProps {
@@ -13,8 +13,8 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
   onClose,
   onLoginSuccess,
 }) => {
-  const [email, setEmail] = useState('admin@dgc.gov.et');
-  const [password, setPassword] = useState('Admin@123456');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,40 +48,8 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
     }
   };
 
-  const handleQuickDemoLogin = async () => {
-    setEmail('admin@dgc.gov.et');
-    setPassword('Admin@123456');
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: 'admin@dgc.gov.et',
-          password: 'Admin@123456',
-        }),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem('admin_token', data.token);
-        onLoginSuccess(data);
-        onClose();
-      } else {
-        setError(data.error);
-      }
-    } catch (err) {
-      setError('Quick login error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-red-950/85 backdrop-blur-md animate-fade-in text-left">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-red-950/85 backdrop-blur-md animate-fade-in text-left">
       <div className="bg-slate-900 text-white rounded-3xl max-w-md w-full shadow-2xl border-2 border-red-600/80 overflow-hidden relative shadow-red-900/50">
         {/* Red Warning Banner Bar */}
         <div className="bg-red-600 text-white px-4 py-2 text-[11px] font-bold tracking-widest uppercase flex items-center justify-between">
@@ -167,7 +135,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                 disabled={loading}
                 className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-lg shadow-red-950 flex items-center justify-center space-x-2"
               >
-                {loading ? <span>በመግባት ላይ...</span> : <span>ወደ አድሚን ሲስተም ይግቡ</span>}
+                {loading ? <span>በመግባት ላይ...</span> : <span>ወደ አድሚን ሲስተም ይግቡ (Login)</span>}
               </button>
             </div>
           </form>

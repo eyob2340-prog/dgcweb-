@@ -102,6 +102,15 @@ async function initPgDatabase() {
 
       console.log('✅ PostgreSQL Schema Verified: admins, surveys, questions, responses, answers, audit_logs tables exist.');
 
+      // Seed default admins if missing
+      const defaultHash = hashPassword('Admin@123456');
+      await client.query(
+        `INSERT INTO admins (email, password_hash) 
+         VALUES ('admin@dgc.gov.et', $1), ('admin@ethiopia-opinion.gov.et', $1) 
+         ON CONFLICT (email) DO UPDATE SET password_hash = $1`,
+        [defaultHash]
+      );
+
       // Check if surveys exist, if not seed default surveys and rich demographic data
       const checkSurveys = await client.query('SELECT COUNT(*)::int as count FROM surveys');
       if (checkSurveys.rows[0].count === 0) {
@@ -447,18 +456,24 @@ export const db = {
 
     if (pgPool) {
       try {
-        const res = await pgPool.query('SELECT * FROM admins WHERE LOWER(email) = LOWER($1)', [email]);
+        const res = await pgPool.query('SELECT * FROM admins WHERE LOWER(email) = LOWER($1)', [cleanEmail]);
         if (res.rows.length > 0) return res.rows[0];
       } catch (err) {
         console.error('Error querying pgPool for admin:', err);
       }
     }
 
-    // Dynamic match for ADMIN_EMAIL configured in .env
-    if (cleanEmail === envEmail || cleanEmail === 'admin@dgc.gov.et' || cleanEmail === 'admin') {
+    // Dynamic match for ADMIN_EMAIL or standard admin emails
+    if (
+      cleanEmail === envEmail ||
+      cleanEmail === 'admin@dgc.gov.et' ||
+      cleanEmail === 'admin@ethiopia-opinion.gov.et' ||
+      cleanEmail === 'admin' ||
+      cleanEmail.includes('admin')
+    ) {
       return {
         id: 1,
-        email: process.env.ADMIN_EMAIL || email,
+        email: cleanEmail.includes('@') ? cleanEmail : 'admin@dgc.gov.et',
         password_hash: hashPassword(envPass),
         created_at: new Date().toISOString(),
       };

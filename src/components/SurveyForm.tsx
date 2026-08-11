@@ -855,7 +855,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
@@ -864,7 +864,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
               className="max-w-md w-full"
             >
               <DgcQrCard
-                url={typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}#survey-${survey.id}` : `https://dgc.gov.et/#survey-${survey.id}`}
+                url={typeof window !== 'undefined' ? `${window.location.origin}/?survey=${survey.id}` : `https://dgc.gov.et/?survey=${survey.id}`}
                 surveyTitle={survey.title}
                 onClose={() => setShowQrModal(false)}
               />

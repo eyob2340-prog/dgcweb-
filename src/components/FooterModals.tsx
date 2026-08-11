@@ -10,7 +10,7 @@ export const FooterModals: React.FC<PolicyModalProps> = ({ type, onClose }) => {
   if (!type) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-fade-in">
       <div className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden relative text-left">
         {/* Header */}
         <div className={`p-6 text-white relative ${type === 'privacy' ? 'bg-gradient-to-r from-blue-900 to-blue-950' : 'bg-gradient-to-r from-slate-900 to-blue-900'}`}>

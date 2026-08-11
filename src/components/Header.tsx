@@ -37,55 +37,31 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleTheme,
 }) => {
   const t = translations[language];
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [scrolled, setScrolled] = useState(false);
 
-  // Dynamic Scroll Listener: Hide on scroll down, show on scroll up or top
+  // Scroll Listener for styling
   useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      
-      if (currentScrollY < 30) {
-        setIsVisible(true);
-        setScrolled(false);
-      } else {
-        setScrolled(true);
-        if (currentScrollY > lastScrollY && currentScrollY > 100) {
-          setIsVisible(false); // Scroll down -> hide (ወጣ)
-        } else if (currentScrollY < lastScrollY) {
-          setIsVisible(true);  // Scroll up -> reveal (ገባ)
-        }
-      }
-      setLastScrollY(currentScrollY);
+      setScrolled(window.scrollY > 20);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+  }, []);
 
   return (
-    <AnimatePresence>
-      <motion.header
-        initial={{ y: 0, opacity: 1 }}
-        animate={{
-          y: isVisible ? 0 : -100,
-          opacity: isVisible ? 1 : 0,
-        }}
-        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-        className={`sticky top-0 sm:top-2 z-50 transition-all duration-300 max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 no-print`}
+    <header className="sticky top-0 sm:top-2 z-30 transition-all duration-300 max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 no-print pt-1 sm:pt-2 pb-1">
+      <div
+        className={`rounded-2xl sm:rounded-3xl border transition-all duration-300 px-3 sm:px-6 py-2.5 sm:py-3.5 backdrop-blur-xl shadow-xl flex items-center justify-between gap-2 sm:gap-4 ${
+          isDarkMode
+            ? scrolled
+              ? 'bg-slate-900/95 border-blue-500/30 shadow-blue-950/40'
+              : 'bg-slate-900/80 border-slate-800/80 shadow-slate-950/30'
+            : scrolled
+            ? 'bg-white/95 border-blue-200 shadow-blue-100/60'
+            : 'bg-white/80 border-slate-200 shadow-slate-200/50'
+        }`}
       >
-        <div
-          className={`rounded-2xl sm:rounded-3xl border transition-all duration-300 px-3 sm:px-6 py-2.5 sm:py-3.5 backdrop-blur-xl shadow-2xl flex items-center justify-between gap-2 sm:gap-4 ${
-            isDarkMode
-              ? scrolled
-                ? 'bg-slate-900/90 border-blue-500/30 shadow-blue-950/40'
-                : 'bg-slate-900/80 border-slate-800 shadow-slate-950/30'
-              : scrolled
-              ? 'bg-white/90 border-blue-200 shadow-blue-100/60'
-              : 'bg-white/80 border-slate-200 shadow-slate-200/50'
-          }`}
-        >
           {/* DGC Logo with Secret Admin Trigger */}
           <div className="flex items-center space-x-3 shrink-0">
             <DgcLogo
@@ -168,8 +144,7 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
         </div>
-      </motion.header>
-    </AnimatePresence>
+      </header>
   );
 };
 
