@@ -10,7 +10,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenPrivacy, onOpenTerms }) =>
   const socialLinks = [
     { name: 'ድረ ገጽ (Website)', url: 'https://www.diredawacommunication.org', icon: Globe, iconColor: 'text-blue-400 hover:text-blue-300' },
     { name: 'ፌስቡክ (Facebook)', url: 'https://facebook.com/DGCOMU', icon: Facebook, iconColor: 'text-blue-500 hover:text-blue-400' },
-    { name: 'ዩትዩብ (YouTube)', url: 'https://www.youtube.com/@Direcommunication', icon: Youtube, iconColor: 'text-red-500 hover:text-red-400' },
+    { name: 'ዩትዩብ (YouTube)', url: 'https://www.youtube.com/@DireDawaComm', icon: Youtube, iconColor: 'text-red-500 hover:text-red-400' },
     { name: 'ቴሌግራም (Telegram)', url: 'https://t.me/DDGCAB', icon: Send, iconColor: 'text-sky-400 hover:text-sky-300' },
     { name: 'ትዊተር / X (Twitter)', url: 'https://twitter.com/DawaOffice', icon: Twitter, iconColor: 'text-amber-400 hover:text-amber-300' },
   ];
