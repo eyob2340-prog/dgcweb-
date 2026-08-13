@@ -290,7 +290,7 @@ export default function App() {
               className="opacity-95 hover:opacity-100 transition-opacity cursor-pointer active:scale-95 transition-transform"
             />
             <p className="text-[10px] text-slate-500 font-mono">
-              (ለተወሰኑ ሰዓታት በጥገና ላይ ነን EyobReta. All Rights Reserved.)
+              (ለተወሰኑ ሰዓታት በጥገና ላይ ነን © 2026 - EyobReta. All Rights Reserved.)
             </p>
           </div>
         </div>
