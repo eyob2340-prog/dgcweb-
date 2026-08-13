@@ -23,11 +23,58 @@ export interface Survey {
   has_responded?: boolean;
 }
 
+export const RESIDENCE_CATEGORIES = [
+  'የሴክተር ተቋማት',
+  'ወረዳ',
+  'የገጠር ወረዳዎች',
+] as const;
+
+export const SECTOR_INSTITUTIONS = [
+  'የመሬት ልማትና ማኔጅመንት ቢሮ',
+  'የድሬዳዋ አስተዳደር ጤና ቢሮ',
+  'የፋይናንስና ኢኮኖሚ ልማት ቢሮ',
+  'የንግድና ኢንዱስትሪ ልማት ቢሮ',
+  'የስራ በፈጠራና ክህሎት ቢሮ',
+  'ሲቨል ሰርቪስ እና ሰው ሀብት ልማት ቢሮ',
+  'የከተማ ልማትና ኮንስትራክሽን ቢሮ',
+  'የትምህርት ቢሮ',
+  'የጤና ቢሮ',
+  'ሴቶች ህፃናትና ወጣቶች ቢሮ',
+  'ፍትህ ፀጥታና ህግ ጉዳዮች ቢሮ',
+  'ግብርናና ገጠር ልማት ቢሮ',
+  'ድሬዳዋ አስተዳደር ምክር ቤት ፅህፈት ቤት',
+  'የትራንስፖርትና ሎጀስቲክ ባለስልጣን',
+  'የድሬዳዋ ፖሊስ ጠቅላይ መመሪያ',
+  'የድሬዳዋ ከተማ ስራ አስኪያጅ ፅህፈት ቤት',
+  'ወጣቶችና ስፖርት ኮሚሽን',
+  'የድሬዳዋ አሰተዳደር ከንቲባ ፅህፈት ቤት',
+] as const;
+
+export const URBAN_WOREDAS = [
+  'ወረዳ 01',
+  'ወረዳ 02',
+  'ወረዳ 03',
+  'ወረዳ 04',
+  'ወረዳ 05',
+  'ወረዳ 06',
+  'ወረዳ 07',
+  'ወረዳ 08',
+  'ወረዳ 09',
+] as const;
+
+export const RURAL_WOREDAS = [
+  'የዋሂል ክላስተር ፅህፈት ቤት',
+  'የቀለአድ ክላስተር ፅህፈት ቤት',
+  'አሰሊሶ ክላስተር ፅህፈት ቤት',
+  'ቢዮ አዋሌ ክላስተር ፅህፈት ቤት',
+] as const;
+
 export interface Demographics {
   age_group?: string; // '18-25', '26-35', '36-45', '46-65', '65+'
   gender?: string; // 'ወንድ', 'ሴት'
   education?: string; // 'ያልተማረ / መሠረታዊ', 'የመጀመሪያ ደረጃ (1-8)', 'ሁለተኛ ደረጃ (9-12)', 'ዲፕሎማ / ሰርተፊኬት', 'የመጀመሪያ ዲግሪ', 'ሁለተኛ ዲግሪና ከዚያ በላይ'
-  residence?: string; // 'አዲስ ከተማ', 'ደቼቱ', 'አሰብታ', 'መላካ', 'ቦሌ (ድሬዳዋ)', 'ድሬዳዋ ዙሪያ ገጠር', 'ሌላ'
+  residence_category?: string; // 'የሴክተር ተቋማት', 'ወረዳ', 'የገጠር ወረዳዎች'
+  residence?: string; // Specific institution or woreda name
 }
 
 export interface AnswerSubmission {
@@ -114,6 +161,9 @@ export interface AiReportResponse {
 export interface AdminUser {
   id: number;
   email: string;
+  username?: string;
+  role: 'developer' | 'owner' | 'admin';
+  created_at?: string;
 }
 
 export interface AuthResponse {
@@ -124,5 +174,43 @@ export interface AuthResponse {
 export interface TelegramConfig {
   botToken?: string;
   chatId?: string;
+}
+
+export type TicketStatus = 'Pending' | 'Under Review' | 'Resolved' | 'Closed';
+export type TicketPriority = 'Normal' | 'High' | 'Urgent';
+
+export interface CitizenTicket {
+  id: number;
+  ticket_code: string;
+  category: string;
+  residence?: string;
+  subject: string;
+  description: string;
+  full_name?: string;
+  phone?: string;
+  email?: string;
+  priority: TicketPriority;
+  status: TicketStatus;
+  admin_response?: string;
+  responded_at?: string;
+  responded_by?: string;
+  created_at: string;
+}
+
+export interface TicketSubmission {
+  category: string;
+  residence?: string;
+  subject: string;
+  description: string;
+  full_name?: string;
+  phone?: string;
+  email?: string;
+  priority?: TicketPriority;
+}
+
+export interface TranslationResult {
+  detected_language: string;
+  translated_amharic: string;
+  translated_english: string;
 }
 

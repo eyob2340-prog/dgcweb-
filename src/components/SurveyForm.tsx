@@ -26,7 +26,14 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import QRCodeLib from 'qrcode';
-import { Survey, Demographics } from '../types';
+import {
+  Survey,
+  Demographics,
+  RESIDENCE_CATEGORIES,
+  SECTOR_INSTITUTIONS,
+  URBAN_WOREDAS,
+  RURAL_WOREDAS,
+} from '../types';
 import { saveToOfflineQueue } from '../lib/offlineSync';
 import { Language, translations } from '../lib/i18n';
 import { DgcQrCard } from './DgcQrCard';
@@ -597,19 +604,60 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
             </select>
           </div>
 
-          {/* Residence Selection */}
+          {/* Residence Category Selection */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-300">{t.residence}:</label>
+            <label className="text-xs font-bold text-slate-300">መኖሪያ / ተቋም Category:</label>
+            <select
+              value={demographics.residence_category || RESIDENCE_CATEGORIES[0]}
+              onChange={(e) => {
+                const cat = e.target.value;
+                let defaultLoc = SECTOR_INSTITUTIONS[0] as string;
+                if (cat === 'ወረዳ') defaultLoc = URBAN_WOREDAS[0];
+                else if (cat === 'የገጠር ወረዳዎች') defaultLoc = RURAL_WOREDAS[0];
+                setDemographics((p) => ({
+                  ...p,
+                  residence_category: cat,
+                  residence: defaultLoc,
+                }));
+              }}
+              className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {RESIDENCE_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Specific Location Selection */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-300">
+              የተወሰነ ቦታ/ተቋም ({demographics.residence_category || RESIDENCE_CATEGORIES[0]}):
+            </label>
             <select
               value={demographics.residence || ''}
               onChange={(e) => setDemographics((p) => ({ ...p, residence: e.target.value }))}
               className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {RESIDENCES.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
+              {(demographics.residence_category === 'የሴክተር ተቋማት' || !demographics.residence_category) &&
+                SECTOR_INSTITUTIONS.map((inst) => (
+                  <option key={inst} value={inst}>
+                    🏢 {inst}
+                  </option>
+                ))}
+              {demographics.residence_category === 'ወረዳ' &&
+                URBAN_WOREDAS.map((w) => (
+                  <option key={w} value={w}>
+                    🏙️ {w}
+                  </option>
+                ))}
+              {demographics.residence_category === 'የገጠር ወረዳዎች' &&
+                RURAL_WOREDAS.map((rw) => (
+                  <option key={rw} value={rw}>
+                    🌾 {rw}
+                  </option>
+                ))}
             </select>
           </div>
         </div>

@@ -1,8 +1,8 @@
 import { SurveyAnalytics, AiReportResponse } from '../src/types';
 
-// Default user-configured Telegram Bot & Channel
-export const DEFAULT_TELEGRAM_BOT_TOKEN = '8731468553:AAFk8GM8EKAnt1-_Q8iRjS1ZV7isiBqOFpU';
-export const DEFAULT_TELEGRAM_CHAT_ID = '-1002746235318';
+// User-configured Telegram Bot & Channel
+export const DEFAULT_TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
+export const DEFAULT_TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 
 export function formatTelegramChatId(rawId?: string): string {
   if (!rawId) return DEFAULT_TELEGRAM_CHAT_ID;

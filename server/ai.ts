@@ -130,3 +130,63 @@ ${JSON.stringify(demographics_analytics || {}, null, 2)}
     };
   }
 }
+
+export async function translateTextWithAi(text: string): Promise<{
+  detected_language: string;
+  translated_amharic: string;
+  translated_english: string;
+}> {
+  if (!text || text.trim().length === 0) {
+    return {
+      detected_language: 'Unknown',
+      translated_amharic: '',
+      translated_english: '',
+    };
+  }
+
+  const prompt = `
+You are an expert official translator for Dire Dawa Administration Government Communication Affairs Bureau (DGC).
+Analyse the source text provided below (which may be written in Somali, Afaan Oromoo, Amharic, English, or Tigrinya).
+1. Detect the original language.
+2. Provide an accurate and clear Amharic translation.
+3. Provide an accurate and clear English translation.
+
+Source Text:
+---
+${text}
+---
+
+Return your response ONLY in valid JSON format matching this schema:
+{
+  "detected_language": "Somali / Afaan Oromoo / Amharic / English / etc.",
+  "translated_amharic": "አማርኛ ትርጉም",
+  "translated_english": "English translation"
+}
+`;
+
+  try {
+    const ai = getAiClient();
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.6-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+      },
+    });
+
+    const parsed = JSON.parse(response.text || '{}');
+    return {
+      detected_language: parsed.detected_language || 'Detected Language',
+      translated_amharic: parsed.translated_amharic || text,
+      translated_english: parsed.translated_english || text,
+    };
+  } catch (err: any) {
+    console.error('Error in AI translation:', err);
+    return {
+      detected_language: 'Original Text',
+      translated_amharic: text,
+      translated_english: text,
+    };
+  }
+}
+

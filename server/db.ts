@@ -47,9 +47,14 @@ async function initPgDatabase() {
         CREATE TABLE IF NOT EXISTS admins (
           id SERIAL PRIMARY KEY,
           email VARCHAR(255) UNIQUE NOT NULL,
+          username VARCHAR(255) UNIQUE,
           password_hash TEXT NOT NULL,
+          role VARCHAR(50) DEFAULT 'admin',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+
+        ALTER TABLE admins ADD COLUMN IF NOT EXISTS username VARCHAR(255);
+        ALTER TABLE admins ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'admin';
 
         CREATE TABLE IF NOT EXISTS surveys (
           id SERIAL PRIMARY KEY,
@@ -98,18 +103,44 @@ async function initPgDatabase() {
           timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           ip_address VARCHAR(50)
         );
+
+        CREATE TABLE IF NOT EXISTS tickets (
+          id SERIAL PRIMARY KEY,
+          ticket_code VARCHAR(50) UNIQUE NOT NULL,
+          category VARCHAR(100) NOT NULL,
+          residence VARCHAR(100),
+          subject TEXT NOT NULL,
+          description TEXT NOT NULL,
+          full_name VARCHAR(255),
+          phone VARCHAR(50),
+          email VARCHAR(255),
+          priority VARCHAR(20) DEFAULT 'Normal',
+          status VARCHAR(30) DEFAULT 'Pending',
+          admin_response TEXT,
+          responded_at TIMESTAMP,
+          responded_by VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
       `);
 
-      console.log('✅ PostgreSQL Schema Verified: admins, surveys, questions, responses, answers, audit_logs tables exist.');
+      console.log('✅ PostgreSQL Schema Verified: admins, surveys, questions, responses, answers, audit_logs, tickets tables exist.');
 
-      // Seed default admins if missing
-      const defaultHash = hashPassword('Admin@123456');
-      await client.query(
-        `INSERT INTO admins (email, password_hash) 
-         VALUES ('admin@dgc.gov.et', $1), ('admin@ethiopia-opinion.gov.et', $1) 
-         ON CONFLICT (email) DO UPDATE SET password_hash = $1`,
-        [defaultHash]
-      );
+      // Seed default system users (Developer opa, 1 Owner, and Admin)
+      const usersToSeed = [
+        { email: 'opa@dgc.gov.et', username: 'opa', pass: 'OPA@123', role: 'developer' },
+        { email: 'owner1@dgc.gov.et', username: 'owner1', pass: 'Owner1@123', role: 'owner' },
+        { email: 'admin@dgc.gov.et', username: 'admin', pass: 'Admin@123456', role: 'admin' },
+      ];
+
+      for (const u of usersToSeed) {
+        const uHash = hashPassword(u.pass);
+        await client.query(
+          `INSERT INTO admins (email, username, password_hash, role)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (email) DO UPDATE SET password_hash = $3, username = $2, role = $4`,
+          [u.email, u.username, uHash, u.role]
+        );
+      }
 
       // Check if surveys exist, if not seed default surveys and rich demographic data
       const checkSurveys = await client.query('SELECT COUNT(*)::int as count FROM surveys');
@@ -195,6 +226,32 @@ async function seedPgInitialData(client: any) {
     );
   }
   await client.query(`SELECT setval('audit_logs_id_seq', (SELECT MAX(id) FROM audit_logs))`);
+
+  // Insert initial tickets
+  for (const t of initialData.tickets || []) {
+    await client.query(
+      `INSERT INTO tickets (id, ticket_code, category, residence, subject, description, full_name, phone, email, priority, status, admin_response, responded_at, responded_by, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) ON CONFLICT (ticket_code) DO NOTHING`,
+      [
+        t.id,
+        t.ticket_code,
+        t.category,
+        t.residence || null,
+        t.subject,
+        t.description,
+        t.full_name || null,
+        t.phone || null,
+        t.email || null,
+        t.priority || 'Normal',
+        t.status || 'Pending',
+        t.admin_response || null,
+        t.responded_at || null,
+        t.responded_by || null,
+        t.created_at || new Date().toISOString(),
+      ]
+    );
+  }
+  await client.query(`SELECT setval('tickets_id_seq', (SELECT MAX(id) FROM tickets))`);
 }
 
 // Local JSON File Fallback Store
@@ -202,7 +259,7 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 interface LocalDB {
-  admins: { id: number; email: string; password_hash: string; created_at: string }[];
+  admins: { id: number; email: string; username?: string; password_hash: string; role: 'developer' | 'owner' | 'admin'; created_at: string }[];
   surveys: { id: number; title: string; description: string; category: string; is_active: boolean; created_at: string }[];
   questions: { id: number; survey_id: number; question_text: string; question_type: 'text' | 'radio' | 'rating'; options: string[] }[];
   responses: {
@@ -217,11 +274,33 @@ interface LocalDB {
   }[];
   answers: { id: number; response_id: number; question_id: number; answer_text?: string; rating_value?: number }[];
   audit_logs: { id: number; admin_email: string; action: string; details: string; timestamp: string; ip_address?: string }[];
+  tickets: {
+    id: number;
+    ticket_code: string;
+    category: string;
+    residence?: string;
+    subject: string;
+    description: string;
+    full_name?: string;
+    phone?: string;
+    email?: string;
+    priority: 'Normal' | 'High' | 'Urgent';
+    status: 'Pending' | 'Under Review' | 'Resolved' | 'Closed';
+    admin_response?: string;
+    responded_at?: string;
+    responded_by?: string;
+    created_at: string;
+  }[];
 }
 
 function getInitialData(): LocalDB {
+  const now = new Date().toISOString();
   return {
-    admins: [], // No hardcoded admin in DB seed; handled dynamically via process.env.ADMIN_EMAIL & ADMIN_PASSWORD
+    admins: [
+      { id: 1, email: 'opa@dgc.gov.et', username: 'opa', password_hash: hashPassword('OPA@123'), role: 'developer', created_at: now },
+      { id: 2, email: 'owner1@dgc.gov.et', username: 'owner1', password_hash: hashPassword('Owner1@123'), role: 'owner', created_at: now },
+      { id: 3, email: 'admin@dgc.gov.et', username: 'admin', password_hash: hashPassword('Admin@123456'), role: 'admin', created_at: now },
+    ],
     surveys: [
       {
         id: 1,
@@ -416,6 +495,66 @@ function getInitialData(): LocalDB {
       { id: 63, response_id: 26, question_id: 10, rating_value: 5 },
       { id: 64, response_id: 26, question_id: 11, answer_text: 'በጣም ከፍተኛ' },
     ],
+    tickets: [
+      {
+        id: 1,
+        ticket_code: 'DGC-TKT-2026-W892',
+        category: 'ንጹህ መጠጥ ውኃ',
+        residence: 'ደቼቱ',
+        subject: 'የመጠጥ ውኃ መቆራረጥ አቤቱታ',
+        description: 'በደቼቱ ቀበሌ 03 አካባቢ ላለፉት 4 ቀናት የንጹህ መጠጥ ውኃ መቆራረጥ አጋጥሟል:: እባክዎን የመጠጥ ውኃ መስመሩ እንዲስተካከልልን::',
+        full_name: 'አህመድ መሐመድ',
+        phone: '0915123456',
+        priority: 'High',
+        status: 'Resolved',
+        admin_response: 'የውኃና ፍሳሽ ባለስልጣን የቴክኒክ ቡድን የተበላሸውን ዋና መስመር በማስተካከል አገልግሎቱን ወደ ነበረበት መልሷል::',
+        responded_at: new Date(Date.now() - 1 * 86400000).toISOString(),
+        responded_by: 'admin@dgc.gov.et',
+        created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+      },
+      {
+        id: 2,
+        ticket_code: 'DGC-TKT-2026-S104',
+        category: 'መንገድና ትራንስፖርት',
+        residence: 'አዲስ ከተማ',
+        subject: 'Cabasho ku saabsan gaadiidka dadweynaha',
+        description: 'Waxaan cabasho ka muujinaynaa gaadiidka dadweynaha ee ka shaqeeya Sabian iyo Addada, oo qiimaha khidmada si aan sharciga ahayn u kordhiyay.',
+        full_name: 'Axmed Nuur',
+        phone: '0922334455',
+        priority: 'Normal',
+        status: 'Pending',
+        created_at: new Date(Date.now() - 12 * 3600000).toISOString(),
+      },
+      {
+        id: 3,
+        ticket_code: 'DGC-TKT-2026-O205',
+        category: 'ጤናና ሆስፒታል',
+        residence: 'አሰብታ',
+        subject: "Waa'ee tajaajila kaffaltii bilisaa kan hospitaala Sabiyaan",
+        description: "Hospitaala Sabiyaan keessatti qorichi kaffaltii bilisaatiin kennamu muraasa waan ta'eef gargaarsi hatattamaa akka godhamu gaafanna.",
+        full_name: 'Caliyyii Galgaloo',
+        phone: '0933445566',
+        priority: 'Urgent',
+        status: 'Under Review',
+        admin_response: 'የጤና መመሪያ እና የጥራት ቁጥጥር ቡድናችን ጉዳዩን እየመረመረ ይገኛል::',
+        responded_at: new Date(Date.now() - 2 * 3600000).toISOString(),
+        responded_by: 'admin@dgc.gov.et',
+        created_at: new Date(Date.now() - 5 * 3600000).toISOString(),
+      },
+      {
+        id: 4,
+        ticket_code: 'DGC-TKT-2026-L308',
+        category: 'የከተማ መሬትና ፕላን',
+        residence: 'ቦሌ (ድሬዳዋ)',
+        subject: 'የካርታ እና ይዞታ ማረጋገጫ ጥያቄ',
+        description: 'በቦሌ ክፍለ ከተማ ህጋዊ የይዞታ ማረጋገጫ ማውጣት ሂደቱ መዘገየት አሳይቷል::',
+        full_name: 'ሰለሞን በቀለ',
+        phone: '0911887766',
+        priority: 'Normal',
+        status: 'Pending',
+        created_at: new Date(Date.now() - 1 * 3600000).toISOString(),
+      },
+    ],
   };
 }
 
@@ -448,42 +587,176 @@ function writeLocalDB(db: LocalDB): void {
 
 // Data Access API
 export const db = {
-  // Admin authentication (Dynamic check against process.env.ADMIN_EMAIL / ADMIN_PASSWORD)
-  async getAdminByEmail(email: string) {
-    const cleanEmail = (email || '').toLowerCase().trim();
-    const envEmail = (process.env.ADMIN_EMAIL || 'admin@ethiopia-opinion.gov.et').toLowerCase().trim();
-    const envPass = process.env.ADMIN_PASSWORD || 'Admin@123456';
+  // Admin & User authentication
+  async getAdminByEmail(identifier: string) {
+    const cleanStr = (identifier || '').toLowerCase().trim();
+    if (!cleanStr) return null;
 
     if (pgPool) {
       try {
-        const res = await pgPool.query('SELECT * FROM admins WHERE LOWER(email) = LOWER($1)', [cleanEmail]);
+        const res = await pgPool.query(
+          'SELECT * FROM admins WHERE LOWER(email) = LOWER($1) OR LOWER(username) = LOWER($1)',
+          [cleanStr]
+        );
         if (res.rows.length > 0) return res.rows[0];
       } catch (err) {
         console.error('Error querying pgPool for admin:', err);
       }
     }
 
-    // Dynamic match for ADMIN_EMAIL or standard admin emails
-    if (
-      cleanEmail === envEmail ||
-      cleanEmail === 'admin@dgc.gov.et' ||
-      cleanEmail === 'admin@ethiopia-opinion.gov.et' ||
-      cleanEmail === 'admin' ||
-      cleanEmail.includes('admin')
-    ) {
+    // Default system users fallback
+    if (cleanStr === 'opa' || cleanStr === 'opa@dgc.gov.et') {
       return {
         id: 1,
-        email: cleanEmail.includes('@') ? cleanEmail : 'admin@dgc.gov.et',
-        password_hash: hashPassword(envPass),
+        email: 'opa@dgc.gov.et',
+        username: 'opa',
+        role: 'developer',
+        password_hash: hashPassword('OPA@123'),
+        created_at: new Date().toISOString(),
+      };
+    }
+
+    if (cleanStr === 'owner1' || cleanStr === 'owner1@dgc.gov.et') {
+      return {
+        id: 2,
+        email: 'owner1@dgc.gov.et',
+        username: 'owner1',
+        role: 'owner',
+        password_hash: hashPassword('Owner1@123'),
+        created_at: new Date().toISOString(),
+      };
+    }
+
+    if (cleanStr === 'admin' || cleanStr === 'admin@dgc.gov.et' || cleanStr === 'admin@ethiopia-opinion.gov.et') {
+      return {
+        id: 3,
+        email: 'admin@dgc.gov.et',
+        username: 'admin',
+        role: 'admin',
+        password_hash: hashPassword('Admin@123456'),
         created_at: new Date().toISOString(),
       };
     }
 
     const local = readLocalDB();
-    const found = local.admins.find((a) => a.email.toLowerCase() === cleanEmail);
+    const found = local.admins.find(
+      (a) => a.email.toLowerCase() === cleanStr || (a.username && a.username.toLowerCase() === cleanStr)
+    );
     if (found) return found;
 
     return null;
+  },
+
+  async getAllAdmins() {
+    if (pgPool) {
+      try {
+        const res = await pgPool.query('SELECT id, email, username, role, created_at FROM admins ORDER BY id ASC');
+        if (res.rows.length > 0) return res.rows;
+      } catch (err) {
+        console.error('Error fetching admins from pgPool:', err);
+      }
+    }
+
+    const local = readLocalDB();
+    if (!local.admins || local.admins.length === 0) {
+      const init = getInitialData();
+      return init.admins.map(({ password_hash, ...rest }) => rest);
+    }
+    return local.admins.map(({ password_hash, ...rest }) => rest);
+  },
+
+  async updateAdminProfile(id: number, updates: { email?: string; username?: string; password?: string; role?: 'owner' | 'admin' }) {
+    const { email, username, password, role } = updates;
+    const newHash = password ? hashPassword(password) : undefined;
+
+    if (pgPool) {
+      try {
+        const setClauses: string[] = [];
+        const params: any[] = [];
+        let idx = 1;
+
+        if (email) {
+          setClauses.push(`email = $${idx++}`);
+          params.push(email);
+        }
+        if (username) {
+          setClauses.push(`username = $${idx++}`);
+          params.push(username);
+        }
+        if (newHash) {
+          setClauses.push(`password_hash = $${idx++}`);
+          params.push(newHash);
+        }
+        if (role) {
+          setClauses.push(`role = $${idx++}`);
+          params.push(role);
+        }
+
+        if (setClauses.length > 0) {
+          params.push(id);
+          await pgPool.query(`UPDATE admins SET ${setClauses.join(', ')} WHERE id = $${idx}`, params);
+        }
+        return true;
+      } catch (err) {
+        console.error('Error updating admin profile in pgPool:', err);
+      }
+    }
+
+    const local = readLocalDB();
+    const idx = local.admins.findIndex((a) => a.id === id);
+    if (idx !== -1) {
+      if (email) local.admins[idx].email = email;
+      if (username) local.admins[idx].username = username;
+      if (newHash) local.admins[idx].password_hash = newHash;
+      if (role) local.admins[idx].role = role;
+      writeLocalDB(local);
+    }
+    return true;
+  },
+
+  async createAdminUser(email: string, username: string, password: string, role: 'owner' | 'admin' = 'admin') {
+    const uHash = hashPassword(password);
+    if (pgPool) {
+      try {
+        const res = await pgPool.query(
+          `INSERT INTO admins (email, username, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, email, username, role, created_at`,
+          [email, username, uHash, role]
+        );
+        return res.rows[0];
+      } catch (err) {
+        console.error('Error creating admin in pgPool:', err);
+      }
+    }
+
+    const local = readLocalDB();
+    const newId = local.admins.length > 0 ? Math.max(...local.admins.map((a) => a.id)) + 1 : 1;
+    const newUser = {
+      id: newId,
+      email,
+      username,
+      password_hash: uHash,
+      role,
+      created_at: new Date().toISOString(),
+    };
+    local.admins.push(newUser);
+    writeLocalDB(local);
+    const { password_hash, ...rest } = newUser;
+    return rest;
+  },
+
+  async deleteAdminUser(id: number) {
+    if (pgPool) {
+      try {
+        await pgPool.query('DELETE FROM admins WHERE id = $1', [id]);
+        return true;
+      } catch (err) {
+        console.error('Error deleting admin from pgPool:', err);
+      }
+    }
+    const local = readLocalDB();
+    local.admins = local.admins.filter((a) => a.id !== id);
+    writeLocalDB(local);
+    return true;
   },
 
   // Public & Admin Surveys
@@ -1020,4 +1293,135 @@ export const db = {
       },
     };
   },
+
+  // Citizen Complaint & Inquiry Tickets API
+  async createTicket(data: {
+    ticket_code: string;
+    category: string;
+    residence?: string;
+    subject: string;
+    description: string;
+    full_name?: string;
+    phone?: string;
+    email?: string;
+    priority?: string;
+  }) {
+    if (pgPool) {
+      const res = await pgPool.query(
+        `INSERT INTO tickets (ticket_code, category, residence, subject, description, full_name, phone, email, priority, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'Pending') RETURNING *`,
+        [
+          data.ticket_code,
+          data.category,
+          data.residence || null,
+          data.subject,
+          data.description,
+          data.full_name || null,
+          data.phone || null,
+          data.email || null,
+          data.priority || 'Normal',
+        ]
+      );
+      return res.rows[0];
+    }
+
+    const local = readLocalDB();
+    if (!local.tickets) local.tickets = [];
+    const newId = local.tickets.length > 0 ? Math.max(...local.tickets.map((t) => t.id)) + 1 : 1;
+    const newTicket = {
+      id: newId,
+      ticket_code: data.ticket_code,
+      category: data.category,
+      residence: data.residence,
+      subject: data.subject,
+      description: data.description,
+      full_name: data.full_name,
+      phone: data.phone,
+      email: data.email,
+      priority: (data.priority as any) || 'Normal',
+      status: 'Pending' as const,
+      created_at: new Date().toISOString(),
+    };
+    local.tickets.unshift(newTicket);
+    writeLocalDB(local);
+    return newTicket;
+  },
+
+  async getTicketByCode(ticketCode: string) {
+    const cleanCode = (ticketCode || '').trim().toUpperCase();
+    if (pgPool) {
+      const res = await pgPool.query('SELECT * FROM tickets WHERE UPPER(ticket_code) = UPPER($1)', [cleanCode]);
+      return res.rows.length > 0 ? res.rows[0] : null;
+    }
+
+    const local = readLocalDB();
+    const tickets = local.tickets || [];
+    return tickets.find((t) => t.ticket_code.toUpperCase() === cleanCode) || null;
+  },
+
+  async getAllTickets() {
+    if (pgPool) {
+      const res = await pgPool.query('SELECT * FROM tickets ORDER BY created_at DESC');
+      return res.rows;
+    }
+
+    const local = readLocalDB();
+    const tickets = local.tickets || [];
+    return [...tickets].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  },
+
+  async getTicketsByPhoneOrEmail(query: string) {
+    const cleanQuery = (query || '').trim().toLowerCase();
+    if (!cleanQuery) return [];
+
+    if (pgPool) {
+      const res = await pgPool.query(
+        `SELECT * FROM tickets 
+         WHERE LOWER(phone) LIKE $1 OR LOWER(email) LIKE $1 OR LOWER(full_name) LIKE $1 
+         ORDER BY created_at DESC`,
+        [`%${cleanQuery}%`]
+      );
+      return res.rows;
+    }
+
+    const local = readLocalDB();
+    const tickets = local.tickets || [];
+    return tickets.filter(
+      (t) =>
+        (t.phone && t.phone.toLowerCase().includes(cleanQuery)) ||
+        (t.email && t.email.toLowerCase().includes(cleanQuery)) ||
+        (t.full_name && t.full_name.toLowerCase().includes(cleanQuery))
+    );
+  },
+
+  async updateTicketResponse(
+    ticketId: number,
+    adminResponse: string,
+    status: 'Pending' | 'Under Review' | 'Resolved' | 'Closed',
+    adminEmail: string
+  ) {
+    const nowIso = new Date().toISOString();
+    if (pgPool) {
+      const res = await pgPool.query(
+        `UPDATE tickets 
+         SET admin_response = $1, status = $2, responded_at = NOW(), responded_by = $3 
+         WHERE id = $4 RETURNING *`,
+        [adminResponse, status, adminEmail, ticketId]
+      );
+      return res.rows[0];
+    }
+
+    const local = readLocalDB();
+    if (!local.tickets) local.tickets = [];
+    const ticket = local.tickets.find((t) => t.id === ticketId);
+    if (ticket) {
+      ticket.admin_response = adminResponse;
+      ticket.status = status;
+      ticket.responded_at = nowIso;
+      ticket.responded_by = adminEmail;
+      writeLocalDB(local);
+    }
+    return ticket;
+  },
 };
+

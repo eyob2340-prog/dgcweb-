@@ -5,7 +5,7 @@ import { Request, Response, NextFunction } from 'express';
 const JWT_SECRET = process.env.JWT_SECRET || 'ethiopia-opinion-survey-platform-secret-2026';
 
 export interface AuthenticatedRequest extends Request {
-  adminUser?: { id: number; email: string };
+  adminUser?: { id: number; email: string; username?: string; role?: 'developer' | 'owner' | 'admin' };
 }
 
 export function hashPassword(password: string): string {
@@ -16,13 +16,13 @@ export function comparePassword(password: string, hash: string): boolean {
   return bcrypt.compareSync(password, hash);
 }
 
-export function generateToken(payload: { id: number; email: string }): string {
+export function generateToken(payload: { id: number; email: string; username?: string; role?: 'developer' | 'owner' | 'admin' }): string {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 }
 
-export function verifyToken(token: string): { id: number; email: string } | null {
+export function verifyToken(token: string): { id: number; email: string; username?: string; role?: 'developer' | 'owner' | 'admin' } | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as { id: number; email: string };
+    return jwt.verify(token, JWT_SECRET) as { id: number; email: string; username?: string; role?: 'developer' | 'owner' | 'admin' };
   } catch {
     return null;
   }

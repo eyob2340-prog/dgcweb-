@@ -12,10 +12,11 @@ import { db } from './server/db';
 import { comparePassword, generateToken, authMiddleware, AuthenticatedRequest } from './server/auth';
 import { sendTelegramReport, DEFAULT_TELEGRAM_BOT_TOKEN, DEFAULT_TELEGRAM_CHAT_ID, formatTelegramChatId } from './server/telegram';
 
-// In-memory runtime telegram config store
+// In-memory runtime settings store
 let activeBotToken = process.env.TELEGRAM_BOT_TOKEN || DEFAULT_TELEGRAM_BOT_TOKEN;
 let activeChatId = process.env.TELEGRAM_CHAT_ID || DEFAULT_TELEGRAM_CHAT_ID;
-import { generateSurveyAiReport } from './server/ai';
+let isMaintenanceMode = false;
+import { generateSurveyAiReport, translateTextWithAi } from './server/ai';
 
 const app = express();
 const PORT = 3000;
@@ -125,49 +126,263 @@ app.post('/api/surveys/:id/responses', submissionLimiter, async (req: Request, r
   }
 });
 
+// Submit Citizen Complaint or Inquiry (የዜጎች አቤቱታ/ጥያቄ ማስገቢያ)
+app.post('/api/tickets', submissionLimiter, async (req: Request, res: Response) => {
+  try {
+    const { category, residence, subject, description, full_name, phone, email, priority } = req.body;
+
+    if (!subject || !description || !category) {
+      return res.status(400).json({ error: 'እባክዎ የጥያቄውን/አቤቱታውን ርዕስ፣ ዝርዝር መግለጫ እና ዘርፍ ያስገቡ' });
+    }
+
+    const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const ticket_code = `DGC-TKT-2026-${randomPart}`;
+
+    const ticket = await db.createTicket({
+      ticket_code,
+      category,
+      residence,
+      subject,
+      description,
+      full_name,
+      phone,
+      email,
+      priority: priority || 'Normal',
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'የእርስዎ አቤቱታ/ጥያቄ በስኬት ተመዝግቧል! ሁኔታውን በክትትል ኮድዎ መከታተል ይችላሉ::',
+      ticket_code: ticket.ticket_code,
+      ticket,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'አቤቱታውን ለመመዝገብ አልተቻለም', details: err.message });
+  }
+});
+
+// Track Citizen Ticket Status by Ticket Code (የአቤቱታ ሁኔታ መከታተያ)
+app.get('/api/tickets/track/:code', async (req: Request, res: Response) => {
+  try {
+    const code = req.params.code;
+    if (!code) return res.status(400).json({ error: 'እባክዎ የክትትል ኮድ ያስገቡ' });
+
+    const ticket = await db.getTicketByCode(code);
+    if (!ticket) {
+      return res.status(404).json({ error: 'በዚህ የክትትል ኮድ የተመዘገበ አቤቱታ ወይም ጥያቄ አልተገኘም:: እባክዎ ኮዱን አስተካክለው ይሞክሩ::' });
+    }
+
+    res.json({ ticket });
+  } catch (err: any) {
+    res.status(500).json({ error: 'መረጃውን ማግኘት አልተቻለም', details: err.message });
+  }
+});
+
+// Recover Lost Ticket Code by Phone, Email, or Full Name (የተረሳ የክትትል ኮድ መፈለጊያ)
+app.post('/api/tickets/recover', async (req: Request, res: Response) => {
+  try {
+    const { query } = req.body;
+    if (!query || query.trim().length < 3) {
+      return res.status(400).json({ error: 'እባክዎ ቢያንስ 3 ፊደላት/ቁጥሮች ያለው ስልክ፣ ኢሜይል ወይም ሙሉ ስም ያስገቡ::' });
+    }
+
+    const tickets = await db.getTicketsByPhoneOrEmail(query);
+    if (!tickets || tickets.length === 0) {
+      return res.status(404).json({ error: 'በተሰጠው ስልክ ወይም ኢሜይል የተመዘገበ አቤቱታ አልተገኘም::' });
+    }
+
+    res.json({ success: true, count: tickets.length, tickets });
+  } catch (err: any) {
+    res.status(500).json({ error: 'አቤቱታውን መፈለግ አልተቻለም', details: err.message });
+  }
+});
+
 // ==================== ADMIN ENDPOINTS ====================
 
-// Admin Login
+// Admin / Owner / Developer Login
 app.post('/api/admin/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ error: 'እባክዎ ኢሜይል እና ፓስወርድ ያስገቡ' });
+      return res.status(400).json({ error: 'እባክዎ የተጠቃሚ ስም/ኢሜይል እና ፓስወርድ ያስገቡ' });
     }
 
+    const cleanInput = (email || '').trim();
     const cleanPassword = (password || '').trim();
-    const admin = await db.getAdminByEmail(email);
+
+    const admin = await db.getAdminByEmail(cleanInput);
     if (!admin) {
-      return res.status(401).json({ error: 'የተሳሳተ ኢሜይል ወይም ፓስወርድ!' });
+      return res.status(401).json({ error: 'የተሳሳተ የተጠቃሚ ስም/ኢሜይል ወይም ፓስወርድ!' });
     }
 
-    const isMatch =
-      comparePassword(cleanPassword, admin.password_hash) ||
-      cleanPassword === 'Admin@123456' ||
-      cleanPassword.toLowerCase() === 'admin@123456' ||
-      cleanPassword === 'admin123' ||
-      cleanPassword === '123456' ||
-      cleanPassword === 'admin';
+    let isMatch = false;
+    if (admin.password_hash) {
+      isMatch = comparePassword(cleanPassword, admin.password_hash);
+    }
 
     if (!isMatch) {
-      return res.status(401).json({ error: 'የተሳሳተ ኢሜይል ወይም ፓስወርድ!' });
+      return res.status(401).json({ error: 'የተሳሳተ የተጠቃሚ ስም/ኢሜይል ወይም ፓስወርድ!' });
     }
 
-    const token = generateToken({ id: admin.id, email: admin.email });
-    await db.addAuditLog(admin.email, 'ADMIN_LOGIN', 'አድሚን ወደ ሲስተሙ በስኬት ገብቷል::', req.ip);
+    const userRole = admin.role || 'admin';
+    const token = generateToken({
+      id: admin.id,
+      email: admin.email,
+      username: admin.username || admin.email.split('@')[0],
+      role: userRole,
+    });
+
+    await db.addAuditLog(admin.email, 'ADMIN_LOGIN', `ተጠቃሚ [${admin.email}] በ [${userRole}] ሚና ወደ ሲስተሙ በስኬት ገብቷል::`, req.ip);
 
     res.json({
       token,
-      admin: { id: admin.id, email: admin.email },
+      admin: {
+        id: admin.id,
+        email: admin.email,
+        username: admin.username || admin.email.split('@')[0],
+        role: userRole,
+      },
     });
   } catch (err: any) {
     res.status(500).json({ error: 'የመግባት ሂደት አልተሳካም', details: err.message });
   }
 });
 
-// Verify Current Admin Token
+// Verify Current User Token
 app.get('/api/admin/me', authMiddleware, (req: AuthenticatedRequest, res: Response) => {
   res.json({ admin: req.adminUser });
+});
+
+// User Management: List Users (Developer & Owners)
+app.get('/api/admin/users', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const users = await db.getAllAdmins();
+    res.json({ users });
+  } catch (err: any) {
+    res.status(500).json({ error: 'የተጠቃሚዎችን ዝርዝር ማግኘት አልተቻለም', details: err.message });
+  }
+});
+
+// User Management: Create User (Developer & Owners)
+app.post('/api/admin/users', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { email, username, password, role } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'ኢሜይል እና ፓስወርድ አስፈላጊ ናቸው::' });
+    }
+    const newUser = await db.createAdminUser(email, username || email.split('@')[0], password, role || 'admin');
+    await db.addAuditLog(req.adminUser?.email || 'system', 'CREATE_USER', `አዲስ አድሚን [${email}] ተፈጠረ::`, req.ip);
+    res.status(201).json({ user: newUser, message: 'አዲስ አድሚን/ተጠቃሚ በስኬት ተፈጠረ!' });
+  } catch (err: any) {
+    res.status(500).json({ error: 'አዲስ ተጠቃሚ ለመፍጠር አልተቻለም', details: err.message });
+  }
+});
+
+// User Management: Update Profile or Reset Password
+app.put('/api/admin/users/:id', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const targetId = parseInt(req.params.id, 10);
+    const { email, username, password, role } = req.body;
+
+    if (isNaN(targetId)) return res.status(400).json({ error: 'ትክክለኛ ያልሆነ የተጠቃሚ ID' });
+
+    await db.updateAdminProfile(targetId, { email, username, password, role });
+    await db.addAuditLog(req.adminUser?.email || 'system', 'UPDATE_USER', `የተጠቃሚ ID [${targetId}] መረጃ/ፓስወርድ ተቀይሯል::`, req.ip);
+
+    res.json({ success: true, message: 'የተጠቃሚው መረጃ/ፓስወርድ በስኬት ተቀይሯል!' });
+  } catch (err: any) {
+    res.status(500).json({ error: 'የተጠቃሚውን መረጃ ለመቀየር አልተቻለም', details: err.message });
+  }
+});
+
+// User Management: Delete Admin User (Software Developer & Owners)
+app.delete('/api/admin/users/:id', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const targetId = parseInt(req.params.id, 10);
+    if (isNaN(targetId)) return res.status(400).json({ error: 'ትክክለኛ ያልሆነ የተጠቃሚ ID' });
+
+    if (req.adminUser?.role !== 'developer' && req.adminUser?.role !== 'owner') {
+      return res.status(403).json({ error: 'ይህንን ተግባር ለማከናወን የSoftware Developer ወይም Owner ስልጣን ያስፈልጋል!' });
+    }
+
+    await db.deleteAdminUser(targetId);
+    await db.addAuditLog(req.adminUser?.email || 'system', 'DELETE_USER', `የተጠቃሚ ID [${targetId}] ከአስፈላጊ ዳታቤዝ ተሰርዟል::`, req.ip);
+
+    res.json({ success: true, message: 'ተጠቃሚው በስኬት ተሰርዟል!' });
+  } catch (err: any) {
+    res.status(500).json({ error: 'ተጠቃሚውን ለመሰረዝ አልተቻለም', details: err.message });
+  }
+});
+
+// DEVELOPER CONTROL: Quick Test Data Generator (5 or 10 Test Grievances)
+app.post('/api/admin/developer/seed-tickets', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const count = Math.min(Math.max(req.body.count || 5, 1), 20);
+    const sampleCategories = [
+      'የመሬት ልማትና ማኔጅመንት ቢሮ',
+      'የድሬዳዋ አስተዳደር ጤና ቢሮ',
+      'የንግድና ኢንዱስትሪ ልማት ቢሮ',
+      'የከተማ ልማትና ኮንስትራክሽን ቢሮ',
+      'የትራንስፖርትና ሎጀስቲክ ባለስልጣን',
+      'የድሬዳዋ ፖሊስ ጠቅላይ መመሪያ',
+    ];
+    const sampleSubjects = [
+      'የይዞታ ማረጋገጫ ምስክር ወረቀት መዘግየት',
+      'በወረዳ 02 የታየ የንፁህ መጠጥ ውኃ እጥረት አቤቱታ',
+      'በንግድ ፈቃድ እድሳት ላይ ያጋጠመ አላስፈላጊ ውጣ ውረድ',
+      'የመንገድ ጥገና እና የፍሳሽ ማስወገጃ ችግር',
+      'በትራፊክ ፍሰት እና በህዝብ ትራንስፖርት ታሪፍ ላይ የቀረበ ቅሬታ',
+    ];
+    const sampleNames = ['Abebe Kebede', 'Mulugeta Tadesse', 'Fatima Ahmed', 'Chala Gemechu', 'Khadija Hassan'];
+
+    for (let i = 0; i < count; i++) {
+      const cat = sampleCategories[i % sampleCategories.length];
+      const subj = sampleSubjects[i % sampleSubjects.length];
+      const name = sampleNames[i % sampleNames.length];
+      await db.createTicket({
+        ticket_code: `DGC-TKT-${Math.floor(100000 + Math.random() * 900000)}`,
+        category: cat,
+        residence: i % 2 === 0 ? 'ወረዳ 03' : 'የዋሂል ክላስተር ፅህፈት ቤት',
+        subject: `${subj} (#${Math.floor(1000 + Math.random() * 9000)})`,
+        description: `ይህ በSoftware Developer (OPA) አውቶማቲክ የተፈጠረ የቴስት አቤቱታ ነው:: የተጠቃሚ አቤቱታ ሂደት እና የምላሽ ጊዜ ለመፈተሽ የተዘጋጀ::`,
+        full_name: name,
+        phone: `0911${Math.floor(100000 + Math.random() * 900000)}`,
+        email: `${name.toLowerCase().replace(' ', '.')}@example.com`,
+        priority: i % 3 === 0 ? 'Urgent' : i % 2 === 0 ? 'High' : 'Normal',
+      });
+    }
+
+    await db.addAuditLog(req.adminUser?.email || 'opa', 'DEV_SEED_TICKETS', `${count} የቴስት አቤቱታዎች አውቶማቲክ ተመረቱ::`, req.ip);
+    res.json({ success: true, message: `${count} የቴስት አቤቱታዎች በስኬት ተፈብሪከው ዳታቤዝ ውስጥ ገብተዋል!` });
+  } catch (err: any) {
+    res.status(500).json({ error: 'የቴስት ዳታ ማመንጨት አልተሳካም', details: err.message });
+  }
+});
+
+// DEVELOPER CONTROL: Full System Data Backup (JSON Export)
+app.get('/api/admin/developer/backup', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const surveys = await db.getAllSurveys(true);
+    const tickets = await db.getAllTickets();
+    const auditLogs = await db.getAuditLogs();
+    const users = await db.getAllAdmins();
+
+    const backupData = {
+      version: '2026.1.0',
+      exported_at: new Date().toISOString(),
+      exported_by: req.adminUser?.email || 'opa',
+      surveys,
+      tickets,
+      auditLogs,
+      users,
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="dgc_system_backup_${Date.now()}.json"`);
+    res.send(JSON.stringify(backupData, null, 2));
+  } catch (err: any) {
+    res.status(500).json({ error: 'የባካፕ ፋይል ማዘጋጀት አልተቻለም', details: err.message });
+  }
 });
 
 // Admin list all surveys (active & inactive)
@@ -323,6 +538,60 @@ app.get('/api/admin/audit-logs', authMiddleware, async (req: AuthenticatedReques
     res.status(500).json({ error: 'የኦዲት መዝገብ ማግኘት አልተቻለም', details: err.message });
   }
 });
+
+// Admin Get All Citizen Tickets (የዜጎች አቤቱታዎች ዝርዝር)
+app.get('/api/admin/tickets', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const tickets = await db.getAllTickets();
+    res.json({ tickets });
+  } catch (err: any) {
+    res.status(500).json({ error: 'የአቤቱታዎችን ዝርዝር ማግኘት አልተቻለም', details: err.message });
+  }
+});
+
+// Admin Respond / Update Citizen Ticket Status (ለአቤቱታ መልስ መስጫ)
+app.put('/api/admin/tickets/:id/respond', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const ticketId = parseInt(req.params.id, 10);
+    const { admin_response, status } = req.body;
+    if (isNaN(ticketId)) return res.status(400).json({ error: 'ትክክለኛ ያልሆነ መለያ' });
+    if (!status) return res.status(400).json({ error: 'እባክዎ የአቤቱታ ሁኔታ ይምረጡ' });
+
+    const updatedTicket = await db.updateTicketResponse(
+      ticketId,
+      admin_response || '',
+      status,
+      req.adminUser?.email || 'admin@dgc.gov.et'
+    );
+
+    await db.addAuditLog(
+      req.adminUser?.email || 'admin@dgc.gov.et',
+      'TICKET_RESPONSE',
+      `ለአቤቱታ ${updatedTicket?.ticket_code} ኦፊሴላዊ ምላሽ ተሰጥቷል (ሁኔታ: ${status})::`,
+      req.ip
+    );
+
+    res.json({ success: true, message: 'ለአቤቱታው ኦፊሴላዊ ምላሽ በስኬት ተመዝግቧል!', ticket: updatedTicket });
+  } catch (err: any) {
+    res.status(500).json({ error: 'ምላሹን ለመመዝገብ አልተቻለም', details: err.message });
+  }
+});
+
+// AI Translation endpoint for Admin Panel (Somali, Oromo, Amharic, English)
+app.post('/api/admin/translate', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { text } = req.body;
+    if (!text || typeof text !== 'string') {
+      return res.status(400).json({ error: 'እባክዎ የሚተርጎም ጽሑፍ ያስገቡ' });
+    }
+
+    const translation = await translateTextWithAi(text);
+    res.json({ translation });
+  } catch (err: any) {
+    res.status(500).json({ error: 'በትርጉም ወቅት ስህተት አጋጥሟል', details: err.message });
+  }
+});
+
 
 // CSV Export Download Endpoint with AI Policy Report & Demographics
 app.get('/api/admin/surveys/:id/export-csv', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
@@ -482,6 +751,92 @@ app.post('/api/admin/telegram-test', authMiddleware, async (req: AuthenticatedRe
     }
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ==================== DEVELOPER & MAINTENANCE ENDPOINTS ====================
+
+// Public Check Maintenance Mode status
+app.get('/api/maintenance-mode', (req: Request, res: Response) => {
+  res.json({ maintenance: isMaintenanceMode });
+});
+
+// Developer Toggle Emergency Maintenance Mode
+app.post('/api/admin/developer/maintenance', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  const { maintenance } = req.body;
+  isMaintenanceMode = Boolean(maintenance);
+  await db.addAuditLog(
+    req.adminUser?.email || 'opa@dgc.gov.et',
+    'MAINTENANCE_TOGGLE',
+    `Emergency Maintenance Mode set to ${isMaintenanceMode ? 'ON' : 'OFF'}`,
+    req.ip
+  );
+  res.json({ success: true, maintenance: isMaintenanceMode });
+});
+
+// Developer Seed Test Tickets into Database
+app.post('/api/admin/developer/seed-tickets', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const count = Math.min(Math.max(parseInt(req.body.count || 5, 10), 1), 20);
+    const categories = ['ውኃ እና ፍሳሽ', 'ትራንስፖርት', 'መንገድና መሰረተ ልማት', 'ንግድና ገበያ', 'ፅዳትና ውበት'];
+    const residences = ['ዚራ', 'መጋላ', 'ሳቢያን', 'ደቼቱ', 'አዲስ ከተማ', 'ቦሌ (ድሬዳዋ)'];
+    const priorities = ['Normal', 'High', 'Urgent'];
+
+    for (let i = 0; i < count; i++) {
+      const code = `DGC-TST-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const cat = categories[i % categories.length];
+      const resName = residences[i % residences.length];
+      const prio = priorities[i % priorities.length];
+      await db.createTicket({
+        ticket_code: code,
+        category: cat,
+        residence: resName,
+        subject: `[Test Ticket] የ${cat} አቤቱታ ናሙና #${i + 1}`,
+        description: `ይህ ለሲስተም ፈተና በDeveloper OPA የተፈጠረ የናሙና አቤቱታ ነው። ቦታ: ${resName}`,
+        full_name: `ተፈታኝ ዜጋ ${i + 1}`,
+        phone: `+251915${Math.floor(100000 + Math.random() * 900000)}`,
+        email: `tester${i + 1}@gmail.com`,
+        priority: prio,
+      });
+    }
+
+    res.json({ success: true, message: `${count} የቴስት አቤቱታዎች በስኬት ተፈጠሩ!` });
+  } catch (err: any) {
+    res.status(500).json({ error: 'የቴስት አቤቱታ ማመንጨት አልተሳካም', details: err.message });
+  }
+});
+
+// Developer Full Database JSON Backup Download
+app.get('/api/admin/developer/backup', async (req: Request, res: Response) => {
+  try {
+    const token = (req.query.token as string) || (req.headers.authorization?.split(' ')[1] as string);
+    if (!token) return res.status(401).json({ error: 'Unauthorized token required' });
+
+    const surveys = await db.getAllSurveys(true);
+    const tickets = await db.getAllTickets();
+    const admins = await db.getAllAdmins();
+    const auditLogs = await db.getAuditLogs();
+
+    const backupData = {
+      timestamp: new Date().toISOString(),
+      organization: 'Dire Dawa Administration Government Communication Affairs Bureau',
+      databaseDump: {
+        surveysCount: surveys.length,
+        ticketsCount: tickets.length,
+        adminsCount: admins.length,
+        auditLogsCount: auditLogs.length,
+        surveys,
+        tickets,
+        admins,
+        auditLogs,
+      },
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="dgc_full_database_backup_${Date.now()}.json"`);
+    res.send(JSON.stringify(backupData, null, 2));
+  } catch (err: any) {
+    res.status(500).json({ error: 'ባካፕ ማውረድ አልተቻለም', details: err.message });
   }
 });
 

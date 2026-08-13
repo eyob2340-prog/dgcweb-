@@ -21,24 +21,52 @@ import {
   Activity,
   ArrowUpRight,
   Filter,
+  MessageSquare,
+  Key,
+  UserCog,
+  Laptop,
+  Crown,
+  Wrench,
 } from 'lucide-react';
-import { Survey, AuditLog } from '../types';
+import { Survey, AuditLog, AdminUser } from '../types';
 import { VisualAnalytics } from './VisualAnalytics';
 import { SurveyBuilderModal } from './SurveyBuilderModal';
 import { TelegramSettings } from './TelegramSettings';
+import { AdminTicketsView } from './AdminTicketsView';
+import { UserAccountsView } from './UserAccountsView';
+import { DeveloperOpaControl } from './DeveloperOpaControl';
 
 interface AdminDashboardProps {
   adminToken: string;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) => {
-  const [activeTab, setActiveTab] = useState<'analytics' | 'policy_report' | 'manage' | 'audit' | 'db'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'policy_report' | 'manage' | 'tickets' | 'users' | 'opa_control' | 'audit' | 'db'>('analytics');
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
   const [selectedSurveyId, setSelectedSurveyId] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isBuilderOpen, setIsBuilderOpen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
+
+  const fetchCurrentUser = async () => {
+    try {
+      const res = await fetch('/api/admin/me', {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      const data = await res.json();
+      if (res.ok && data.admin) {
+        setCurrentUser(data.admin);
+      }
+    } catch (err) {
+      console.error('Error fetching admin user:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCurrentUser();
+  }, [adminToken]);
 
   const fetchSurveys = async () => {
     setLoading(true);
@@ -250,29 +278,73 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
           </button>
 
           <button
-            onClick={() => setActiveTab('audit')}
+            onClick={() => setActiveTab('tickets')}
             className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 flex items-center space-x-2 ${
-              activeTab === 'audit'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/30'
+              activeTab === 'tickets'
+                ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30 border border-amber-400'
                 : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
             }`}
           >
-            <History className="w-4 h-4 text-amber-300" />
-            <span>የኦዲት መዝገብ (Audit Logs)</span>
+            <MessageSquare className="w-4 h-4 text-amber-300" />
+            <span>የዜጎች አቤቱታዎችና ጥያቄዎች</span>
           </button>
 
           <button
-            onClick={() => setActiveTab('db')}
-            title="ቴሌግራም እና ሴቲንግ (Telegram Settings)"
-            className={`px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 flex items-center justify-center space-x-1.5 ${
-              activeTab === 'db'
+            onClick={() => setActiveTab('users')}
+            className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 flex items-center space-x-2 ${
+              activeTab === 'users'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/30'
                 : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
             }`}
           >
-            <Send className="w-4 h-4 text-sky-400" />
-            <Settings className="w-4 h-4 text-amber-300" />
+            <UserCog className="w-4 h-4 text-amber-300" />
+            <span>
+              {currentUser?.role === 'admin' ? 'የኔ ፕሮፋይልና ፓስወርድ' : 'አካውንቶችና ደህንነት'}
+            </span>
           </button>
+
+          {currentUser?.role === 'developer' && (
+            <button
+              onClick={() => setActiveTab('opa_control')}
+              className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 flex items-center space-x-2 ${
+                activeTab === 'opa_control'
+                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30 border border-purple-400/30'
+                  : 'bg-purple-950/60 text-purple-300 hover:bg-purple-900 hover:text-white border border-purple-800/50'
+              }`}
+            >
+              <Laptop className="w-4 h-4 text-amber-300" />
+              <span>OPA Developer Control</span>
+            </button>
+          )}
+
+          {(currentUser?.role === 'developer' || currentUser?.role === 'owner') && (
+            <button
+              onClick={() => setActiveTab('audit')}
+              className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 flex items-center space-x-2 ${
+                activeTab === 'audit'
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/30'
+                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
+              }`}
+            >
+              <History className="w-4 h-4 text-amber-300" />
+              <span>የኦዲት መዝገብ (Audit Logs)</span>
+            </button>
+          )}
+
+          {currentUser?.role === 'developer' && (
+            <button
+              onClick={() => setActiveTab('db')}
+              title="ቴሌግራም ቦት ሴቲንግ (Telegram Bot Settings)"
+              className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 flex items-center space-x-2 ${
+                activeTab === 'db'
+                  ? 'bg-sky-600 text-white shadow-lg shadow-sky-600/30 border border-sky-400/30'
+                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
+              }`}
+            >
+              <Send className="w-4 h-4 text-sky-400" />
+              <span>Telegram Bot Settings</span>
+            </button>
+          )}
         </div>
 
         <button
@@ -417,6 +489,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
                 </tbody>
               </table>
             </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'tickets' && (
+          <motion.div
+            key="tickets"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <AdminTicketsView adminToken={adminToken} />
+          </motion.div>
+        )}
+
+        {activeTab === 'users' && (
+          <motion.div
+            key="users"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <UserAccountsView adminToken={adminToken} currentUser={currentUser} />
+          </motion.div>
+        )}
+
+        {activeTab === 'opa_control' && (
+          <motion.div
+            key="opa_control"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <DeveloperOpaControl adminToken={adminToken} currentUser={currentUser} />
           </motion.div>
         )}
 
