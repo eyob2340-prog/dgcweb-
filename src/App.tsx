@@ -274,7 +274,7 @@ export default function App() {
               (System Under Maintenance)
             </p>
             <p className="text-xs text-slate-400 font-medium">
-              የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬရှင် ጉዳዮች ቢሮ
+              የድሬዳዋ አስተዳደር የመንግስት ኮሙዩኒኬሽን ጉዳዮች ቢሮ
             </p>
           </div>
 
