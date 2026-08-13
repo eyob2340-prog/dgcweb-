@@ -840,14 +840,20 @@ app.post('/api/admin/telegram-test', authMiddleware, async (req: AuthenticatedRe
 // ==================== DEVELOPER & MAINTENANCE ENDPOINTS ====================
 
 // Public Check Maintenance Mode status
-app.get('/api/maintenance-mode', (req: Request, res: Response) => {
-  res.json({ maintenance: isMaintenanceMode });
+app.get('/api/maintenance-mode', async (req: Request, res: Response) => {
+  try {
+    const val = await db.getSetting('maintenance_mode', 'false');
+    res.json({ maintenance: val === 'true' });
+  } catch {
+    res.json({ maintenance: isMaintenanceMode });
+  }
 });
 
 // Developer Toggle Emergency Maintenance Mode
 app.post('/api/admin/developer/maintenance', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   const { maintenance } = req.body;
   isMaintenanceMode = Boolean(maintenance);
+  await db.setSetting('maintenance_mode', isMaintenanceMode ? 'true' : 'false');
   await db.addAuditLog(
     req.adminUser?.email || 'opa@dgc.gov.et',
     'MAINTENANCE_TOGGLE',

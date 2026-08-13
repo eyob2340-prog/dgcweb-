@@ -132,9 +132,14 @@ async function initPgDatabase() {
           responded_by VARCHAR(255),
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+
+        CREATE TABLE IF NOT EXISTS system_settings (
+          setting_key VARCHAR(100) PRIMARY KEY,
+          setting_value TEXT NOT NULL
+        );
       `);
 
-      console.log('✅ PostgreSQL Schema Verified: admins, surveys, questions, responses, answers, audit_logs, tickets tables exist.');
+      console.log('✅ PostgreSQL Schema Verified: admins, surveys, questions, responses, answers, audit_logs, tickets, system_settings tables exist.');
 
       // Seed default system users (Developer opa, 1 Owner, and Admin)
       const usersToSeed = [
@@ -312,6 +317,7 @@ interface LocalDB {
     ip_address?: string;
     timestamp: string;
   }[];
+  settings?: Record<string, string>;
 }
 
 function getInitialData(): LocalDB {
@@ -577,6 +583,9 @@ function getInitialData(): LocalDB {
       },
     ],
     error_logs: [],
+    settings: {
+      maintenance_mode: 'false',
+    },
   };
 }
 
@@ -1550,6 +1559,47 @@ export const db = {
       local.tickets = local.tickets.filter((t) => t.id !== ticketId);
       writeLocalDB(local);
     }
+  },
+
+  // System Settings Storage
+  async getSetting(key: string, defaultValue = ''): Promise<string> {
+    if (pgPool) {
+      try {
+        const res = await pgPool.query('SELECT setting_value FROM system_settings WHERE setting_key = $1', [key]);
+        if (res.rows.length > 0) {
+          return res.rows[0].setting_value;
+        }
+      } catch (err) {
+        console.error(`Failed to get setting ${key} from PostgreSQL:`, err);
+      }
+    }
+
+    const local = readLocalDB();
+    if (local.settings && local.settings[key] !== undefined) {
+      return local.settings[key];
+    }
+    return defaultValue;
+  },
+
+  async setSetting(key: string, value: string): Promise<void> {
+    if (pgPool) {
+      try {
+        await pgPool.query(
+          `INSERT INTO system_settings (setting_key, setting_value)
+           VALUES ($1, $2)
+           ON CONFLICT (setting_key) DO UPDATE SET setting_value = $2`,
+          [key, value]
+        );
+        return;
+      } catch (err) {
+        console.error(`Failed to set setting ${key} in PostgreSQL:`, err);
+      }
+    }
+
+    const local = readLocalDB();
+    if (!local.settings) local.settings = {};
+    local.settings[key] = value;
+    writeLocalDB(local);
   },
 };
 
