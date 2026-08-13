@@ -32,6 +32,7 @@ export default function App() {
   const [policyModalType, setPolicyModalType] = useState<'privacy' | 'terms' | null>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState<boolean>(false);
   const [isMaintenanceActive, setIsMaintenanceActive] = useState<boolean>(false);
+  const [isPreviewMaintenance, setIsPreviewMaintenance] = useState<boolean>(false);
   const [adminToken, setAdminToken] = useState<string | null>(
     localStorage.getItem('admin_token')
   );
@@ -48,6 +49,17 @@ export default function App() {
       console.warn('Maintenance check failed:', e);
     }
   };
+
+  useEffect(() => {
+    const handlePreview = () => setIsPreviewMaintenance(true);
+    const handleStatusChanged = () => checkMaintenanceMode();
+    window.addEventListener('preview-maintenance', handlePreview);
+    window.addEventListener('maintenance-status-changed', handleStatusChanged);
+    return () => {
+      window.removeEventListener('preview-maintenance', handlePreview);
+      window.removeEventListener('maintenance-status-changed', handleStatusChanged);
+    };
+  }, []);
 
   // Offline queue state
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
@@ -88,6 +100,7 @@ export default function App() {
 
   useEffect(() => {
     checkMaintenanceMode();
+    const maintenanceInterval = setInterval(checkMaintenanceMode, 3000);
     updateOfflineCount();
 
     const handleOnline = () => {
@@ -103,6 +116,7 @@ export default function App() {
     window.addEventListener('offline', handleOffline);
 
     return () => {
+      clearInterval(maintenanceInterval);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
@@ -240,19 +254,31 @@ export default function App() {
     setCurrentTab('public');
   };
 
-  if (isMaintenanceActive && !adminUser) {
+  if ((isMaintenanceActive && !adminUser) || isPreviewMaintenance) {
     return (
       <div className={`min-h-screen ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} flex flex-col items-center justify-center p-6 text-center relative overflow-hidden font-sans`}>
+        {isPreviewMaintenance && (
+          <div className="fixed top-0 inset-x-0 z-50 bg-amber-500 text-slate-950 px-4 py-2 font-black text-xs sm:text-sm flex items-center justify-between shadow-xl border-b border-amber-600">
+            <span>👀 Maintenance Mode Preview (ለዜጎች የሚታየውን ማሳያ እያዩ ነው)</span>
+            <button
+              onClick={() => setIsPreviewMaintenance(false)}
+              className="bg-slate-950 text-amber-300 px-3 py-1 rounded-lg text-xs font-bold hover:bg-slate-900 transition-all shadow-sm"
+            >
+              ከPreview ውጣ (Exit Preview)
+            </button>
+          </div>
+        )}
+
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         
-        <div className="relative z-10 max-w-2xl bg-slate-900/90 backdrop-blur-xl border border-amber-500/40 p-8 sm:p-12 rounded-3xl shadow-2xl space-y-6">
+        <div className="relative z-10 max-w-2xl bg-slate-900/90 backdrop-blur-xl border border-amber-500/40 p-8 sm:p-12 rounded-3xl shadow-2xl space-y-6 mt-8 sm:mt-0">
           <div className="w-20 h-20 bg-amber-500/10 border border-amber-500/30 rounded-3xl flex items-center justify-center mx-auto text-amber-400 shadow-inner">
             <Wrench className="w-10 h-10 animate-bounce" />
           </div>
 
           <div className="space-y-2">
-            <span className="inline-block px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-black uppercase tracking-wider">
-              🚨 Emergency Maintenance Mode
+            <span className="inline-block px-3.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-black uppercase tracking-wider">
+              🚨 Emergency Maintenance Mode Active
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               ሲስተሙ በጥገና ላይ ነው (System Under Maintenance)
@@ -267,9 +293,10 @@ export default function App() {
           </p>
 
           <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span className="text-[11px] text-slate-400">
-              Dire Dawa Administration Government Communication Affairs Bureau
-            </span>
+            <div className="flex items-center space-x-2 text-[11px] text-amber-400 font-mono">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+              <span>የጥገና ሁኔታ: በስራ ላይ (Active)</span>
+            </div>
             <button
               onClick={() => setIsAdminModalOpen(true)}
               className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl text-xs font-black border border-slate-700 transition-all shadow-md"
@@ -296,6 +323,45 @@ export default function App() {
           : 'bg-slate-50 text-slate-900 selection:bg-blue-500 selection:text-white'
       }`}
     >
+      {/* Sticky Admin Warning Banner when Maintenance Mode is ON */}
+      {isMaintenanceActive && adminUser && (
+        <div className="bg-amber-500 text-slate-950 px-4 py-2 font-bold text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-between gap-2 shadow-xl border-b border-amber-600 z-50">
+          <div className="flex items-center space-x-2">
+            <Wrench className="w-4 h-4 animate-bounce text-slate-950" />
+            <span>🚨 <strong>ማስታወቂያ:</strong> Emergency Maintenance Mode በርቷል! ዜጎች "ሲስተሙ በጥገና ላይ ነው" የሚለውን ገጽ እያዩ ነው::</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setIsPreviewMaintenance(true)}
+              className="px-3 py-1 bg-slate-950 text-amber-300 hover:bg-slate-900 rounded-lg text-xs font-black transition-all shadow-sm"
+            >
+              ለዜጎች የሚታየውን ተመልከት (Preview)
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  const res = await fetch('/api/admin/developer/maintenance', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${adminToken}`,
+                    },
+                    body: JSON.stringify({ maintenance: false }),
+                  });
+                  if (res.ok) {
+                    setIsMaintenanceActive(false);
+                  }
+                } catch (e) {
+                  console.error(e);
+                }
+              }}
+              className="px-3 py-1 bg-red-700 hover:bg-red-800 text-white rounded-lg text-xs font-black transition-all shadow-sm"
+            >
+              ጥገናውን አቁም (Turn OFF)
+            </button>
+          </div>
+        </div>
+      )}
       {/* Animated Floating Gradient Background Blobs */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <motion.div

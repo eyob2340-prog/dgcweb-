@@ -152,6 +152,7 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
       const data = await res.json();
       if (res.ok) {
         setMaintenanceMode(nextState);
+        window.dispatchEvent(new CustomEvent('maintenance-status-changed'));
         setActionMessage({
           type: 'success',
           text: nextState ? 'Emergency Maintenance Mode በስኬት ተበርቷል! ለዜጎች በጥገና ላይ መሆኑ ይታያል::' : 'Maintenance Mode ተጠፍቷል! ሲስተሙ ለመደበኛ አገልግሎት ክፍት ሆኗል::',
@@ -538,21 +539,31 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
           </div>
 
           <div className="space-y-4 pt-1">
-            <div className="flex items-center justify-between p-4 bg-slate-950 rounded-2xl border border-slate-800">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-950 rounded-2xl border border-slate-800 gap-3">
               <div>
                 <span className="text-xs font-black text-white block">Emergency Maintenance Mode</span>
                 <span className="text-[11px] text-slate-400 block">ለዜጎች "ሲስተሙ በጥገና ላይ ነው" የማሳያ ገጽ ማብሪያ</span>
               </div>
-              <button
-                onClick={handleToggleMaintenance}
-                className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
-                  maintenanceMode
-                    ? 'bg-amber-500 text-slate-950 border border-amber-300'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                }`}
-              >
-                {maintenanceMode ? 'ON (በጥገና ላይ ነው)' : 'OFF (መደበኛ አሰራር)'}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent('preview-maintenance'))}
+                  className="px-3.5 py-2 bg-blue-900/60 hover:bg-blue-800 text-blue-200 text-xs font-bold rounded-xl border border-blue-500/30 transition-all flex items-center gap-1.5 shadow-md"
+                  title="ለዜጎች የሚታየውን ገጽ ተመልከት"
+                >
+                  <Wrench className="w-3.5 h-3.5" />
+                  <span>Preview Screen</span>
+                </button>
+                <button
+                  onClick={handleToggleMaintenance}
+                  className={`px-4 py-2 rounded-xl text-xs font-black transition-all shadow-md ${
+                    maintenanceMode
+                      ? 'bg-amber-500 text-slate-950 border border-amber-300 animate-pulse'
+                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
+                  }`}
+                >
+                  {maintenanceMode ? 'ON (በጥገና ላይ ነው)' : 'OFF (መደበኛ አሰራር)'}
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center justify-between p-4 bg-slate-950 rounded-2xl border border-slate-800">

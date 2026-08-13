@@ -96,8 +96,19 @@ app.get('/api/surveys/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Maintenance Mode middleware for public citizen submissions
+const citizenMaintenanceMiddleware = (req: Request, res: Response, next: any) => {
+  if (isMaintenanceMode) {
+    return res.status(503).json({
+      error: 'ሲስተሙ በአሁኑ ወቅት በአደጋ ጊዜ ጥገና (Emergency Maintenance) ላይ ስለሆነ አዲስ አቤቱታ ወይም አስተያየት መላክ አይቻልም:: እባክዎ ከጥቂት ደቂቃዎች በኋላ ተመልሰው ይሞክሩ::',
+      maintenance: true,
+    });
+  }
+  next();
+};
+
 // Submit anonymous survey response
-app.post('/api/surveys/:id/responses', submissionLimiter, async (req: Request, res: Response) => {
+app.post('/api/surveys/:id/responses', citizenMaintenanceMiddleware, submissionLimiter, async (req: Request, res: Response) => {
   try {
     const surveyId = parseInt(req.params.id, 10);
     if (isNaN(surveyId)) return res.status(400).json({ error: 'ትክክለኛ ያልሆነ የመጠይቅ መለያ' });
@@ -127,7 +138,7 @@ app.post('/api/surveys/:id/responses', submissionLimiter, async (req: Request, r
 });
 
 // Submit Citizen Complaint or Inquiry (የዜጎች አቤቱታ/ጥያቄ ማስገቢያ)
-app.post('/api/tickets', submissionLimiter, async (req: Request, res: Response) => {
+app.post('/api/tickets', citizenMaintenanceMiddleware, submissionLimiter, async (req: Request, res: Response) => {
   try {
     const { category, residence, subject, description, full_name, phone, email, priority } = req.body;
 
