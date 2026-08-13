@@ -10,6 +10,7 @@ import { FooterModals } from './components/FooterModals';
 import { Survey, AdminUser, AuthResponse } from './types';
 import { CitizenComplaintModal } from './components/CitizenComplaintModal';
 import { TicketTrackerModal } from './components/TicketTrackerModal';
+import { DgcLogo } from './components/DgcLogo';
 import { FileText, Search, Plus, MessageSquare, Clock, ShieldCheck, Sparkles, Building2, Wrench } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Language, translations } from './lib/i18n';
@@ -31,12 +32,50 @@ export default function App() {
 
   const [policyModalType, setPolicyModalType] = useState<'privacy' | 'terms' | null>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState<boolean>(false);
-  const [isMaintenanceActive, setIsMaintenanceActive] = useState<boolean>(false);
+  const [isMaintenanceActive, setIsMaintenanceActive] = useState<boolean>(true);
   const [isPreviewMaintenance, setIsPreviewMaintenance] = useState<boolean>(false);
+  const [isCountdownActive, setIsCountdownActive] = useState<boolean>(false);
+  const [countdownSeconds, setCountdownSeconds] = useState<number>(10);
+  const [totalCountdownSeconds, setTotalCountdownSeconds] = useState<number>(10);
+
   const [adminToken, setAdminToken] = useState<string | null>(
     localStorage.getItem('admin_token')
   );
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
+
+  const start10sAdminCountdown = () => {
+    setCountdownSeconds(10);
+    setTotalCountdownSeconds(10);
+    setIsCountdownActive(true);
+  };
+
+  const start20sAdminCountdown = () => {
+    setCountdownSeconds(20);
+    setTotalCountdownSeconds(20);
+    setIsCountdownActive(true);
+  };
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (isCountdownActive) {
+      if (countdownSeconds > 0) {
+        timer = setTimeout(() => {
+          setCountdownSeconds((prev) => prev - 1);
+        }, 1000);
+      } else {
+        setIsCountdownActive(false);
+        if (adminToken && adminUser) {
+          setIsPreviewMaintenance(false);
+          setCurrentTab('admin');
+        } else {
+          setIsAdminModalOpen(true);
+        }
+      }
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [isCountdownActive, countdownSeconds, adminToken, adminUser]);
 
   const checkMaintenanceMode = async () => {
     try {
@@ -272,9 +311,14 @@ export default function App() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative z-10 max-w-2xl bg-slate-900/90 backdrop-blur-xl border border-amber-500/40 p-8 sm:p-12 rounded-3xl shadow-2xl space-y-6 mt-8 sm:mt-0">
-          <div className="w-20 h-20 bg-amber-500/10 border border-amber-500/30 rounded-3xl flex items-center justify-center mx-auto text-amber-400 shadow-inner">
-            <Wrench className="w-10 h-10 animate-bounce" />
-          </div>
+          {/* Clickable Wrench Icon Badge to trigger 10s Admin Access Countdown */}
+          <button
+            onClick={start10sAdminCountdown}
+            title="የሜንተነሳ አይከን፡ ተጭነው 10 ሰከንድ ይጠብቁ (Admin Access)"
+            className="w-20 h-20 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 hover:border-amber-400 rounded-3xl flex items-center justify-center mx-auto text-amber-400 shadow-inner transition-all hover:scale-105 active:scale-95 group cursor-pointer"
+          >
+            <Wrench className="w-10 h-10 animate-bounce group-hover:rotate-45 transition-transform" />
+          </button>
 
           <div className="space-y-2">
             <span className="inline-block px-3.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-black uppercase tracking-wider">
@@ -298,13 +342,121 @@ export default function App() {
               <span>የጥገና ሁኔታ: በስራ ላይ (Active)</span>
             </div>
             <button
-              onClick={() => setIsAdminModalOpen(true)}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl text-xs font-black border border-slate-700 transition-all shadow-md"
+              onClick={start10sAdminCountdown}
+              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl text-xs font-black border border-slate-700 transition-all shadow-md flex items-center gap-2 group cursor-pointer"
             >
-              ለአድሚን/Developer መግቢያ (Admin Access)
+              <Wrench className="w-4 h-4 text-amber-400 group-hover:rotate-45 transition-transform" />
+              <span>ለአድሚን/Developer መግቢያ (Admin Access)</span>
             </button>
           </div>
         </div>
+
+        {/* Small DGC Logo at the bottom for 20-second secret Admin entry */}
+        <div className="mt-8 relative z-10 flex flex-col items-center gap-2">
+          <button
+            onClick={start20sAdminCountdown}
+            className="p-3.5 bg-slate-900/90 hover:bg-slate-800 border border-amber-500/30 hover:border-amber-400 rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-xl group cursor-pointer flex items-center gap-3"
+            title="የDGC ትንሽዬ ሎጎ፡ ተጭነው 20 ሰከንድ ይጠብቁ (20s Secret Admin Portal Access)"
+          >
+            <DgcLogo className="h-9 w-auto text-amber-400" />
+            <div className="text-left">
+              <span className="text-xs font-black text-amber-300 block group-hover:underline">
+                የድሬዳዋ ኮሙኒኬሽን ጉዳዮች ቢሮ (DGC Portal)
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono block">
+                [ሎጎውን ተጭነው 20 ሰከንድ ይቆዩ - ወደ አድሚን ፓናል መግቢያ]
+              </span>
+            </div>
+          </button>
+        </div>
+
+        {/* Admin Access Countdown Overlay Modal */}
+        {isCountdownActive && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="max-w-md w-full bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center relative overflow-hidden"
+            >
+              <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/20 rounded-full blur-2xl pointer-events-none" />
+
+              {/* Big Animated Circular Countdown Ring */}
+              <div className="relative w-28 h-28 mx-auto flex items-center justify-center">
+                <svg className="w-full h-full transform -rotate-90">
+                  <circle
+                    cx="56"
+                    cy="56"
+                    r="48"
+                    className="text-slate-800 stroke-current"
+                    strokeWidth="8"
+                    fill="transparent"
+                  />
+                  <circle
+                    cx="56"
+                    cy="56"
+                    r="48"
+                    className="text-amber-400 stroke-current transition-all duration-1000 ease-linear"
+                    strokeWidth="8"
+                    strokeDasharray={301.59}
+                    strokeDashoffset={301.59 - (301.59 * (totalCountdownSeconds - countdownSeconds)) / totalCountdownSeconds}
+                    strokeLinecap="round"
+                    fill="transparent"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-amber-400 font-mono font-black">
+                  <span className="text-3xl tracking-tighter">{countdownSeconds}</span>
+                  <span className="text-[10px] text-amber-300/80 uppercase font-bold">ሰከንድ</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-black">
+                  <Wrench className="w-3.5 h-3.5 animate-spin" />
+                  <span>ወደ አድሚን መግቢያ በሂደት ላይ ነው...</span>
+                </div>
+                <h3 className="text-xl font-black text-white tracking-tight">
+                  የጥገና ደህንነት ፈቃድ ፍተሻ
+                </h3>
+                <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                  ሎጎው/የጥገና ምልክቱ ተጫንቷል:: እባክዎ <strong className="text-amber-400">{countdownSeconds} ሰከንድ</strong> ይጠብቁ; ሲጠናቀቅ ቀጥታ ወደ አድሚን ፓናል መግቢያ ያስገባዎታል::
+                </p>
+              </div>
+
+              {/* Visual Progress Bar */}
+              <div className="w-full bg-slate-950 rounded-full h-3 p-0.5 border border-slate-800 overflow-hidden shadow-inner">
+                <motion.div
+                  className="bg-gradient-to-r from-amber-500 via-amber-400 to-emerald-400 h-full rounded-full"
+                  initial={{ width: '0%' }}
+                  animate={{ width: `${((totalCountdownSeconds - countdownSeconds) / totalCountdownSeconds) * 100}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-center gap-3">
+                <button
+                  onClick={() => setIsCountdownActive(false)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl border border-slate-700 transition-all shadow-sm cursor-pointer"
+                >
+                  ሰርዝ (Cancel)
+                </button>
+                <button
+                  onClick={() => {
+                    setIsCountdownActive(false);
+                    if (adminToken && adminUser) {
+                      setIsPreviewMaintenance(false);
+                      setCurrentTab('admin');
+                    } else {
+                      setIsAdminModalOpen(true);
+                    }
+                  }}
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black rounded-xl transition-all shadow-md cursor-pointer"
+                >
+                  ወዲያውኑ ግባ (Instant)
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
 
         <AdminLoginModal
           isOpen={isAdminModalOpen}
@@ -407,7 +559,7 @@ export default function App() {
         }}
         adminUser={adminUser}
         onLogout={handleLogout}
-        onOpenLogin={() => setIsAdminModalOpen(true)}
+        onOpenLogin={start10sAdminCountdown}
         language={language}
         onLanguageChange={(lang) => setLanguage(lang)}
         offlineCount={offlineCount}

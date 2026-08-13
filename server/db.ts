@@ -104,6 +104,17 @@ async function initPgDatabase() {
           ip_address VARCHAR(50)
         );
 
+        CREATE TABLE IF NOT EXISTS error_logs (
+          id SERIAL PRIMARY KEY,
+          api_path VARCHAR(255) NOT NULL,
+          error_type VARCHAR(100) NOT NULL,
+          message TEXT NOT NULL,
+          stack_trace TEXT,
+          line_info VARCHAR(100),
+          ip_address VARCHAR(50),
+          timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
         CREATE TABLE IF NOT EXISTS tickets (
           id SERIAL PRIMARY KEY,
           ticket_code VARCHAR(50) UNIQUE NOT NULL,
@@ -290,6 +301,16 @@ interface LocalDB {
     responded_at?: string;
     responded_by?: string;
     created_at: string;
+  }[];
+  error_logs?: {
+    id: number;
+    api_path: string;
+    error_type: string;
+    message: string;
+    stack_trace?: string;
+    line_info?: string;
+    ip_address?: string;
+    timestamp: string;
   }[];
 }
 
@@ -555,6 +576,7 @@ function getInitialData(): LocalDB {
         created_at: new Date(Date.now() - 1 * 3600000).toISOString(),
       },
     ],
+    error_logs: [],
   };
 }
 
@@ -941,6 +963,100 @@ export const db = {
 
     const local = readLocalDB();
     return local.audit_logs || [];
+  },
+
+  async addErrorLog(
+    apiPath: string,
+    errorType: string,
+    message: string,
+    stackTrace?: string,
+    lineInfo?: string,
+    ipAddress?: string
+  ) {
+    if (pgPool) {
+      try {
+        await pgPool.query(
+          `INSERT INTO error_logs (api_path, error_type, message, stack_trace, line_info, ip_address)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [apiPath, errorType, message, stackTrace || null, lineInfo || 'N/A', ipAddress || '127.0.0.1']
+        );
+        return;
+      } catch (err) {
+        console.error('Failed to add error log to PostgreSQL:', err);
+      }
+    }
+
+    const local = readLocalDB();
+    if (!local.error_logs) local.error_logs = [];
+    const newId = local.error_logs.length > 0 ? Math.max(...local.error_logs.map((e: any) => e.id)) + 1 : 1;
+    local.error_logs.unshift({
+      id: newId,
+      api_path: apiPath,
+      error_type: errorType,
+      message,
+      stack_trace: stackTrace || '',
+      line_info: lineInfo || 'N/A',
+      ip_address: ipAddress || '127.0.0.1',
+      timestamp: new Date().toISOString(),
+    });
+    writeLocalDB(local);
+  },
+
+  async getErrorLogs() {
+    if (pgPool) {
+      try {
+        const res = await pgPool.query('SELECT * FROM error_logs ORDER BY timestamp DESC LIMIT 100');
+        return res.rows;
+      } catch (err) {
+        console.error('Failed to get error logs from PostgreSQL:', err);
+      }
+    }
+
+    const local = readLocalDB();
+    return local.error_logs || [];
+  },
+
+  async clearErrorLogs() {
+    if (pgPool) {
+      try {
+        await pgPool.query('TRUNCATE TABLE error_logs');
+        return;
+      } catch (err) {
+        console.error('Failed to clear error logs in PostgreSQL:', err);
+      }
+    }
+
+    const local = readLocalDB();
+    local.error_logs = [];
+    writeLocalDB(local);
+  },
+
+  async getAllRawResponses() {
+    if (pgPool) {
+      try {
+        const res = await pgPool.query('SELECT * FROM responses ORDER BY id ASC');
+        return res.rows;
+      } catch (err) {
+        console.error('Failed to fetch raw responses from PostgreSQL:', err);
+      }
+    }
+
+    const local = readLocalDB();
+    return local.responses || [];
+  },
+
+  async getAllRawAnswers() {
+    if (pgPool) {
+      try {
+        const res = await pgPool.query('SELECT * FROM answers ORDER BY id ASC');
+        return res.rows;
+      } catch (err) {
+        console.error('Failed to fetch raw answers from PostgreSQL:', err);
+      }
+    }
+
+    const local = readLocalDB();
+    return local.answers || [];
   },
 
   async createSurvey(data: {
@@ -1422,6 +1538,18 @@ export const db = {
       writeLocalDB(local);
     }
     return ticket;
+  },
+
+  async deleteTicket(ticketId: number) {
+    if (pgPool) {
+      await pgPool.query('DELETE FROM tickets WHERE id = $1', [ticketId]);
+      return;
+    }
+    const local = readLocalDB();
+    if (local.tickets) {
+      local.tickets = local.tickets.filter((t) => t.id !== ticketId);
+      writeLocalDB(local);
+    }
   },
 };
 

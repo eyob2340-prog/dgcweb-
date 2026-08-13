@@ -214,3 +214,14 @@ export interface TranslationResult {
   translated_english: string;
 }
 
+export interface ErrorLog {
+  id: number;
+  api_path: string;
+  error_type: string;
+  message: string;
+  stack_trace?: string;
+  line_info?: string;
+  ip_address?: string;
+  timestamp: string;
+}
+

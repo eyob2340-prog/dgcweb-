@@ -15,7 +15,7 @@ import { sendTelegramReport, DEFAULT_TELEGRAM_BOT_TOKEN, DEFAULT_TELEGRAM_CHAT_I
 // In-memory runtime settings store
 let activeBotToken = process.env.TELEGRAM_BOT_TOKEN || DEFAULT_TELEGRAM_BOT_TOKEN;
 let activeChatId = process.env.TELEGRAM_CHAT_ID || DEFAULT_TELEGRAM_CHAT_ID;
-let isMaintenanceMode = false;
+let isMaintenanceMode = true;
 import { generateSurveyAiReport, translateTextWithAi } from './server/ai';
 
 const app = express();
@@ -126,6 +126,13 @@ app.post('/api/surveys/:id/responses', citizenMaintenanceMiddleware, submissionL
 
     const responseId = await db.submitResponse(surveyId, ipHash, answers, demographics);
 
+    await db.addAuditLog(
+      'CITIZEN_PUBLIC',
+      'SURVEY_SUBMISSION',
+      `አዲስ የሕዝብ አስተያየት ለጥናት ID ${surveyId} ("${survey.title.substring(0, 30)}") በዜጋ ተመዝግቧል::`,
+      req.ip
+    );
+
     res.status(201).json({
       success: true,
       message: 'የእርስዎ አስተያየት በስኬት ተመዝግቧል! ስለተሳተፉ እናመሰግናለን::',
@@ -160,6 +167,13 @@ app.post('/api/tickets', citizenMaintenanceMiddleware, submissionLimiter, async 
       email,
       priority: priority || 'Normal',
     });
+
+    await db.addAuditLog(
+      'CITIZEN_PUBLIC',
+      'TICKET_SUBMISSION',
+      `አዲስ አቤቱታ/ጥያቄ [${ticket_code}] በዘርፍ "${category}" በዜጋ ተመዝግቧል:: (ቦታ: ${residence || 'አልተጠቀሰም'})`,
+      req.ip
+    );
 
     res.status(201).json({
       success: true,
@@ -423,6 +437,13 @@ app.post('/api/admin/surveys', authMiddleware, async (req: AuthenticatedRequest,
       questions,
     });
 
+    await db.addAuditLog(
+      req.adminUser?.email || 'admin@dgc.gov.et',
+      'CREATE_SURVEY',
+      `አዲስ የጥናት መጠይቅ [ID ${surveyId}: "${title.substring(0, 35)}..."] ተፈጥሯል::`,
+      req.ip
+    );
+
     res.status(201).json({
       success: true,
       message: 'አዲስ መጠይቅ በስኬት ተፈጥሯል!',
@@ -444,6 +465,12 @@ app.put('/api/admin/surveys/:id/toggle', authMiddleware, async (req: Authenticat
     }
 
     await db.toggleSurveyStatus(surveyId, is_active);
+    await db.addAuditLog(
+      req.adminUser?.email || 'admin@dgc.gov.et',
+      'TOGGLE_SURVEY',
+      `የጥናት ID ${surveyId} ሁኔታ ወደ [${is_active ? 'ክፍት (Active)' : 'ተዘግቷል (Closed)'}] ተቀይሯል::`,
+      req.ip
+    );
     res.json({ success: true, message: `መጠይቁ ${is_active ? 'ተከፍቷል' : 'ተዘግቷል'}` });
   } catch (err: any) {
     res.status(500).json({ error: 'ሁኔታውን ለመቀየር አልተቻለም', details: err.message });
@@ -588,6 +615,27 @@ app.put('/api/admin/tickets/:id/respond', authMiddleware, async (req: Authentica
   }
 });
 
+// Admin Delete Citizen Ticket (አቤቱታ ማጥፊያ)
+app.delete('/api/admin/tickets/:id', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const ticketId = parseInt(req.params.id, 10);
+    if (isNaN(ticketId)) return res.status(400).json({ error: 'ትክክለኛ ያልሆነ መለያ' });
+
+    await db.deleteTicket(ticketId);
+
+    await db.addAuditLog(
+      req.adminUser?.email || 'admin@dgc.gov.et',
+      'DELETE_TICKET',
+      `አቤቱታ ID ${ticketId} ተሰርዟል::`,
+      req.ip
+    );
+
+    res.json({ success: true, message: 'አቤቱታው በስኬት ተሰርዟል!' });
+  } catch (err: any) {
+    res.status(500).json({ error: 'አቤቱታውን ማጥፋት አልተቻለም', details: err.message });
+  }
+});
+
 // AI Translation endpoint for Admin Panel (Somali, Oromo, Amharic, English)
 app.post('/api/admin/translate', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -703,20 +751,37 @@ app.get('/api/admin/surveys/:id/export-csv', authMiddleware, async (req: Authent
   }
 });
 
-// Get current Telegram Config
-app.get('/api/admin/telegram-config', authMiddleware, (req: AuthenticatedRequest, res: Response) => {
+// Get current Telegram Config (supports both /telegram-config and /telegram-settings)
+const getTelegramConfigHandler = (req: AuthenticatedRequest, res: Response) => {
   res.json({
+    success: true,
     botToken: activeBotToken,
     chatId: activeChatId,
     formattedChatId: formatTelegramChatId(activeChatId),
+    config: {
+      botToken: activeBotToken,
+      chatId: activeChatId,
+    },
   });
-});
+};
+
+app.get('/api/admin/telegram-config', authMiddleware, getTelegramConfigHandler);
+app.get('/api/admin/telegram-settings', authMiddleware, getTelegramConfigHandler);
 
 // Update Telegram Config dynamically
-app.post('/api/admin/telegram-config', authMiddleware, (req: AuthenticatedRequest, res: Response) => {
-  const { botToken, chatId } = req.body;
-  if (botToken) activeBotToken = botToken.trim();
-  if (chatId) activeChatId = chatId.trim();
+const updateTelegramConfigHandler = async (req: AuthenticatedRequest, res: Response) => {
+  const botToken = req.body.botToken || req.body.config?.botToken;
+  const chatId = req.body.chatId || req.body.config?.chatId;
+
+  if (botToken) activeBotToken = String(botToken).trim();
+  if (chatId) activeChatId = String(chatId).trim();
+
+  await db.addAuditLog(
+    req.adminUser?.email || 'admin@dgc.gov.et',
+    'UPDATE_TELEGRAM_CONFIG',
+    `የቴሌግራም ቦት እና ቻናል መረጃዎች [Chat ID: ${activeChatId}] ተዘምነዋል::`,
+    req.ip
+  );
 
   res.json({
     success: true,
@@ -724,8 +789,15 @@ app.post('/api/admin/telegram-config', authMiddleware, (req: AuthenticatedReques
     botToken: activeBotToken,
     chatId: activeChatId,
     formattedChatId: formatTelegramChatId(activeChatId),
+    config: {
+      botToken: activeBotToken,
+      chatId: activeChatId,
+    },
   });
-});
+};
+
+app.post('/api/admin/telegram-config', authMiddleware, updateTelegramConfigHandler);
+app.post('/api/admin/telegram-settings', authMiddleware, updateTelegramConfigHandler);
 
 // Test Telegram Bot Connection
 app.post('/api/admin/telegram-test', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
@@ -817,38 +889,146 @@ app.post('/api/admin/developer/seed-tickets', authMiddleware, async (req: Authen
   }
 });
 
-// Developer Full Database JSON Backup Download
+// Fetch Real-Time Error Logs
+app.get('/api/admin/error-logs', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const logs = await db.getErrorLogs();
+    res.json({ success: true, logs });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to fetch error logs', details: err.message });
+  }
+});
+
+// Clear Error Logs
+app.delete('/api/admin/error-logs', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    await db.clearErrorLogs();
+    await db.addAuditLog(
+      req.adminUser?.email || 'opa@dgc.gov.et',
+      'CLEAR_ERROR_LOGS',
+      'የሲስተሙ ኤረር ሎጎች በሙሉ ተደልተዋል::',
+      req.ip
+    );
+    res.json({ success: true, message: 'የኤረር ሎጎች በሙሉ ተደልተዋል' });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to clear error logs', details: err.message });
+  }
+});
+
+// Developer Trigger Test Exception Log
+app.post('/api/admin/developer/test-error', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { errorType, message } = req.body;
+    const errType = errorType || 'SimulatedException';
+    const msg = message || 'ለሙከራ በDeveloper OPA የተፈጠረ የሲስተም ኤረር ናሙና (Test Exception)';
+
+    await db.addErrorLog(
+      '/api/admin/developer/test-error',
+      errType,
+      msg,
+      `Error: ${msg}\n    at /server.ts:845:12\n    at Layer.handle [as handle_request]\n    at Express.handle`,
+      'server.ts:845',
+      req.ip
+    );
+
+    await db.addAuditLog(
+      req.adminUser?.email || 'opa@dgc.gov.et',
+      'DEV_TEST_ERROR',
+      `ለሙከራ የተደረገ የኤረር ሎግ [Type: ${errType}] ተመዝግቧል::`,
+      req.ip
+    );
+
+    res.json({ success: true, message: 'የሙከራ ኤረር ሎግ በስኬት ተመዝግቧል!' });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to simulate error', details: err.message });
+  }
+});
+
+// Developer Full Database JSON Backup Download (All Tables & Complete Data)
 app.get('/api/admin/developer/backup', async (req: Request, res: Response) => {
   try {
     const token = (req.query.token as string) || (req.headers.authorization?.split(' ')[1] as string);
     if (!token) return res.status(401).json({ error: 'Unauthorized token required' });
 
+    // Fetch complete data across all tables
     const surveys = await db.getAllSurveys(true);
+    const rawResponses = await db.getAllRawResponses();
+    const rawAnswers = await db.getAllRawAnswers();
     const tickets = await db.getAllTickets();
     const admins = await db.getAllAdmins();
     const auditLogs = await db.getAuditLogs();
+    const errorLogs = await db.getErrorLogs();
+
+    await db.addAuditLog(
+      'opa@dgc.gov.et',
+      'EXPORT_DATABASE_BACKUP',
+      `የሲስተሙ ሙሉ ዳታቤዝ ባካፕ (JSON) [${surveys.length} surveys, ${tickets.length} tickets, ${rawResponses.length} responses, ${auditLogs.length} audit logs] በስኬት ዳውንሎድ ተደርጓል::`,
+      req.ip
+    );
 
     const backupData = {
-      timestamp: new Date().toISOString(),
+      system_name: 'Dire Dawa Administration Public Survey & Citizen Inquiry Platform',
+      version: '2.0.0-PROD',
+      exported_at: new Date().toISOString(),
+      exported_timestamp: Date.now(),
+      exported_by: 'Software Developer (opa@dgc.gov.et)',
       organization: 'Dire Dawa Administration Government Communication Affairs Bureau',
-      databaseDump: {
-        surveysCount: surveys.length,
-        ticketsCount: tickets.length,
-        adminsCount: admins.length,
-        auditLogsCount: auditLogs.length,
+      summary: {
+        surveys_count: surveys.length,
+        survey_responses_count: rawResponses.length,
+        survey_answers_count: rawAnswers.length,
+        tickets_count: tickets.length,
+        admins_count: admins.length,
+        audit_logs_count: auditLogs.length,
+        error_logs_count: errorLogs.length,
+        total_records: surveys.length + rawResponses.length + rawAnswers.length + tickets.length + admins.length + auditLogs.length + errorLogs.length,
+      },
+      tables: {
         surveys,
+        responses: rawResponses,
+        answers: rawAnswers,
         tickets,
         admins,
-        auditLogs,
+        audit_logs: auditLogs,
+        error_logs: errorLogs,
       },
     };
 
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', `attachment; filename="dgc_full_database_backup_${Date.now()}.json"`);
+    const fileName = `dgc_full_database_backup_${new Date().toISOString().slice(0, 10)}_${Date.now()}.json`;
+
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
     res.send(JSON.stringify(backupData, null, 2));
   } catch (err: any) {
     res.status(500).json({ error: 'ባካፕ ማውረድ አልተቻለም', details: err.message });
   }
+});
+
+// 404 Fallback handler specifically for unhandled /api/* routes (returns JSON instead of Vite HTML)
+app.all('/api/*', (req: Request, res: Response) => {
+  res.status(404).json({ error: `API route not found: ${req.method} ${req.originalUrl}` });
+});
+
+// Global API Exception Handler Middleware
+app.use(async (err: any, req: Request, res: Response, next: any) => {
+  console.error('💥 Unhandled Exception Caught in Server:', err);
+  try {
+    await db.addErrorLog(
+      req.originalUrl || req.path,
+      err.name || 'UnhandledServerError',
+      err.message || 'አልታወቀ የሲስተም ስህተት',
+      err.stack || '',
+      'server.ts:middleware',
+      req.ip
+    );
+  } catch (e) {
+    console.error('Failed to store exception log:', e);
+  }
+  res.status(500).json({
+    error: 'የሲስተም ስህተት አጋጥሟል! (Internal Server Exception)',
+    details: err.message,
+  });
 });
 
 // Start Express Server with Vite Middleware

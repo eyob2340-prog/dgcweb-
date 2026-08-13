@@ -18,6 +18,7 @@ import {
   RefreshCw,
   X,
   FileText,
+  Trash2,
 } from 'lucide-react';
 import { CitizenTicket, TicketStatus, TranslationResult } from '../types';
 
@@ -43,6 +44,30 @@ export const AdminTicketsView: React.FC<AdminTicketsViewProps> = ({ adminToken }
   // Translation State mapping ticket ID -> TranslationResult
   const [translationsMap, setTranslationsMap] = useState<Record<number, TranslationResult>>({});
   const [translatingTicketId, setTranslatingTicketId] = useState<number | null>(null);
+  const [deletingTicketId, setDeletingTicketId] = useState<number | null>(null);
+
+  const handleDeleteTicket = async (ticket: CitizenTicket) => {
+    if (!window.confirm(`እርግጠኛ ነዎት አቤቱታ ኮድ "${ticket.ticket_code}" መደለዝ/ማጥፋት ይፈልጋሉ?`)) {
+      return;
+    }
+    setDeletingTicketId(ticket.id);
+    try {
+      const res = await fetch(`/api/admin/tickets/${ticket.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setTickets((prev) => prev.filter((t) => t.id !== ticket.id));
+      } else {
+        alert(data.error || 'አቤቱታውን መደለዝ አልተቻለም');
+      }
+    } catch (err) {
+      alert('የኔትወርክ ስህተት አጋጥሟል');
+    } finally {
+      setDeletingTicketId(null);
+    }
+  };
 
   const fetchTickets = async () => {
     setLoading(true);
@@ -373,16 +398,32 @@ export const AdminTicketsView: React.FC<AdminTicketsViewProps> = ({ adminToken }
                     ) : (
                       <Globe className="w-3.5 h-3.5 text-blue-400" />
                     )}
-                    <span>{isTranslating ? 'በAI በመተርጎም ላይ...' : 'በAI ተርጉም (Translate Somali/Oromo)'}</span>
+                    <span>{isTranslating ? 'በAI በመተርጎም ላይ...' : 'በAI ተርጉም (Translate)'}</span>
                   </button>
 
-                  <button
-                    onClick={() => handleOpenResponseModal(t)}
-                    className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-2xl text-xs transition-all shadow-md flex items-center gap-1.5"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>{t.admin_response ? 'ኦፊሴላዊ መልስን አሻሽል' : 'ኦፊሴላዊ መልስ መስጫ (Respond)'}</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleDeleteTicket(t)}
+                      disabled={deletingTicketId === t.id}
+                      className="px-3.5 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold rounded-2xl text-xs transition-all shadow-md flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                      title="አቤቱታውን ሰርዝ/ደልዝ"
+                    >
+                      {deletingTicketId === t.id ? (
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-red-400" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                      )}
+                      <span>ሰርዝ (Delete)</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleOpenResponseModal(t)}
+                      className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-2xl text-xs transition-all shadow-md flex items-center gap-1.5"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>{t.admin_response ? 'ኦፊሴላዊ መልስን አሻሽል' : 'ኦፊሴላዊ መልስ መስጫ (Respond)'}</span>
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             );

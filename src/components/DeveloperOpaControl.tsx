@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import {
   Laptop,
@@ -21,13 +21,15 @@ import {
   Zap,
   Bell,
   Play,
+  Pause,
   Trash2,
   Send,
   AlertCircle,
   FileSpreadsheet,
   Check,
+  Filter,
 } from 'lucide-react';
-import { AdminUser, TelegramConfig } from '../types';
+import { AdminUser, TelegramConfig, AuditLog, ErrorLog } from '../types';
 
 interface DeveloperOpaControlProps {
   adminToken: string;
@@ -53,34 +55,18 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
   const [testingTelegram, setTestingTelegram] = useState<boolean>(false);
 
   // Error Console State
-  const [errorLogs, setErrorLogs] = useState<Array<{
-    id: number;
-    apiPath: string;
-    errorType: string;
-    message: string;
-    line: string;
-    timestamp: string;
-    ip: string;
-  }>>([
-    {
-      id: 1,
-      apiPath: '/api/tickets/submit',
-      errorType: 'ValidationWarning',
-      message: 'Missing optional phone parameter handled gracefully with fallback',
-      line: 'server.ts:412',
-      timestamp: new Date(Date.now() - 1000 * 60 * 12).toLocaleTimeString(),
-      ip: '197.156.12.84',
-    },
-    {
-      id: 2,
-      apiPath: '/api/translate',
-      errorType: 'GeminiApiTimeoutHandled',
-      message: 'Automatic fallback to local dictionary translation completed in 42ms',
-      line: 'server.ts:580',
-      timestamp: new Date(Date.now() - 1000 * 60 * 45).toLocaleTimeString(),
-      ip: '197.156.18.102',
-    },
-  ]);
+  const [errorLogs, setErrorLogs] = useState<ErrorLog[]>([]);
+  const [loadingErrorLogs, setLoadingErrorLogs] = useState<boolean>(false);
+  const [simulatingError, setSimulatingError] = useState<boolean>(false);
+  const [clearingErrors, setClearingErrors] = useState<boolean>(false);
+  const [expandedErrorId, setExpandedErrorId] = useState<number | null>(null);
+
+  // Live Audit Logs State
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState<boolean>(false);
+  const [autoRefreshLogs, setAutoRefreshLogs] = useState<boolean>(true);
+  const [logFilter, setLogFilter] = useState<string>('ALL');
+  const logContainerRef = useRef<HTMLDivElement>(null);
 
   const fetchHealth = async () => {
     setLoadingHealth(true);
@@ -117,9 +103,14 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
       const res = await fetch('/api/admin/telegram-settings', {
         headers: { Authorization: `Bearer ${adminToken}` },
       });
-      const data = await res.json();
-      if (res.ok && data.config) {
-        setTelegramConfig(data.config);
+      const contentType = res.headers.get('content-type');
+      if (res.ok && contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.config) {
+          setTelegramConfig(data.config);
+        } else if (data.botToken && data.chatId) {
+          setTelegramConfig({ botToken: data.botToken, chatId: data.chatId });
+        }
       }
     } catch (err) {
       console.error('Error fetching telegram settings:', err);
@@ -129,12 +120,106 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
   const fetchMaintenanceStatus = async () => {
     try {
       const res = await fetch('/api/maintenance-mode');
-      const data = await res.json();
-      if (res.ok) {
-        setMaintenanceMode(data.maintenance);
+      const contentType = res.headers.get('content-type');
+      if (res.ok && contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        setMaintenanceMode(Boolean(data.maintenance));
       }
     } catch (err) {
       console.error('Error fetching maintenance mode status:', err);
+    }
+  };
+
+  const fetchAuditLogs = async () => {
+    setLoadingLogs(true);
+    try {
+      const res = await fetch('/api/admin/audit-logs', {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      const contentType = res.headers.get('content-type');
+      if (res.ok && contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (Array.isArray(data.logs)) {
+          setAuditLogs(data.logs);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching audit logs:', err);
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
+
+  const fetchErrorLogs = async () => {
+    setLoadingErrorLogs(true);
+    try {
+      const res = await fetch('/api/admin/error-logs', {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      const contentType = res.headers.get('content-type');
+      if (res.ok && contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (Array.isArray(data.logs)) {
+          setErrorLogs(data.logs);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching error logs:', err);
+    } finally {
+      setLoadingErrorLogs(false);
+    }
+  };
+
+  const handleTriggerTestError = async () => {
+    setSimulatingError(true);
+    setActionMessage(null);
+    try {
+      const res = await fetch('/api/admin/developer/test-error', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({
+          errorType: 'SimulatedException',
+          message: `ለሙከራ በDeveloper OPA የተፈጠረ የሲስተም ኤረር ናሙና #${Math.floor(Math.random() * 899 + 100)}`,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setActionMessage({ type: 'success', text: 'የሙከራ ኤረር ሎግ በስኬት ተመዝግቧል!' });
+        fetchErrorLogs();
+        fetchAuditLogs();
+      } else {
+        setActionMessage({ type: 'error', text: data.error || 'ኤረር መፍጠር አልተቻለም' });
+      }
+    } catch (err: any) {
+      setActionMessage({ type: 'error', text: err.message || 'የኔትወርክ ስህተት' });
+    } finally {
+      setSimulatingError(false);
+    }
+  };
+
+  const handleClearErrorLogs = async () => {
+    setClearingErrors(true);
+    setActionMessage(null);
+    try {
+      const res = await fetch('/api/admin/error-logs', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setActionMessage({ type: 'success', text: 'የኤረር ሎጎች በሙሉ ተፀድተዋል!' });
+        fetchErrorLogs();
+        fetchAuditLogs();
+      } else {
+        setActionMessage({ type: 'error', text: data.error || 'ኤረር ሎጎችን ማፅዳት አልተቻለም' });
+      }
+    } catch (err: any) {
+      setActionMessage({ type: 'error', text: err.message || 'የኔትወርክ ስህተት' });
+    } finally {
+      setClearingErrors(false);
     }
   };
 
@@ -153,6 +238,7 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
       if (res.ok) {
         setMaintenanceMode(nextState);
         window.dispatchEvent(new CustomEvent('maintenance-status-changed'));
+        fetchAuditLogs();
         setActionMessage({
           type: 'success',
           text: nextState ? 'Emergency Maintenance Mode በስኬት ተበርቷል! ለዜጎች በጥገና ላይ መሆኑ ይታያል::' : 'Maintenance Mode ተጠፍቷል! ሲስተሙ ለመደበኛ አገልግሎት ክፍት ሆኗል::',
@@ -169,7 +255,18 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
     fetchHealth();
     fetchTelegramConfig();
     fetchMaintenanceStatus();
+    fetchAuditLogs();
+    fetchErrorLogs();
   }, []);
+
+  useEffect(() => {
+    if (!autoRefreshLogs) return;
+    const interval = setInterval(() => {
+      fetchAuditLogs();
+      fetchErrorLogs();
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [autoRefreshLogs, adminToken]);
 
   // 1. Seed Test Tickets
   const handleSeedTickets = async (count: number) => {
@@ -188,6 +285,7 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
       if (res.ok) {
         setActionMessage({ type: 'success', text: data.message || `${count} የቴስት አቤቱታዎች ተፈጠሩ!` });
         fetchHealth();
+        fetchAuditLogs();
       } else {
         setActionMessage({ type: 'error', text: data.error || 'የቴስት ዳታ ማመንጨት አልተሳካም' });
       }
@@ -255,9 +353,37 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
   };
 
   // 4. Download Full Backup
-  const handleDownloadBackup = () => {
-    window.open(`/api/admin/developer/backup?token=${adminToken}`, '_blank');
-    setActionMessage({ type: 'success', text: 'የሲስተሙ አጠቃላይ ዳታቤዝ ባካፕ (JSON) ውርረቱ ተጀምሯል!' });
+  const handleDownloadBackup = async () => {
+    setActionMessage({ type: 'success', text: 'የሲስተሙ አጠቃላይ ዳታቤዝ ባካፕ (Full JSON Backup - 7 Tables) በመዘጋጀት ላይ ነው...' });
+    try {
+      const res = await fetch(`/api/admin/developer/backup?token=${encodeURIComponent(adminToken)}`, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      if (!res.ok) {
+        throw new Error('የባካፕ ፋይሉን ማወረድ አልተቻለም');
+      }
+      const data = await res.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dgc_full_database_backup_${new Date().toISOString().slice(0, 10)}_${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      const totalRecs = data?.summary?.total_records || 'All';
+      setActionMessage({
+        type: 'success',
+        text: `የሲስተሙ አጠቃላይ ዳታቤዝ ባካፕ (JSON - ${totalRecs} Records / 7 Tables) በስኬት ተወርዷል! (Complete Data Downloaded)`,
+      });
+      fetchAuditLogs();
+    } catch (err: any) {
+      // Fallback direct window open
+      window.open(`/api/admin/developer/backup?token=${encodeURIComponent(adminToken)}`, '_blank');
+      setActionMessage({ type: 'success', text: 'የሲስተሙ አጠቃላይ ዳታቤዝ ባካፕ (JSON) ውርረቱ ተጀምሯል!' });
+    }
   };
 
   // 5. Clear Cache
@@ -653,22 +779,133 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
         </div>
       </div>
 
-      {/* Developer Terminal Logs */}
-      <div className="bg-slate-950 border border-slate-800 rounded-3xl p-6 shadow-2xl font-mono text-xs space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3 text-slate-400">
-          <div className="flex items-center gap-2">
-            <Terminal className="w-4 h-4 text-purple-400" />
-            <span className="font-bold text-slate-200">Live System Console & Event Log</span>
+      {/* Developer Live Real-Time Terminal & Audit Event Logger */}
+      <div className="bg-slate-950 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl font-mono text-xs space-y-4">
+        {/* Terminal Header */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-purple-500/10 text-purple-400 rounded-xl border border-purple-500/20">
+              <Terminal className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-black text-slate-100 text-sm tracking-tight">Live System Console & Event Log</span>
+                <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  <span>● REAL-TIME LIVE</span>
+                </span>
+              </div>
+              <p className="text-[11px] font-sans text-slate-400 mt-0.5">
+                በሲስተሙ ውስጥ የሚከናወኑ ማንኛቸውም የዜጎች፣ የአድሚኖች እና የደቨሎፐር እንቅስቃሴዎች እዚህ ሎግ ላይ ወዲያውኑ ይታያሉ:: (Total: {auditLogs.length} events)
+              </p>
+            </div>
           </div>
-          <span className="text-[10px] text-emerald-400">● LIVE RUNTIME Active</span>
+
+          {/* Terminal Controls */}
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start md:justify-end">
+            {/* Filter Dropdown */}
+            <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-2.5 py-1.5 rounded-xl text-slate-300 text-[11px]">
+              <Filter className="w-3.5 h-3.5 text-slate-400" />
+              <select
+                value={logFilter}
+                onChange={(e) => setLogFilter(e.target.value)}
+                className="bg-transparent text-slate-200 focus:outline-none cursor-pointer text-[11px] font-bold"
+              >
+                <option value="ALL">ሁሉንም ሎጎች (All Logs)</option>
+                <option value="CITIZEN">የዜጎች አቤቱታና አስተያየት</option>
+                <option value="ADMIN">የአድሚኖች እንቅስቃሴ</option>
+                <option value="DEV">የደቨሎፐር / የጥገና ሎግ</option>
+              </select>
+            </div>
+
+            {/* Auto Refresh Toggle */}
+            <button
+              onClick={() => setAutoRefreshLogs(!autoRefreshLogs)}
+              className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold flex items-center gap-1.5 transition-all ${
+                autoRefreshLogs
+                  ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/30'
+                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
+              }`}
+              title={autoRefreshLogs ? 'Auto Refresh በርቷል' : 'Auto Refresh ቆሟል'}
+            >
+              {autoRefreshLogs ? <Pause className="w-3 h-3 text-emerald-400" /> : <Play className="w-3 h-3" />}
+              <span>{autoRefreshLogs ? 'Auto 2.5s' : 'Paused'}</span>
+            </button>
+
+            {/* Manual Refresh Button */}
+            <button
+              onClick={fetchAuditLogs}
+              disabled={loadingLogs}
+              className="px-3 py-1.5 bg-purple-900/60 hover:bg-purple-800 text-purple-200 border border-purple-500/30 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-sm"
+            >
+              <RefreshCw className={`w-3 h-3 ${loadingLogs ? 'animate-spin text-purple-300' : ''}`} />
+              <span>አድስ</span>
+            </button>
+          </div>
         </div>
 
-        <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800 space-y-2 text-slate-300 max-h-60 overflow-y-auto">
-          <p className="text-emerald-400">[SYSTEM INIT] Dual-persistence PostgreSQL & Local JSON loaded.</p>
-          <p className="text-blue-400">[AUTH MODULE] Default credentials verified: opa, owner1, admin.</p>
-          <p className="text-purple-300">[AI MULTILINGUAL] Gemini translation endpoint online (Afaan Oromoo / Soomaali / Amharic).</p>
-          <p className="text-slate-400">[API ROUTE] /api/tickets endpoint listening for citizen complaint tracking.</p>
-          <p className="text-slate-400">[DATABASE] System tables schema verified successfully.</p>
+        {/* Console Viewport */}
+        <div
+          ref={logContainerRef}
+          className="bg-slate-900/90 p-4 rounded-2xl border border-slate-800/80 space-y-2.5 text-slate-300 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 font-mono text-[11px] leading-relaxed shadow-inner"
+        >
+          {/* Baseline System Boots */}
+          <div className="text-slate-500 border-b border-slate-800/60 pb-2 space-y-1">
+            <p className="text-emerald-400/90">[SYSTEM BOOT] Dual-persistence PostgreSQL & Local JSON fallback initialized.</p>
+            <p className="text-blue-400/90">[SECURITY ENGINE] Role-Based Access Control verified for opa, owner1, and admin.</p>
+            <p className="text-purple-300/90">[AI TRANSLATE] Gemini Multilingual endpoint active (Afaan Oromoo / Soomaali / Amharic).</p>
+          </div>
+
+          {auditLogs.length === 0 ? (
+            <div className="py-6 text-center text-slate-500 space-y-1 font-sans">
+              <Activity className="w-6 h-6 mx-auto text-slate-600 animate-pulse" />
+              <p className="text-xs">እስካሁን የተመዘገበ የኦዲት ሎግ የለም ወይም በመጫን ላይ ነው...</p>
+            </div>
+          ) : (
+            auditLogs
+              .filter((log) => {
+                if (logFilter === 'ALL') return true;
+                if (logFilter === 'CITIZEN') return log.action.includes('TICKET') || log.action.includes('SURVEY_SUBMISSION') || log.admin_email.includes('CITIZEN');
+                if (logFilter === 'ADMIN') return log.action.includes('ADMIN') || log.action.includes('TOGGLE') || log.action.includes('CREATE') || log.action.includes('EXPORT');
+                if (logFilter === 'DEV') return log.action.includes('DEV') || log.action.includes('MAINTENANCE') || log.action.includes('USER') || log.admin_email.includes('opa');
+                return true;
+              })
+              .map((log) => {
+                const act = (log.action || '').toUpperCase();
+                let badgeClass = 'text-slate-300 bg-slate-800 border-slate-700';
+                if (act.includes('TICKET') || act.includes('SUBMISSION')) badgeClass = 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30';
+                else if (act.includes('LOGIN') || act.includes('ADMIN')) badgeClass = 'text-blue-300 bg-blue-500/15 border-blue-500/30';
+                else if (act.includes('MAINTENANCE')) badgeClass = 'text-amber-300 bg-amber-500/15 border-amber-500/30';
+                else if (act.includes('DEV') || act.includes('SEED') || act.includes('USER')) badgeClass = 'text-purple-300 bg-purple-500/15 border-purple-500/30';
+                else if (act.includes('TELEGRAM') || act.includes('EXPORT') || act.includes('REPORT')) badgeClass = 'text-cyan-300 bg-cyan-500/15 border-cyan-500/30';
+
+                const formattedTime = log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : 'N/A';
+
+                return (
+                  <div
+                    key={log.id}
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 p-2 rounded-xl bg-slate-950/60 hover:bg-slate-950 transition-colors border border-slate-800/40"
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-slate-500 text-[10px]">[{formattedTime}]</span>
+                      <span className={`px-2 py-0.5 rounded-lg border text-[10px] font-bold ${badgeClass}`}>
+                        [{log.action}]
+                      </span>
+                      <span className="text-amber-300/90 font-bold text-[10px]">
+                        &lt;{log.admin_email}&gt;
+                      </span>
+                      <span className="text-slate-200">{log.details}</span>
+                    </div>
+
+                    {log.ip_address && (
+                      <span className="text-[10px] text-slate-500 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 shrink-0">
+                        IP: {log.ip_address}
+                      </span>
+                    )}
+                  </div>
+                );
+              })
+          )}
         </div>
       </div>
     </div>
