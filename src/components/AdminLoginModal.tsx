@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ShieldAlert, Mail, KeyRound, AlertCircle, ArrowLeft } from 'lucide-react';
 import { AuthResponse } from '../types';
 
@@ -17,6 +17,14 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setEmail('');
+      setPassword('');
+      setError(null);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -100,7 +108,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4" autoComplete="off">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">የባለሙያ ኢሜይል (Official Email)</label>
               <div className="relative">
@@ -108,6 +116,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                 <input
                   type="email"
                   required
+                  autoComplete="off"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-red-900/60 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
@@ -122,6 +131,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                 <input
                   type="password"
                   required
+                  autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-red-900/60 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"

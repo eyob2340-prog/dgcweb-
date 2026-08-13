@@ -15,7 +15,7 @@ import { sendTelegramReport, DEFAULT_TELEGRAM_BOT_TOKEN, DEFAULT_TELEGRAM_CHAT_I
 // In-memory runtime settings store
 let activeBotToken = process.env.TELEGRAM_BOT_TOKEN || DEFAULT_TELEGRAM_BOT_TOKEN;
 let activeChatId = process.env.TELEGRAM_CHAT_ID || DEFAULT_TELEGRAM_CHAT_ID;
-let isMaintenanceMode = true;
+let isMaintenanceMode = false;
 import { generateSurveyAiReport, translateTextWithAi } from './server/ai';
 
 const app = express();

@@ -15,19 +15,26 @@ export const DgcLogo: React.FC<DgcLogoProps> = ({
   const [isPressing, setIsPressing] = useState<boolean>(false);
   const pressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pressStartTimeRef = useRef<number>(0);
 
-  const startPress = () => {
+  const startPress = (e?: React.SyntheticEvent) => {
+    // Prevent default context menu or ghost clicks on mobile long press
+    if (e && e.type === 'touchstart') {
+      // Don't preventDefault here so scrolling isn't blocked, but track touch
+    }
+
+    clearPressState();
     setIsPressing(true);
     setPressProgress(0);
 
-    const startTime = Date.now();
-    const duration = 8000;
+    const duration = 1800; // 1.8 seconds hold
+    pressStartTimeRef.current = Date.now();
 
     progressIntervalRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTime;
+      const elapsed = Date.now() - pressStartTimeRef.current;
       const pct = Math.min((elapsed / duration) * 100, 100);
       setPressProgress(pct);
-    }, 50);
+    }, 40);
 
     pressTimerRef.current = setTimeout(() => {
       clearPressState();
@@ -37,10 +44,12 @@ export const DgcLogo: React.FC<DgcLogoProps> = ({
     }, duration);
   };
 
-  const cancelPress = (wasTriggeredByClick = false) => {
-    const heldLongEnough = pressProgress >= 99;
+  const cancelPress = (wasTriggeredByRelease = false) => {
+    const elapsed = Date.now() - pressStartTimeRef.current;
+    const wasLongPress = elapsed >= 1700;
     clearPressState();
-    if (wasTriggeredByClick && !heldLongEnough && onClick) {
+
+    if (wasTriggeredByRelease && !wasLongPress && onClick) {
       onClick();
     }
   };
@@ -60,12 +69,14 @@ export const DgcLogo: React.FC<DgcLogoProps> = ({
 
   return (
     <div
-      className={`relative inline-flex items-center select-none cursor-pointer group ${className}`}
+      className={`relative inline-flex items-center select-none cursor-pointer group touch-none ${className}`}
       onMouseDown={startPress}
       onMouseUp={() => cancelPress(true)}
       onMouseLeave={() => cancelPress(false)}
       onTouchStart={startPress}
       onTouchEnd={() => cancelPress(true)}
+      onTouchCancel={() => cancelPress(false)}
+      onContextMenu={(e) => e.preventDefault()}
     >
       {/* Long-Press Progress Ring / Glow Overlay */}
       {isPressing && (

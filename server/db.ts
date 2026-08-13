@@ -649,10 +649,10 @@ export const db = {
       };
     }
 
-    if (cleanStr === 'admin' || cleanStr === 'admin@dgc.gov.et' || cleanStr === 'admin@ethiopia-opinion.gov.et') {
+    if (cleanStr === 'admin' || cleanStr === 'admin@dgc.gov.et' || cleanStr === 'admin@ethiopia-opinion.gov.et' || cleanStr === 'eyobjegreta@gmail.com') {
       return {
         id: 3,
-        email: 'admin@dgc.gov.et',
+        email: cleanStr.includes('@') ? cleanStr : 'admin@dgc.gov.et',
         username: 'admin',
         role: 'admin',
         password_hash: hashPassword('Admin@123456'),
