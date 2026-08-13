@@ -3,53 +3,89 @@
 @media print {
   @page {
     size: A4 portrait;
-    margin: 12mm;
+    margin: 12mm 15mm 12mm 15mm;
   }
 
-  /* Hide everything on page by default */
-  body * {
-    visibility: hidden !important;
-  }
-
-  /* Make printable report and its children visible */
-  .printable-a4-report,
-  .printable-a4-report * {
-    visibility: visible !important;
-  }
-
-  .printable-a4-report {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 20px !important;
-    border: none !important;
-    box-shadow: none !important;
+  html, body {
     background: #ffffff !important;
-    color: #0f172a !important;
+    color: #000000 !important;
+    height: auto !important;
+    overflow: visible !important;
+    font-size: 11pt !important;
+  }
+
+  /* Disable animations and transforms that break pagination */
+  *, *::before, *::after {
+    transform: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Explicitly hide buttons and non-printable UI elements */
+  header, footer, nav, button, input, select, textarea, .no-print, [role="dialog"], .admin-nav {
+    display: none !important;
+  }
+
+  /* Reset layout boxes so they print cleanly on white paper */
+  #root, main, div {
+    background: transparent !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
     max-height: none !important;
     overflow: visible !important;
   }
 
-  /* Explicitly hide buttons and non-printable elements */
-  header, footer, nav, button, .no-print {
-    display: none !important;
-    visibility: hidden !important;
+  /* Clean contrast for printable report */
+  .printable-a4-report {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    color: #000000 !important;
+    background: #ffffff !important;
   }
 
-  /* Print clean contrast */
-  .printable-a4-report h1,
-  .printable-a4-report h2,
-  .printable-a4-report h3,
-  .printable-a4-report h4 {
-    color: #0252c4 !important;
+  .printable-formal-report {
+    display: block !important;
+    color: #000000 !important;
+    background: #ffffff !important;
   }
 
-  .printable-a4-report p,
-  .printable-a4-report li,
-  .printable-a4-report span {
-    color: #1e293b !important;
+  .printable-formal-report h1,
+  .printable-formal-report h2,
+  .printable-formal-report h3,
+  .printable-formal-report h4 {
+    color: #000000 !important;
+    font-weight: 800 !important;
+  }
+
+  .printable-formal-report p,
+  .printable-formal-report li,
+  .printable-formal-report span,
+  .printable-formal-report td,
+  .printable-formal-report th {
+    color: #111827 !important;
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Page break rules for multi-page document */
+  .print-page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+    padding-top: 6mm !important;
+  }
+
+  .avoid-page-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 }
+
+
 

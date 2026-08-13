@@ -145,12 +145,23 @@ export interface AuditLog {
 
 export interface AiReportResponse {
   executive_summary: string;
+  introduction?: string;
   key_findings: string[];
+  positive_feedback?: string[];
+  negative_feedback?: string[];
+  section_analyses?: {
+    section_number: string;
+    title: string;
+    positive_points: string[];
+    negative_points: string[];
+  }[];
   demographic_insights: string;
   policy_recommendations: string[];
+  conclusion?: string;
   satisfaction_score: number;
   official_header: {
     bureau_name: string;
+    recipient_service?: string;
     city: string;
     generated_date: string;
     ref_code: string;
