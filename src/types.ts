@@ -140,6 +140,7 @@ export interface AuditLog {
   action: string;
   details: string;
   timestamp: string;
+  created_at?: string;
   ip_address?: string;
 }
 

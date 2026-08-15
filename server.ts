@@ -1700,7 +1700,7 @@ app.post('/api/admin/telegram/send-24h-report', authMiddleware, async (req: Auth
     await db.addAuditLog(
       req.adminUser?.email || 'admin@dgc.gov.et',
       'TELEGRAM_24H_REPORT_DISPATCH',
-      `የ24 ሰዓት የዳታ ቋት ፋይል (CSV) እና AI የትንተና ሪፖርት ወደ Telegram ተልኳል::`,
+      `የ24 ሰዓት የPDF ሪፖርት፣ የዳታ ቋት ፋይል (Excel/CSV) እና የ OPA AI Engine የትንተና ሪፖርት ወደ Telegram ተልኳል::`,
       req.ip
     );
 
@@ -1811,7 +1811,7 @@ app.get('/api/admin/notifications', authMiddleware, async (req: AuthenticatedReq
       type: 'telegram_status',
       title: isTelegramReady ? `✈️ የTelegram 24h ሪፖርት አገልግሎት: ዝግጁ` : `⚠️ የTelegram Bot አልተዋቀረም`,
       description: isTelegramReady
-        ? `የ24 ሰዓት የዳታ ቋት (Excel/CSV) እና የGemini AI የፖሊሲ ትንተና በየቀኑ በTelegram ይላካል።`
+        ? `የ24 ሰዓት የPDF ሪፖርት፣ የዳታ ቋት (Excel/CSV) እና የ OPA AI Engine የፖሊሲ ትንተና በየቀኑ በTelegram ይላካል።`
         : `የ24 ሰዓት ሪፖርት በፋይል ለመላክ እባክዎ Bot Token እና Chat ID ያስገቡ።`,
       time_eth: formatEthiopianDateTime(new Date()),
       priority: isTelegramReady ? 'info' : 'medium',

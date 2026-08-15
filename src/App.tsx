@@ -298,7 +298,7 @@ export default function App() {
               (System Under Maintenance)
             </p>
             <p className="text-xs text-slate-400 font-medium">
-              የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ
+              የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬရှင် ጉዳዮች ቢሮ
             </p>
           </div>
 
@@ -461,7 +461,7 @@ export default function App() {
                   <div className="space-y-2 max-w-xl">
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-black">
                       <Sparkles className="w-3.5 h-3.5" />
-                      <span>የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ኦፊሴላዊ ፖርታል</span>
+                      <span>የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ ኦፊሴላዊ ፖርታል</span>
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
                       የዜጎች አቤቱታ፣ ጥያቄ እና የሕዝብ አስተያየት መስኮት

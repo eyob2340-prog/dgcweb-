@@ -324,7 +324,7 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                   የጥያቄዎ/አቤቱታዎ ሁኔታ መከታተያ (Status Tracker)
                 </h3>
                 <p className="text-xs text-amber-400 font-bold flex items-center gap-1.5">
-                  <BadgeCheck className="w-4 h-4 text-amber-400" /> የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን
+                  <BadgeCheck className="w-4 h-4 text-amber-400" /> የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ
                 </p>
               </div>
             </div>
@@ -546,7 +546,7 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                           </div>
                           <div>
                             <h5 className="text-sm sm:text-base font-black text-amber-300 tracking-tight">
-                              የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ኦፊሴላዊ መልስ (Official Response)
+                              የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ ኦፊሴላዊ መልስ (Official Response)
                             </h5>
                             <p className="text-[10px] text-slate-300 font-semibold">
                               የድሬዳዋ አስተዳደር ነዋሪዎች አቤቱታና ጥያቄ ምላሽ መስጫ ጽህፈት ቤት

@@ -297,8 +297,8 @@ export const CitizenChatWidget: React.FC<CitizenChatWidgetProps> = ({ isDarkMode
                         Online
                       </span>
                     </div>
-                    <p className="text-[10px] text-amber-400/80 font-medium truncate max-w-[170px]">
-                      ድሬዳዋ አስተዳደር ኮሙኒኬሽን ቢሮ
+                    <p className="text-[10px] text-amber-400/80 font-medium truncate max-w-[210px]">
+                      የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ
                     </p>
                   </div>
                 </div>

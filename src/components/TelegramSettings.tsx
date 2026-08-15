@@ -123,7 +123,7 @@ export const TelegramSettings: React.FC<TelegramSettingsProps> = ({ adminToken }
               </span>
             </h2>
             <p className="text-xs text-slate-300 mt-0.5">
-              የድሬዳዋ አስተዳደር ኮሙኒኬሽን የቴሌግራም ቻናል ID እና Bot Token እዚህ ማስተካከል ይችላሉ::
+              የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ የቴሌግራም ቻናል ID እና Bot Token እዚህ ማስተካከል ይችላሉ::
             </p>
           </div>
         </div>

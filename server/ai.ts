@@ -194,7 +194,7 @@ Respond strictly in valid JSON format matching this schema:
       full_report_markdown: parsed.full_report_markdown || parsed.executive_summary || '',
     };
   } catch (err: any) {
-    console.error('Error generating AI report with Gemini:', err);
+    console.error('Error generating AI report with OPA AI Engine:', err);
     return {
       executive_summary: `ለ"${survey.title}" ጥናት የተሰበሰበው የ${total_responses} ዜጎች ምላሽ እንደሚያሳየው ነዋሪዎች ንቁ ተሳትፎ አድርገዋል::`,
       introduction: `በድሬዳዋ አስተዳደር የዜጎችን አስተያየት፣ አቤቱታ እና ፍላጎት በመዳሰስ ተገቢውን የመንግስት አገልግሎት አሰጣጥ ማሻሻያ ለማድረግ የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ ይህንን የተጠናቀረ የሕዝብ አስተያየት ሪፖርት አዘጋጅቷል::`,

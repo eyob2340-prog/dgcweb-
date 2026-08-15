@@ -209,7 +209,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
     }
   };
 
-  // Trigger 24-Hour Master Data & AI Policy Report to Telegram
+  // Trigger 24-Hour Master Data, PDF & OPA AI Engine Policy Report to Telegram
   const handleSend24hTelegramReport = async () => {
     setIsSending24hReport(true);
     setReportSendFeedback(null);
@@ -225,7 +225,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
       if (res.ok && data.success) {
         setReportSendFeedback({
           success: true,
-          message: data.message || 'የ24 ሰዓት የዳታ ፋይል (CSV) እና AI የትንተና ሪፖርት ወደ Telegram በስኬት ተልኳል!',
+          message: data.message || 'የ24 ሰዓት የPDF ሪፖርት፣ የዳታ ፋይል (Excel/CSV) እና የ OPA AI Engine ትንተና ወደ Telegram በስኬት ተልኳል!',
         });
       } else {
         setReportSendFeedback({
@@ -297,7 +297,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
             onClick={handleSend24hTelegramReport}
             disabled={isSending24hReport}
             className="px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white rounded-2xl border border-sky-400/30 text-xs font-black shadow-lg shadow-sky-600/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-            title="የ24 ሰዓት የዳታ ፋይል (CSV/Excel) እና የGemini AI ትንተና አሁኑኑ ወደ Telegram ይላኩ"
+            title="የ24 ሰዓት የPDF ሪፖርት፣ የዳታ ፋይል (Excel/CSV) እና የ OPA AI Engine ትንተና አሁኑኑ ወደ Telegram ይላኩ"
           >
             {isSending24hReport ? (
               <RefreshCw className="w-4 h-4 animate-spin text-sky-200" />
@@ -807,7 +807,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
                     auditLogs.map((log) => (
                       <tr key={log.id} className="hover:bg-slate-800/40 transition-colors">
                         <td className="p-3.5 font-mono text-slate-400 whitespace-nowrap">
-                          {formatEthiopianDateTime(log.created_at)}
+                          {formatEthiopianDateTime(log.timestamp || log.created_at || new Date().toISOString())}
                         </td>
                         <td className="p-3.5 font-bold text-slate-200">{log.admin_email}</td>
                         <td className="p-3.5">

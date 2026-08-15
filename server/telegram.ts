@@ -1,5 +1,6 @@
 import { SurveyAnalytics, AiReportResponse } from '../src/types';
 import { toEthiopianDate } from '../src/lib/ethiopianDate';
+import { generateExecutive24hPdf } from './pdfGenerator';
 
 // User-configured Telegram Bot & Channel
 export const DEFAULT_TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
@@ -51,7 +52,8 @@ export async function sendTelegramDocument(
     formData.append('caption', caption.substring(0, 1024));
     formData.append('parse_mode', 'Markdown');
 
-    const blob = new Blob([fileContent], { type: mimeType });
+    const blobContent = typeof fileContent === 'string' ? fileContent : new Uint8Array(fileContent);
+    const blob = new Blob([blobContent], { type: mimeType });
     formData.append('document', blob, fileName);
 
     const url = `https://api.telegram.org/bot${token}/sendDocument`;
@@ -177,7 +179,7 @@ export async function sendTelegramReport(
 
 /**
  * 24-Hour Automated Master Telegram Dispatch:
- * Sends comprehensive Survey responses spreadsheet (CSV/Excel-ready) + Gemini AI Policy Summary
+ * Sends Official Executive PDF Report + Raw Spreadsheet (CSV/Excel) + OPA AI Engine Policy Summary
  */
 export async function sendDaily24hTelegramReport(
   surveysData: {
@@ -189,7 +191,7 @@ export async function sendDaily24hTelegramReport(
   aiSummaryText: string,
   botToken?: string,
   chatId?: string
-): Promise<{ success: boolean; message: string; docResult?: any }> {
+): Promise<{ success: boolean; message: string; pdfResult?: any; docResult?: any }> {
   const ethDate = toEthiopianDate(new Date());
   const dateAm = ethDate.formattedAmharic;
   
@@ -218,30 +220,62 @@ export async function sendDaily24hTelegramReport(
     csvContent += `"${t.ticket_code}","${t.category}","${t.priority}","${t.status}","${t.residence || 'N/A'}","${subject}","${ethTicketDate}"\n`;
   }
 
-  const fileName = `DGC_24h_Survey_Report_${ethDate.year}_${ethDate.month}_${ethDate.day}.csv`;
+  const csvFileName = `DGC_24h_Master_Data_${ethDate.year}_${ethDate.month}_${ethDate.day}.csv`;
+  const pdfFileName = `DGC_24h_Executive_Report_${ethDate.year}_${ethDate.month}_${ethDate.day}.pdf`;
 
-  // 2. Prepare Executive Caption & AI Insight Summary
-  let caption = `📊 *የ24 ሰዓት የዳታ ቋት እና AI የትንተና ሪፖርት*\n`;
-  caption += `🏢 *የድሬዳዋ አስተዳደር ኮሙኒኬሽን ጉዳዮች ቢሮ*\n`;
-  caption += `📅 *ቀን:* *${escapeMarkdown(dateAm)}*\n`;
-  caption += `📈 *ጥናቶች:* *${surveysData.surveys.length}* | *ምላሾች:* *${surveysData.responses.length}* | *አቤቱታዎች:* *${surveysData.tickets.length}*\n\n`;
-  caption += `📁 *አባሪ የተደረገው ፋይል:* \`${fileName}\` (Excel & CSV Compatible)\n`;
+  // 2. Generate Official PDF Document using pdfGenerator
+  let pdfBuffer: Buffer | null = null;
+  try {
+    pdfBuffer = generateExecutive24hPdf(
+      surveysData,
+      aiSummaryText,
+      dateAm,
+      `DGC-24H-${ethDate.year}-${ethDate.month}`
+    );
+  } catch (pdfErr) {
+    console.error('Error generating 24h Executive PDF for Telegram:', pdfErr);
+  }
 
-  // 3. Send Document to Telegram
+  // 3. Prepare Executive PDF Caption
+  let pdfCaption = `📄 *ኦፊሴላዊ የ24 ሰዓት የዳሰሳ ጥናትና ፖሊሲ ሪፖርት (Official Executive PDF)*\n`;
+  pdfCaption += `🏢 *የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ*\n`;
+  pdfCaption += `📅 *ቀን:* *${escapeMarkdown(dateAm)}*\n`;
+  pdfCaption += `📈 *ጥናቶች:* *${surveysData.surveys.length}* | *ምላሾች:* *${surveysData.responses.length}* | *አቤቱታዎች:* *${surveysData.tickets.length}*\n`;
+  pdfCaption += `🤖 *ሲስተም:* OPA AI Engine v4.8 Intelligence Platform\n\n`;
+  pdfCaption += `📎 *ፋይል:* \`${pdfFileName}\` (A4 Executive PDF Document)`;
+
+  // 4. Send PDF Document First
+  let pdfResult: { success: boolean; message: string } = { success: false, message: 'PDF አልተፈጠረም' };
+  if (pdfBuffer) {
+    pdfResult = await sendTelegramDocument(
+      pdfBuffer,
+      pdfFileName,
+      pdfCaption,
+      botToken,
+      chatId,
+      'application/pdf'
+    );
+  }
+
+  // 5. Send CSV Spreadsheet Document
+  let csvCaption = `📊 *የ24 ሰዓት ጥሬ ዳታ ቋት (Excel/CSV Master Sheet)*\n`;
+  csvCaption += `🏢 *የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ*\n`;
+  csvCaption += `📁 *አባሪ:* \`${csvFileName}\` (Microsoft Excel & CSV Compatible)`;
+
   const docResult = await sendTelegramDocument(
     csvContent,
-    fileName,
-    caption,
+    csvFileName,
+    csvCaption,
     botToken,
     chatId,
     'text/csv'
   );
 
-  // 4. Send detailed AI Executive Briefing as Message
-  let aiMsg = `🤖 *[የ24 ሰዓት የGemini AI የፖሊሲ እና የህዝብ አስተያየት ጥልቅ ትንተና]*\n\n`;
+  // 6. Send detailed OPA AI Engine Executive Briefing as Telegram Message
+  let aiMsg = `🤖 *[የ24 ሰዓት የ OPA AI Engine የፖሊሲ እና የህዝብ አስተያየት ጥልቅ ትንተና]*\n\n`;
   aiMsg += `${escapeMarkdown(aiSummaryText)}\n\n`;
   aiMsg += `📅 *የሪፖርት ቀን:* ${escapeMarkdown(dateAm)}\n`;
-  aiMsg += `🔒 *ድሬዳዋ አስተዳደር - Dire Dawa Government Communication Affairs Office*`;
+  aiMsg += `🔒 *የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ - Dire Dawa, Ethiopia*`;
 
   const token = botToken || process.env.TELEGRAM_BOT_TOKEN || DEFAULT_TELEGRAM_BOT_TOKEN;
   const rawChatId = chatId || process.env.TELEGRAM_CHAT_ID || DEFAULT_TELEGRAM_CHAT_ID;
@@ -259,15 +293,17 @@ export async function sendDaily24hTelegramReport(
         }),
       });
     } catch (e) {
-      console.warn('Failed to send AI summary text to Telegram:', e);
+      console.warn('Failed to send OPA AI summary text to Telegram:', e);
     }
   }
 
+  const isSuccess = pdfResult.success || docResult.success;
   return {
-    success: docResult.success,
-    message: docResult.success
-      ? 'የ24 ሰዓት የሰርቬይ ዳታ ፋይል (CSV/Excel) እና የGemini AI ትንተና በስኬት ወደ Telegram ተልኳል!'
-      : docResult.message,
+    success: isSuccess,
+    message: isSuccess
+      ? 'የ24 ሰዓት የPDF ሪፖርት፣ የExcel/CSV ዳታ ፋይል እና የ OPA AI Engine ትንተና በስኬት ወደ Telegram ተልኳል!'
+      : (pdfResult.message || docResult.message),
+    pdfResult,
     docResult,
   };
 }
