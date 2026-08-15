@@ -4,6 +4,15 @@ import { SurveyAnalytics, AiReportResponse } from '../src/types';
 export const DEFAULT_TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 export const DEFAULT_TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 
+/**
+ * Escapes special Markdown characters to prevent Telegram Markdown formatting injections.
+ * Prevents user-submitted asterisks, underscores, brackets, and backticks from breaking markdown or creating arbitrary links.
+ */
+export function escapeMarkdown(text: string | null | undefined): string {
+  if (!text) return '';
+  return String(text).replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1');
+}
+
 export function formatTelegramChatId(rawId?: string): string {
   if (!rawId) return DEFAULT_TELEGRAM_CHAT_ID;
   const trimmed = rawId.trim();
@@ -35,21 +44,21 @@ export async function sendTelegramReport(
   let textMsg = `🏢 *የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ*\n`;
   textMsg += `📜 *ኦፊሴላዊ የሕዝብ አስተያየትና የፖሊሲ ሪፖርት*\n\n`;
 
-  textMsg += `📌 *የጥናቱ ርዕስ:* ${survey.title}\n`;
-  textMsg += `📁 *መደብ:* ${survey.category}\n`;
+  textMsg += `📌 *የጥናቱ ርዕስ:* ${escapeMarkdown(survey.title)}\n`;
+  textMsg += `📁 *መደብ:* ${escapeMarkdown(survey.category)}\n`;
   textMsg += `👥 *የተሳተፉ ዜጎች ብዛት:* *${total_responses}*\n`;
   textMsg += `📅 *ቀን:* ${new Date().toLocaleDateString('am-ET', { year: 'numeric', month: 'long', day: 'numeric' })}\n`;
 
   if (aiReport) {
-    textMsg += `🔢 *የመዝገብ ቁጥር (Ref):* \`${aiReport.official_header.ref_code}\` \n`;
+    textMsg += `🔢 *የመዝገብ ቁጥር (Ref):* \`${escapeMarkdown(aiReport.official_header.ref_code)}\` \n`;
     textMsg += `🌟 *የሕዝብ እርካታ ደረጃ:* *${aiReport.satisfaction_score}%*\n\n`;
 
-    textMsg += `📝 *[የፖሊሲ ማጠቃለያ]*\n${aiReport.executive_summary}\n\n`;
+    textMsg += `📝 *[የፖሊሲ ማጠቃለያ]*\n${escapeMarkdown(aiReport.executive_summary)}\n\n`;
 
     if (aiReport.key_findings && aiReport.key_findings.length > 0) {
       textMsg += `🔑 *[ዋና ዋና ግኝቶች]*\n`;
       aiReport.key_findings.forEach((kf) => {
-        textMsg += `  • ${kf}\n`;
+        textMsg += `  • ${escapeMarkdown(kf)}\n`;
       });
       textMsg += `\n`;
     }
@@ -57,7 +66,7 @@ export async function sendTelegramReport(
     if (aiReport.policy_recommendations && aiReport.policy_recommendations.length > 0) {
       textMsg += `💡 *[የፖሊሲ ማሻሻያ ጥቆማዎች]*\n`;
       aiReport.policy_recommendations.forEach((pr) => {
-        textMsg += `  • ${pr}\n`;
+        textMsg += `  • ${escapeMarkdown(pr)}\n`;
       });
       textMsg += `\n`;
     }
@@ -67,11 +76,11 @@ export async function sendTelegramReport(
   textMsg += `📊 *[የጥያቄዎች እና የመልሶች ስቲስቲክስ]*\n\n`;
 
   questions_analytics.forEach((q, idx) => {
-    textMsg += `*${idx + 1}. ${q.question_text}*\n`;
+    textMsg += `*${idx + 1}. ${escapeMarkdown(q.question_text)}*\n`;
 
     if (q.question_type === 'radio' && q.radio_data) {
       q.radio_data.forEach((r) => {
-        textMsg += `  • ${r.option}: *${r.count}* (${r.percentage}%)\n`;
+        textMsg += `  • ${escapeMarkdown(r.option)}: *${r.count}* (${r.percentage}%)\n`;
       });
     } else if (q.question_type === 'rating' && q.rating_distribution) {
       textMsg += `  ⭐ *አማካኝ ደረጃ (Average):* *${q.rating_average || 0} / 5*\n`;
@@ -84,7 +93,7 @@ export async function sendTelegramReport(
       if (recent.length > 0) {
         textMsg += `  *ምሳሌዎች:*\n`;
         recent.forEach((t) => {
-          textMsg += `  - "${t.answer_text.substring(0, 80)}..."\n`;
+          textMsg += `  - "${escapeMarkdown(t.answer_text.substring(0, 80))}..."\n`;
         });
       }
     }

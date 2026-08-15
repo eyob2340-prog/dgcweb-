@@ -52,6 +52,16 @@ interface VisualAnalyticsProps {
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
 
+function escapeHtml(str: any): string {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
   surveys,
   selectedSurveyId,
@@ -269,45 +279,45 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
   };
 
   const getFormalReportHtml = (reportData: any, analyticsData: any): string => {
-    const generatedDate = reportData?.official_header?.generated_date || 'ነሐሴ 2018';
-    const refCode = reportData?.official_header?.ref_code || 'DGC-RPT-2026';
-    const city = reportData?.official_header?.city || 'ድሬዳዋ';
-    const surveyTitle = analyticsData?.survey?.title || 'የሕዝብ አስተያየት ጥናት';
-    const totalResponses = analyticsData?.total_responses || 0;
+    const generatedDate = escapeHtml(reportData?.official_header?.generated_date || 'ነሐሴ 2018');
+    const refCode = escapeHtml(reportData?.official_header?.ref_code || 'DGC-RPT-2026');
+    const city = escapeHtml(reportData?.official_header?.city || 'ድሬዳዋ');
+    const surveyTitle = escapeHtml(analyticsData?.survey?.title || 'የሕዝብ አስተያየት ጥናት');
+    const totalResponses = Number(analyticsData?.total_responses) || 0;
 
     const eduRows = analyticsData?.demographics_analytics?.education_distribution?.map((ed: any) => `
       <tr>
-        <td style="padding: 6px 10px; border: 1px solid #cbd5e1; font-size: 12px;">${ed.label}</td>
-        <td style="padding: 6px 10px; border: 1px solid #cbd5e1; font-size: 12px; text-align: right; font-weight: bold;">${ed.count}</td>
-        <td style="padding: 6px 10px; border: 1px solid #cbd5e1; font-size: 12px; text-align: right; font-weight: bold; color: #1e40af;">${ed.percentage}%</td>
+        <td style="padding: 6px 10px; border: 1px solid #cbd5e1; font-size: 12px;">${escapeHtml(ed.label)}</td>
+        <td style="padding: 6px 10px; border: 1px solid #cbd5e1; font-size: 12px; text-align: right; font-weight: bold;">${Number(ed.count) || 0}</td>
+        <td style="padding: 6px 10px; border: 1px solid #cbd5e1; font-size: 12px; text-align: right; font-weight: bold; color: #1e40af;">${Number(ed.percentage) || 0}%</td>
       </tr>
     `).join('') || '';
 
     const genderBoxes = analyticsData?.demographics_analytics?.gender_distribution?.map((gd: any) => `
       <div style="background-color: #f8fafc; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: center;">
-        <span style="font-size: 11px; font-weight: bold; color: #475569; display: block;">${gd.label}</span>
-        <span style="font-size: 15px; font-weight: 900; color: #0f172a;">${gd.count} (${gd.percentage}%)</span>
+        <span style="font-size: 11px; font-weight: bold; color: #475569; display: block;">${escapeHtml(gd.label)}</span>
+        <span style="font-size: 15px; font-weight: 900; color: #0f172a;">${Number(gd.count) || 0} (${Number(gd.percentage) || 0}%)</span>
       </div>
     `).join('') || '';
 
     const posItems = reportData?.positive_feedback?.map((pos: string) => `
-      <li style="margin-bottom: 6px; line-height: 1.5; color: #065f46;">▪ ${pos}</li>
+      <li style="margin-bottom: 6px; line-height: 1.5; color: #065f46;">▪ ${escapeHtml(pos)}</li>
     `).join('') || '<li style="font-style: italic; color: #64748b;">አዎንታዊ አስተያየቶች በዳታቤዝ ተመዝግበዋል::</li>';
 
     const negItems = reportData?.negative_feedback?.map((neg: string) => `
-      <li style="margin-bottom: 6px; line-height: 1.5; color: #991b1b;">▪ ${neg}</li>
+      <li style="margin-bottom: 6px; line-height: 1.5; color: #991b1b;">▪ ${escapeHtml(neg)}</li>
     `).join('') || '<li style="font-weight: bold; color: #334155;">የሉም (No critical remarks reported)</li>';
 
     const secAnalyses = reportData?.section_analyses?.map((sec: any) => `
       <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 12px; background-color: #ffffff;">
         <h3 style="font-size: 14px; font-weight: bold; color: #0f172a; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
-          ${sec.section_number || ''} ${sec.title || ''}
+          ${escapeHtml(sec.section_number || '')} ${escapeHtml(sec.title || '')}
         </h3>
         ${sec.positive_points?.length ? `
           <div style="margin-bottom: 6px;">
             <strong style="font-size: 12px; color: #065f46;">በአውንታ የቀረቡ ሀሳቦች፦</strong>
             <ul style="margin: 4px 0 0 16px; padding: 0; font-size: 12px; color: #1e293b;">
-              ${sec.positive_points.map((p: string) => `<li style="margin-bottom: 3px;">${p}</li>`).join('')}
+              ${sec.positive_points.map((p: string) => `<li style="margin-bottom: 3px;">${escapeHtml(p)}</li>`).join('')}
             </ul>
           </div>
         ` : ''}
@@ -315,7 +325,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
           <div>
             <strong style="font-size: 12px; color: #991b1b;">በአሉታ የቀረቡ ሀሳቦች፦</strong>
             <ul style="margin: 4px 0 0 16px; padding: 0; font-size: 12px; color: #1e293b;">
-              ${sec.negative_points.map((n: string) => `<li style="margin-bottom: 3px;">${n}</li>`).join('')}
+              ${sec.negative_points.map((n: string) => `<li style="margin-bottom: 3px;">${escapeHtml(n)}</li>`).join('')}
             </ul>
           </div>
         ` : ''}
@@ -323,13 +333,13 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
     `).join('') || '';
 
     const keyFindings = reportData?.key_findings?.map((kf: string) => `
-      <li style="margin-bottom: 8px; font-weight: 600; line-height: 1.5; color: #0f172a;">${kf}</li>
+      <li style="margin-bottom: 8px; font-weight: 600; line-height: 1.5; color: #0f172a;">${escapeHtml(kf)}</li>
     `).join('') || '';
 
     const policyRecs = reportData?.policy_recommendations?.map((rec: string, i: number) => `
       <div style="display: flex; align-items: flex-start; margin-bottom: 10px; padding: 10px; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px;">
         <div style="width: 24px; height: 24px; border-radius: 50%; background-color: #0f172a; color: #ffffff; font-weight: bold; font-size: 12px; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0;">${i + 1}</div>
-        <div style="font-size: 13px; font-weight: 600; color: #0f172a; line-height: 1.5;">${rec}</div>
+        <div style="font-size: 13px; font-weight: 600; color: #0f172a; line-height: 1.5;">${escapeHtml(rec)}</div>
       </div>
     `).join('') || '';
 
@@ -396,7 +406,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
 
       <div class="cover-box">
         <h3 style="font-size: 14px; margin-bottom: 4px;">
-          ${reportData?.official_header?.recipient_service || 'የሀገራዊና የአካባቢያዊ ልማት'} ሂደቱን እንቅስቃሴን በተመለከተ የቀረበ
+          ${escapeHtml(reportData?.official_header?.recipient_service || 'የሀገራዊና የአካባቢያዊ ልማት')} ሂደቱን እንቅስቃሴን በተመለከተ የቀረበ
         </h3>
         <h2 style="font-size: 17px; font-weight: 900; margin: 0;">የሕዝብ አስተያየት ሪፖርት</h2>
         <p style="font-size: 11px; color: #475569; margin-top: 4px; font-weight: bold;">
@@ -413,7 +423,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
       <div style="text-align: left; margin-top: 12px;">
         <h3 style="border-bottom: 2px solid #0f172a; padding-bottom: 4px;">1. መግቢያ</h3>
         <p style="text-align: justify; text-indent: 20px; font-size: 12.5px; line-height: 1.65; color: #1e293b;">
-          ${reportData?.introduction || reportData?.executive_summary || ''}
+          ${escapeHtml(reportData?.introduction || reportData?.executive_summary || '')}
         </p>
       </div>
     </div>
@@ -509,7 +519,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
       <div style="margin-top: 20px; border-top: 2px solid #0f172a; padding-top: 10px;">
         <h2>5. ማጠቃለያ</h2>
         <p style="text-align: justify; text-indent: 20px; font-size: 12.5px; line-height: 1.65; color: #0f172a;">
-          ${reportData?.conclusion || reportData?.executive_summary || ''}
+          ${escapeHtml(reportData?.conclusion || reportData?.executive_summary || '')}
         </p>
       </div>
 

@@ -40,6 +40,8 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
   const [myUsername, setMyUsername] = useState<string>(currentUser?.username || '');
   const [myNewPassword, setMyNewPassword] = useState<string>('');
   const [updatingProfile, setUpdatingProfile] = useState<boolean>(false);
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState<boolean>(Boolean(currentUser?.two_factor_enabled));
+  const [toggling2FA, setToggling2FA] = useState<boolean>(false);
 
   // Password Reset Modal / State for Target User
   const [selectedUserToReset, setSelectedUserToReset] = useState<AdminUser | null>(null);
@@ -53,6 +55,14 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
   const [newPassword, setNewPassword] = useState<string>('');
   const [newRole, setNewRole] = useState<'owner' | 'admin'>('admin');
   const [creatingUser, setCreatingUser] = useState<boolean>(false);
+
+  // 2FA Disablement Modal State
+  const [isDisable2FaModalOpen, setIsDisable2FaModalOpen] = useState<boolean>(false);
+  const [disable2FaPassword, setDisable2FaPassword] = useState<string>('');
+  const [disable2FaOtp, setDisable2FaOtp] = useState<string>('');
+  const [disable2FaRequiresOtp, setDisable2FaRequiresOtp] = useState<boolean>(false);
+  const [disable2FaError, setDisable2FaError] = useState<string | null>(null);
+  const [disabling2FaLoading, setDisabling2FaLoading] = useState<boolean>(false);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -79,8 +89,92 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
     if (currentUser) {
       setMyEmail(currentUser.email || '');
       setMyUsername(currentUser.username || '');
+      setTwoFactorEnabled(Boolean(currentUser.two_factor_enabled));
     }
   }, [currentUser]);
+
+  const handleToggle2FA = async () => {
+    // If currently enabled, require password and OTP confirmation modal to disable
+    if (twoFactorEnabled) {
+      setDisable2FaPassword('');
+      setDisable2FaOtp('');
+      setDisable2FaRequiresOtp(false);
+      setDisable2FaError(null);
+      setIsDisable2FaModalOpen(true);
+      return;
+    }
+
+    // Enabling 2FA
+    setToggling2FA(true);
+    setMessage(null);
+    try {
+      const res = await fetch('/api/admin/2fa/toggle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({ enabled: true }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setTwoFactorEnabled(data.two_factor_enabled);
+        setMessage({
+          type: 'success',
+          text: 'ባለ 2-ደረጃ ማረጋገጫ (2FA) በርቷል! ወደ ቴሌግራም የማሳወቂያ መልዕክት ተልኳል::',
+        });
+        fetchUsers();
+      } else {
+        setMessage({ type: 'error', text: data.error || '2FA ማስተካከል አልተቻለም' });
+      }
+    } catch (err: any) {
+      setMessage({ type: 'error', text: '2FA ማስተካከል አልተቻለም' });
+    } finally {
+      setToggling2FA(false);
+    }
+  };
+
+  const handleConfirmDisable2FA = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDisabling2FaLoading(true);
+    setDisable2FaError(null);
+
+    try {
+      const res = await fetch('/api/admin/2fa/toggle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({
+          enabled: false,
+          currentPassword: disable2FaPassword,
+          otp: disable2FaRequiresOtp ? disable2FaOtp : undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        if (data.requireOtp) {
+          setDisable2FaRequiresOtp(true);
+        } else {
+          setTwoFactorEnabled(false);
+          setIsDisable2FaModalOpen(false);
+          setMessage({
+            type: 'success',
+            text: 'ባለ 2-ደረጃ ማረጋገጫ (2FA) ጠፍቷል::',
+          });
+          fetchUsers();
+        }
+      } else {
+        setDisable2FaError(data.error || '2FA ማጥፋት አልተቻለም');
+      }
+    } catch (err: any) {
+      setDisable2FaError('የኔትወርክ ስህተት አጋጥሟል');
+    } finally {
+      setDisabling2FaLoading(false);
+    }
+  };
 
   const handleUpdateMyProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -332,6 +426,33 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                 className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 placeholder="ባዶ ከተው አይቀየርም (Leave blank to keep current)"
               />
+            </div>
+
+            {/* Two-Factor Authentication (2FA) Toggle */}
+            <div className="pt-2 border-t border-slate-800/80">
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-200">
+                    <ShieldCheck className={`w-4 h-4 ${twoFactorEnabled ? 'text-emerald-400' : 'text-slate-500'}`} />
+                    <span>ባለ 2-ደረጃ ማረጋገጫ (2FA)</span>
+                  </div>
+                  <p className="text-[10px] text-slate-400">
+                    {twoFactorEnabled ? 'ደህንነቱ የተጠበቀ (በርቷል)' : 'አልበራም (ጥበቃውን አጠናክር)'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggle2FA}
+                  disabled={toggling2FA}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    twoFactorEnabled
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/40'
+                      : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-emerald-600 hover:text-white'
+                  }`}
+                >
+                  {toggling2FA ? '...' : twoFactorEnabled ? 'አጥፋ' : 'አብራ (Enable)'}
+                </button>
+              </div>
             </div>
 
             <div className="pt-2">
@@ -609,6 +730,84 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                 >
                   {creatingUser && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                   <span>ፍጠር (Create Account)</span>
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+      {/* Disable 2FA Security Confirmation Modal */}
+      {isDisable2FaModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-slate-900 border border-red-500/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5"
+          >
+            <div className="flex items-center space-x-3 text-red-400 border-b border-slate-800 pb-4">
+              <ShieldAlert className="w-6 h-6 shrink-0" />
+              <div>
+                <h3 className="text-base font-black text-white">2FA ማጥፊያ የደህንነት ማረጋገጫ</h3>
+                <p className="text-xs text-slate-400">የአካውንትዎን ባለ 2-ደረጃ ጥበቃ ለማጥፋት ያረጋግጡ</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleConfirmDisable2FA} className="space-y-4">
+              {disable2FaError && (
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs font-bold">
+                  {disable2FaError}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  የአሁኑን ፓስወርድዎን ያስገቡ (Current Password) *
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={disable2FaPassword}
+                  onChange={(e) => setDisable2FaPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="••••••••••••"
+                />
+              </div>
+
+              {disable2FaRequiresOtp && (
+                <div>
+                  <label className="block text-xs font-bold text-emerald-400 mb-1.5">
+                    ወደ ቴሌግራም የተላከውን ባለ 6-አሃዝ የማረጋገጫ ኮድ (OTP) ያስገቡ *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={disable2FaOtp}
+                    onChange={(e) => setDisable2FaOtp(e.target.value.replace(/\D/g, ''))}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-emerald-500/50 rounded-xl text-center text-sm font-mono font-black text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="••••••"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    የማረጋገጫ ኮድ ወደ ቴሌግራም ቦት ተልኳል (ለ 5 ደቂቃ ያገለግላል)::
+                  </p>
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsDisable2FaModalOpen(false)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl"
+                >
+                  ሰርዝ (Cancel)
+                </button>
+                <button
+                  type="submit"
+                  disabled={disabling2FaLoading}
+                  className="px-5 py-2 bg-red-600 hover:bg-red-500 text-white font-black text-xs rounded-xl shadow-lg flex items-center gap-1.5 cursor-pointer"
+                >
+                  {disabling2FaLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                  <span>{disable2FaRequiresOtp ? 'አረጋግጥና 2FA አጥፋ' : 'ኮድ ላክና ቀጥል'}</span>
                 </button>
               </div>
             </form>

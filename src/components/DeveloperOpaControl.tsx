@@ -42,11 +42,14 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
 }) => {
   const [healthStatus, setHealthStatus] = useState<any>(null);
   const [loadingHealth, setLoadingHealth] = useState<boolean>(true);
+  const [dbStats, setDbStats] = useState<any>(null);
+  const [loadingDbStats, setLoadingDbStats] = useState<boolean>(true);
   const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Developer Control States
   const [maintenanceMode, setMaintenanceMode] = useState<boolean>(false);
   const [seedingTickets, setSeedingTickets] = useState<boolean>(false);
+  const [cleaningTestTickets, setCleaningTestTickets] = useState<boolean>(false);
   const [clearingCache, setClearingCache] = useState<boolean>(false);
 
   // Telegram Settings State
@@ -66,36 +69,38 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
   const [loadingLogs, setLoadingLogs] = useState<boolean>(false);
   const [autoRefreshLogs, setAutoRefreshLogs] = useState<boolean>(true);
   const [logFilter, setLogFilter] = useState<string>('ALL');
+  const [securityMetrics, setSecurityMetrics] = useState<any>(null);
   const logContainerRef = useRef<HTMLDivElement>(null);
 
-  const fetchHealth = async () => {
-    setLoadingHealth(true);
+  const fetchDbStats = async () => {
+    setLoadingDbStats(true);
     try {
-      const res = await fetch('/api/admin/surveys', {
+      const res = await fetch('/api/admin/developer/db-stats', {
         headers: { Authorization: `Bearer ${adminToken}` },
       });
       if (res.ok) {
+        const data = await res.json();
+        setDbStats(data);
         setHealthStatus({
           status: 'ONLINE',
-          uptime: '99.98%',
-          database: 'PostgreSQL + Local Fallback Sync',
-          activePort: '3000',
-          memoryUsage: '48.2 MB',
+          uptime: `${Math.floor((data.systemInfo?.uptimeSeconds || 60) / 60)} ደቂቃ (Online)`,
+          database: data.systemInfo?.databaseType || 'PostgreSQL + Local Fallback Sync',
+          activePort: String(data.systemInfo?.activePort || '3000'),
+          memoryUsage: data.systemInfo?.memoryUsageMB || '~48.2 MB',
           avgLatency: '82 ms (Very Fast)',
-          reqPerMin: 142,
-          tablesCount: {
-            admins: 3,
-            surveys: 2,
-            tickets: 18,
-            audit_logs: 45,
-          },
+          tablesCount: data.tablesCount,
         });
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching dynamic DB stats:', err);
     } finally {
+      setLoadingDbStats(false);
       setLoadingHealth(false);
     }
+  };
+
+  const fetchHealth = () => {
+    fetchDbStats();
   };
 
   const fetchTelegramConfig = async () => {
@@ -251,24 +256,41 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
     }
   };
 
+  const fetchSecurityMetrics = async () => {
+    try {
+      const res = await fetch('/api/admin/security/metrics', {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSecurityMetrics(data);
+      }
+    } catch (err) {
+      console.error('Error fetching security metrics:', err);
+    }
+  };
+
   useEffect(() => {
-    fetchHealth();
+    fetchDbStats();
     fetchTelegramConfig();
     fetchMaintenanceStatus();
     fetchAuditLogs();
     fetchErrorLogs();
+    fetchSecurityMetrics();
   }, []);
 
   useEffect(() => {
     if (!autoRefreshLogs) return;
     const interval = setInterval(() => {
+      fetchDbStats();
       fetchAuditLogs();
       fetchErrorLogs();
-    }, 2500);
+      fetchSecurityMetrics();
+    }, 4000);
     return () => clearInterval(interval);
   }, [autoRefreshLogs, adminToken]);
 
-  // 1. Seed Test Tickets
+  // 1. Seed Test Tickets (Dev Sandbox Only)
   const handleSeedTickets = async (count: number) => {
     setSeedingTickets(true);
     setActionMessage(null);
@@ -284,7 +306,7 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
       const data = await res.json();
       if (res.ok) {
         setActionMessage({ type: 'success', text: data.message || `${count} የቴስት አቤቱታዎች ተፈጠሩ!` });
-        fetchHealth();
+        fetchDbStats();
         fetchAuditLogs();
       } else {
         setActionMessage({ type: 'error', text: data.error || 'የቴስት ዳታ ማመንጨት አልተሳካም' });
@@ -293,6 +315,33 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
       setActionMessage({ type: 'error', text: err.message || 'የኔትወርክ ስህተት' });
     } finally {
       setSeedingTickets(false);
+    }
+  };
+
+  // 1.1 Cleanup / Purge Test Tickets
+  const handleCleanupTestTickets = async () => {
+    setCleaningTestTickets(true);
+    setActionMessage(null);
+    try {
+      const res = await fetch('/api/admin/developer/cleanup-test-tickets', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setActionMessage({
+          type: 'success',
+          text: data.message || 'የሙከራ አቤቱታዎች (DGC-TST-*) በሙሉ ከዳታቤዝ ተወግደዋል!',
+        });
+        fetchDbStats();
+        fetchAuditLogs();
+      } else {
+        setActionMessage({ type: 'error', text: data.error || 'የሙከራ አቤቱታዎችን ማፅዳት አልተቻለም' });
+      }
+    } catch (err: any) {
+      setActionMessage({ type: 'error', text: err.message || 'የኔትወርክ ስህተት' });
+    } finally {
+      setCleaningTestTickets(false);
     }
   };
 
@@ -352,15 +401,16 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
     }
   };
 
-  // 4. Download Full Backup
+  // 4. Download Full Backup (Strict Bearer Auth, No Token in URL)
   const handleDownloadBackup = async () => {
     setActionMessage({ type: 'success', text: 'የሲስተሙ አጠቃላይ ዳታቤዝ ባካፕ (Full JSON Backup - 7 Tables) በመዘጋጀት ላይ ነው...' });
     try {
-      const res = await fetch(`/api/admin/developer/backup?token=${encodeURIComponent(adminToken)}`, {
+      const res = await fetch('/api/admin/developer/backup', {
         headers: { Authorization: `Bearer ${adminToken}` },
       });
       if (!res.ok) {
-        throw new Error('የባካፕ ፋይሉን ማወረድ አልተቻለም');
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'የባካፕ ፋይሉን ማወረድ አልተቻለም');
       }
       const data = await res.json();
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -380,9 +430,7 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
       });
       fetchAuditLogs();
     } catch (err: any) {
-      // Fallback direct window open
-      window.open(`/api/admin/developer/backup?token=${encodeURIComponent(adminToken)}`, '_blank');
-      setActionMessage({ type: 'success', text: 'የሲስተሙ አጠቃላይ ዳታቤዝ ባካፕ (JSON) ውርረቱ ተጀምሯል!' });
+      setActionMessage({ type: 'error', text: err.message || 'ባካፕ ማውረድ አልተቻለም:: እባክዎ ፈቃድዎን ያረጋግጡ::' });
     }
   };
 
@@ -459,7 +507,7 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
           </div>
           <div>
             <span className="text-[11px] font-bold text-slate-400 block uppercase">የሲስተም ሁኔታ</span>
-            <span className="text-sm font-black text-emerald-400">ONLINE (ሰላም ነው)</span>
+            <span className="text-sm font-black text-emerald-400">ONLINE (ቀጥታ ግንኙነት)</span>
           </div>
         </div>
 
@@ -468,8 +516,8 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
             <Zap className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[11px] font-bold text-slate-400 block uppercase">የኤፒአይ ምላሽ ፍጥነት</span>
-            <span className="text-sm font-black text-purple-300">82 ms (Very Fast)</span>
+            <span className="text-[11px] font-bold text-slate-400 block uppercase">የስራ ጊዜ (Uptime)</span>
+            <span className="text-sm font-black text-purple-300">{healthStatus?.uptime || 'Active'}</span>
           </div>
         </div>
 
@@ -479,7 +527,7 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
           </div>
           <div>
             <span className="text-[11px] font-bold text-slate-400 block uppercase">የሰርቨር ፖርት</span>
-            <span className="text-sm font-black text-white">Port 3000 (Cloud Proxy)</span>
+            <span className="text-sm font-black text-white">Port {healthStatus?.activePort || '3000'} (Ingress)</span>
           </div>
         </div>
 
@@ -489,9 +537,86 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
           </div>
           <div>
             <span className="text-[11px] font-bold text-slate-400 block uppercase">የሜሞሪ አጠቃቀም</span>
-            <span className="text-sm font-black text-amber-300">~48.2 MB (Normal)</span>
+            <span className="text-sm font-black text-amber-300">{healthStatus?.memoryUsage || '~48.2 MB'}</span>
           </div>
         </div>
+      </div>
+
+      {/* Security Shield & Hardening Status Banner */}
+      <div className="bg-gradient-to-r from-emerald-950/80 via-slate-900/90 to-blue-950/80 backdrop-blur-md rounded-3xl p-6 border-2 border-emerald-500/40 shadow-2xl space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-emerald-500/20 text-emerald-300 rounded-2xl border border-emerald-500/40 shadow-inner">
+              <ShieldCheck className="w-6 h-6 text-emerald-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-black text-white">🔒 የሲስተም ደህንነትና የጥበቃ ሁኔታ (Security Health & Shield)</h2>
+                <span className={`px-2 py-0.5 text-[10px] font-mono font-black rounded-full border ${
+                  securityMetrics
+                    ? securityMetrics.score >= 90
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                      : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                    : 'bg-slate-800 text-slate-400 border-slate-700 animate-pulse'
+                }`}>
+                  {securityMetrics ? `SCORE ${securityMetrics.score}% ${securityMetrics.status}` : 'CALCULATING AUDIT SCORE...'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-300">
+                PostgreSQL RBAC, Strict CORS Whitelist, Session-Scoped Tokens, Server-Side Password Enforcement, Dynamic Single-Use 2FA, Anti-Formula CSV, Dynamic IP Salt
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+          <div className="bg-slate-950/80 p-3 rounded-2xl border border-emerald-500/20">
+            <span className="text-slate-400 text-[10px] block">2FA የተገበረላቸው</span>
+            <span className="text-emerald-400 font-bold text-sm">
+              {securityMetrics?.metrics?.admins_with_2fa || 0} / {securityMetrics?.metrics?.total_admins || 3} Admins
+            </span>
+          </div>
+
+          <div className="bg-slate-950/80 p-3 rounded-2xl border border-amber-500/20">
+            <span className="text-slate-400 text-[10px] block">ያልተሳኩ የመግባት ሙከራዎች</span>
+            <span className="text-amber-400 font-bold text-sm">
+              {securityMetrics?.metrics?.failed_login_attempts_recorded || 0} Attempts
+            </span>
+          </div>
+
+          <div className="bg-slate-950/80 p-3 rounded-2xl border border-blue-500/20">
+            <span className="text-slate-400 text-[10px] block">የይለፍ ቃል ለውጦች</span>
+            <span className="text-blue-400 font-bold text-sm">
+              {securityMetrics?.metrics?.password_changes_recorded || 0} Changed
+            </span>
+          </div>
+
+          <div className="bg-slate-950/80 p-3 rounded-2xl border border-purple-500/20">
+            <span className="text-slate-400 text-[10px] block">የደህንነት ኦዲት መዝገብ</span>
+            <span className="text-purple-300 font-bold text-sm">
+              {securityMetrics?.metrics?.total_audit_logs || auditLogs.length} Records
+            </span>
+          </div>
+        </div>
+
+        {/* Dynamic Hardening Checklist */}
+        {securityMetrics?.checklist && (
+          <div className="pt-2 border-t border-slate-800/80">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+              {securityMetrics.checklist.map((item: any, idx: number) => (
+                <div key={idx} className="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px]">
+                  <span className="text-slate-300 flex items-center gap-1.5">
+                    <span className={`w-1.5 h-1.5 rounded-full ${item.passed ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                    {item.name}
+                  </span>
+                  <span className={`font-mono text-[10px] font-bold ${item.passed ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    {item.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Main Developer Tools Grid */}
@@ -542,51 +667,105 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
               </div>
               <div>
                 <h2 className="text-sm font-black text-white">2. 🗄️ DB Inspector & Test Data Generator</h2>
-                <p className="text-[11px] text-slate-400">የዳታቤዝ ሁኔታ እና የቴስት አቤቱታዎች ማመንጫ</p>
+                <p className="text-[11px] text-slate-400">የዳታቤዝ ሁኔታ እና የቴስት አቤቱታዎች ማመንጫ (Live Dynamic Sync)</p>
               </div>
             </div>
+            {dbStats?.isProduction ? (
+              <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold rounded-full border border-emerald-500/30 flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3" /> PROD PROTECTED
+              </span>
+            ) : (
+              <span className="px-2.5 py-1 bg-amber-500/20 text-amber-300 text-[10px] font-mono font-bold rounded-full border border-amber-500/30 flex items-center gap-1">
+                <Wrench className="w-3 h-3" /> DEV SANDBOX
+              </span>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-xs font-mono">
             <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
               <span className="text-slate-400 text-[10px] block">የአድሚኖች ብዛት</span>
-              <span className="text-white font-bold text-sm">3 (opa, owner1, admin)</span>
+              <span className="text-white font-bold text-sm">
+                {loadingDbStats ? '...' : `${dbStats?.tablesCount?.admins ?? 0} (${dbStats?.tablesCount?.adminUsernames?.join(', ') || 'Active'})`}
+              </span>
             </div>
             <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
               <span className="text-slate-400 text-[10px] block">የአቤቱታዎች ብዛት</span>
-              <span className="text-amber-400 font-bold text-sm">18 Tickets</span>
+              <div className="flex items-baseline justify-between">
+                <span className="text-amber-400 font-bold text-sm">
+                  {loadingDbStats ? '...' : `${dbStats?.tablesCount?.tickets ?? 0} Tickets`}
+                </span>
+                {dbStats?.tablesCount?.testTicketsCount > 0 && (
+                  <span className="text-[10px] text-purple-400 font-bold">
+                    ({dbStats?.tablesCount?.realTicketsCount || 0} Real / {dbStats?.tablesCount?.testTicketsCount} Test)
+                  </span>
+                )}
+              </div>
             </div>
             <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
               <span className="text-slate-400 text-[10px] block">የመጠይቆች ብዛት</span>
-              <span className="text-blue-400 font-bold text-sm">2 Surveys</span>
+              <span className="text-blue-400 font-bold text-sm">
+                {loadingDbStats ? '...' : `${dbStats?.tablesCount?.surveys ?? 0} Surveys`}
+              </span>
             </div>
             <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
               <span className="text-slate-400 text-[10px] block">ኦዲት ሎግ</span>
-              <span className="text-emerald-400 font-bold text-sm">45 Activity Records</span>
+              <span className="text-emerald-400 font-bold text-sm">
+                {loadingDbStats ? '...' : `${dbStats?.tablesCount?.audit_logs ?? 0} Activity Records`}
+              </span>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-slate-800 space-y-2">
-            <span className="text-xs font-bold text-slate-300 block">⚡ Quick Test Data Generator (ለሙከራ የሚሆኑ አቤቱታዎችን ፍጠር):</span>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => handleSeedTickets(5)}
-                disabled={seedingTickets}
-                className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-1.5"
-              >
-                {seedingTickets && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-                <span>+5 ቴስት አቤቱታዎችን ፍጠር</span>
-              </button>
+          <div className="pt-2 border-t border-slate-800 space-y-2.5">
+            {dbStats?.isProduction ? (
+              <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl space-y-1">
+                <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>የፕሮዳክሽን ዳታ ጥበቃ (Production Data Integrity Guard)</span>
+                </div>
+                <p className="text-[11px] text-slate-300">
+                  የውሸት/የሙከራ አቤቱታዎችን ማመንጨት በProduction Environment ላይ የታገደ ሲሆን፤ እውነተኛ የዜጎች መረጃ ብቻ በዳታቤዝ ውስጥ እንዲመዘገብ የተጠበቀ ነው።
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-300 block">⚡ Quick Test Data Generator (Sandbox Only):</span>
+                  <span className="text-[10px] font-mono text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
+                    Non-Prod Mode
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => handleSeedTickets(5)}
+                    disabled={seedingTickets}
+                    className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-1.5"
+                  >
+                    {seedingTickets ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                    <span>+5 ቴስት አቤቱታዎችን ፍጠር</span>
+                  </button>
 
-              <button
-                onClick={() => handleSeedTickets(10)}
-                disabled={seedingTickets}
-                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-1.5"
-              >
-                {seedingTickets && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-                <span>+10 ቴስት አቤቱታዎችን ፍጠር</span>
-              </button>
-            </div>
+                  <button
+                    onClick={() => handleSeedTickets(10)}
+                    disabled={seedingTickets}
+                    className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-1.5"
+                  >
+                    {seedingTickets ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                    <span>+10 ቴስት አቤቱታዎችን ፍጠር</span>
+                  </button>
+                </div>
+
+                {dbStats?.tablesCount?.testTicketsCount > 0 && (
+                  <button
+                    onClick={handleCleanupTestTickets}
+                    disabled={cleaningTestTickets}
+                    className="w-full py-2 bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                  >
+                    {cleaningTestTickets ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                    <span>🧹 ሁሉንም ቴስት ዳታ አፅዳ ({dbStats.tablesCount.testTicketsCount} Test Tickets)</span>
+                  </button>
+                )}
+              </>
+            )}
           </div>
         </div>
 

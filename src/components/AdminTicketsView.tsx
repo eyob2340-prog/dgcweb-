@@ -45,25 +45,28 @@ export const AdminTicketsView: React.FC<AdminTicketsViewProps> = ({ adminToken }
   const [translationsMap, setTranslationsMap] = useState<Record<number, TranslationResult>>({});
   const [translatingTicketId, setTranslatingTicketId] = useState<number | null>(null);
   const [deletingTicketId, setDeletingTicketId] = useState<number | null>(null);
+  const [ticketToDelete, setTicketToDelete] = useState<CitizenTicket | null>(null);
+  const [actionNotice, setActionNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const handleDeleteTicket = async (ticket: CitizenTicket) => {
-    if (!window.confirm(`እርግጠኛ ነዎት አቤቱታ ኮድ "${ticket.ticket_code}" መደለዝ/ማጥፋት ይፈልጋሉ?`)) {
-      return;
-    }
-    setDeletingTicketId(ticket.id);
+  const confirmDeleteTicket = async () => {
+    if (!ticketToDelete) return;
+    setDeletingTicketId(ticketToDelete.id);
+    setActionNotice(null);
     try {
-      const res = await fetch(`/api/admin/tickets/${ticket.id}`, {
+      const res = await fetch(`/api/admin/tickets/${ticketToDelete.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${adminToken}` },
       });
       const data = await res.json();
       if (res.ok) {
-        setTickets((prev) => prev.filter((t) => t.id !== ticket.id));
+        setTickets((prev) => prev.filter((t) => t.id !== ticketToDelete.id));
+        setActionNotice({ type: 'success', message: `አቤቱታ [${ticketToDelete.ticket_code}] በስኬት ተሰርዟል!` });
+        setTicketToDelete(null);
       } else {
-        alert(data.error || 'አቤቱታውን መደለዝ አልተቻለም');
+        setActionNotice({ type: 'error', message: data.error || 'አቤቱታውን መደለዝ አልተቻለም' });
       }
     } catch (err) {
-      alert('የኔትወርክ ስህተት አጋጥሟል');
+      setActionNotice({ type: 'error', message: 'የኔትወርክ ስህተት አጋጥሟል' });
     } finally {
       setDeletingTicketId(null);
     }
@@ -226,6 +229,34 @@ export const AdminTicketsView: React.FC<AdminTicketsViewProps> = ({ adminToken }
           <span>አድስ (Refresh)</span>
         </button>
       </div>
+
+      {/* Action Notice Toast */}
+      {actionNotice && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`p-4 rounded-2xl border text-xs font-bold flex items-center justify-between shadow-lg ${
+            actionNotice.type === 'success'
+              ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+              : 'bg-red-500/20 border-red-500/40 text-red-300'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {actionNotice.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-red-400" />
+            )}
+            <span>{actionNotice.message}</span>
+          </div>
+          <button
+            onClick={() => setActionNotice(null)}
+            className="p-1 hover:bg-white/10 rounded-full transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </motion.div>
+      )}
 
       {/* Filter Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -403,16 +434,11 @@ export const AdminTicketsView: React.FC<AdminTicketsViewProps> = ({ adminToken }
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handleDeleteTicket(t)}
-                      disabled={deletingTicketId === t.id}
-                      className="px-3.5 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold rounded-2xl text-xs transition-all shadow-md flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                      onClick={() => setTicketToDelete(t)}
+                      className="px-3.5 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold rounded-2xl text-xs transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
                       title="አቤቱታውን ሰርዝ/ደልዝ"
                     >
-                      {deletingTicketId === t.id ? (
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-red-400" />
-                      ) : (
-                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                      )}
+                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
                       <span>ሰርዝ (Delete)</span>
                     </button>
 
@@ -507,6 +533,62 @@ export const AdminTicketsView: React.FC<AdminTicketsViewProps> = ({ adminToken }
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        </AnimatePresence>
+      )}
+
+      {/* Ticket Delete Confirmation Modal */}
+      {ticketToDelete && (
+        <AnimatePresence>
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-slate-900 border border-red-500/40 text-slate-100 w-full max-w-md rounded-3xl p-6 space-y-5 shadow-2xl relative"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 shrink-0">
+                  <Trash2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white">አቤቱታውን መደለዝ/ማጥፋት</h3>
+                  <p className="text-xs text-red-400 font-mono">ኮድ፡ {ticketToDelete.ticket_code}</p>
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-2 text-xs">
+                <p className="font-bold text-slate-200 line-clamp-1">ርዕስ: {ticketToDelete.subject}</p>
+                <p className="text-slate-400 text-[11px]">ዘርፍ: {ticketToDelete.category}</p>
+                <p className="text-red-300 font-semibold pt-1">
+                  ⚠️ እርግጠኛ ነዎት ይህ አቤቱታ እና ተያያዥ መልሶች ከዳታቤዝ ሙሉ በሙሉ እንዲሰረዙ ይፈልጋሉ?
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  disabled={deletingTicketId !== null}
+                  onClick={() => setTicketToDelete(null)}
+                  className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl text-xs font-bold transition-all"
+                >
+                  ተመለስ (Cancel)
+                </button>
+                <button
+                  type="button"
+                  disabled={deletingTicketId !== null}
+                  onClick={confirmDeleteTicket}
+                  className="px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-black rounded-2xl text-xs shadow-lg flex items-center gap-1.5 transition-all disabled:opacity-50"
+                >
+                  {deletingTicketId ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                  <span>{deletingTicketId ? 'በመደለዝ ላይ...' : 'አዎ፣ ሰርዝ (Delete)'}</span>
+                </button>
+              </div>
             </motion.div>
           </div>
         </AnimatePresence>

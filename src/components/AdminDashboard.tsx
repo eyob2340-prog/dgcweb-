@@ -27,6 +27,7 @@ import {
   Laptop,
   Crown,
   Wrench,
+  RefreshCw,
 } from 'lucide-react';
 import { Survey, AuditLog, AdminUser } from '../types';
 import { VisualAnalytics } from './VisualAnalytics';
@@ -131,23 +132,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
     }
   };
 
-  const handleDeleteSurvey = async (surveyId: number) => {
-    if (!window.confirm('እርግጠኛ ነዎት ይህ መጠይቅ እና መልሶቹ ሙሉ በሙሉ እንዲሰረዙ ይፈልጋሉ?')) return;
+  const [surveyToDelete, setSurveyToDelete] = useState<Survey | null>(null);
+  const [isDeletingSurvey, setIsDeletingSurvey] = useState<boolean>(false);
 
+  const confirmDeleteSurvey = async () => {
+    if (!surveyToDelete) return;
+    setIsDeletingSurvey(true);
     try {
-      const res = await fetch(`/api/admin/surveys/${surveyId}`, {
+      const res = await fetch(`/api/admin/surveys/${surveyToDelete.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${adminToken}` },
       });
 
       if (res.ok) {
         fetchSurveys();
-        if (selectedSurveyId === surveyId) {
+        if (selectedSurveyId === surveyToDelete.id) {
           setSelectedSurveyId(null);
         }
+        setSurveyToDelete(null);
       }
     } catch (err) {
       console.error('Delete error:', err);
+    } finally {
+      setIsDeletingSurvey(false);
     }
   };
 
@@ -477,9 +484,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
                         </button>
 
                         <button
-                          onClick={() => handleDeleteSurvey(s.id)}
-                          className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl transition-all"
-                          title="ሰርዝ"
+                          onClick={() => setSurveyToDelete(s)}
+                          className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl transition-all cursor-pointer"
+                          title="መጠይቁን ሰርዝ (Delete Survey)"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -602,6 +609,65 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
         onSurveyCreated={fetchSurveys}
         adminToken={adminToken}
       />
+
+      {/* Survey Delete Confirmation Modal */}
+      {surveyToDelete && (
+        <AnimatePresence>
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-slate-900 border border-red-500/40 text-slate-100 w-full max-w-md rounded-3xl p-6 space-y-5 shadow-2xl relative"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 shrink-0">
+                  <Trash2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white">የጥናት መጠይቅ መደለዝ</h3>
+                  <p className="text-xs text-red-400 font-mono">መጠይቅ ID: #{surveyToDelete.id}</p>
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-2 text-xs">
+                <p className="font-bold text-slate-200 line-clamp-2">ርዕስ: {surveyToDelete.title}</p>
+                <div className="flex items-center justify-between text-slate-400 text-[11px] pt-1">
+                  <span>መደብ: {surveyToDelete.category}</span>
+                  <span className="text-amber-400 font-bold">ተሳታፊዎች: {surveyToDelete.total_responses || 0}</span>
+                </div>
+                <p className="text-red-300 font-semibold pt-1">
+                  ⚠️ ይህን መጠይቅ ሲሰርዙ በውስጡ ያሉ ጥያቄዎችና የተሰጡ ምላሾች በሙሉ ከዳታቤዝ ይሰረዛሉ::
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  disabled={isDeletingSurvey}
+                  onClick={() => setSurveyToDelete(null)}
+                  className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl text-xs font-bold transition-all"
+                >
+                  ተመለስ (Cancel)
+                </button>
+                <button
+                  type="button"
+                  disabled={isDeletingSurvey}
+                  onClick={confirmDeleteSurvey}
+                  className="px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-black rounded-2xl text-xs shadow-lg flex items-center gap-1.5 transition-all disabled:opacity-50"
+                >
+                  {isDeletingSurvey ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                  <span>{isDeletingSurvey ? 'በመሰረዝ ላይ...' : 'አዎ፣ ሰርዝ (Delete)'}</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        </AnimatePresence>
+      )}
     </div>
   );
 };

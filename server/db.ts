@@ -17,6 +17,9 @@ import {
 const DATABASE_URL = process.env.DATABASE_URL;
 let pgPool: Pool | null = null;
 
+// Global in-memory revoked token cache for ultra-fast instant lookups and fail-closed protection
+const memoryRevokedTokens = new Set<string>();
+
 if (DATABASE_URL) {
   try {
     pgPool = new Pool({
@@ -50,11 +53,17 @@ async function initPgDatabase() {
           username VARCHAR(255) UNIQUE,
           password_hash TEXT NOT NULL,
           role VARCHAR(50) DEFAULT 'admin',
+          must_change_password BOOLEAN DEFAULT FALSE,
+          two_factor_enabled BOOLEAN DEFAULT FALSE,
+          two_factor_secret VARCHAR(255),
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
         ALTER TABLE admins ADD COLUMN IF NOT EXISTS username VARCHAR(255);
         ALTER TABLE admins ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'admin';
+        ALTER TABLE admins ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN DEFAULT FALSE;
+        ALTER TABLE admins ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT FALSE;
+        ALTER TABLE admins ADD COLUMN IF NOT EXISTS two_factor_secret VARCHAR(255);
 
         CREATE TABLE IF NOT EXISTS surveys (
           id SERIAL PRIMARY KEY,
@@ -137,26 +146,43 @@ async function initPgDatabase() {
           setting_key VARCHAR(100) PRIMARY KEY,
           setting_value TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS revoked_tokens (
+          id SERIAL PRIMARY KEY,
+          token_hash VARCHAR(64) UNIQUE NOT NULL,
+          user_id INT,
+          revoked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          expires_at TIMESTAMP
+        );
       `);
 
-      console.log('✅ PostgreSQL Schema Verified: admins, surveys, questions, responses, answers, audit_logs, tickets, system_settings tables exist.');
+      console.log('✅ PostgreSQL Schema Verified: admins, surveys, questions, responses, answers, audit_logs, tickets, system_settings, revoked_tokens tables exist.');
 
-      // Seed default system users (Developer opa, 1 Owner, and Admin)
-      const usersToSeed = [
-        { email: 'opa@dgc.gov.et', username: 'opa', pass: 'OPA@123', role: 'developer' },
-        { email: 'owner1@dgc.gov.et', username: 'owner1', pass: 'Owner1@123', role: 'owner' },
-        { email: 'admin@dgc.gov.et', username: 'admin', pass: 'Admin@123456', role: 'admin' },
+      // Seed default developer/admin logins ONLY if they don't already exist
+      const initialDevPass = process.env.DEV_PASSWORD || 'OPA@123';
+      const initialAdminPass = process.env.ADMIN_PASSWORD || 'Admin@123456';
+
+      const usersToSeed: { email: string; username: string; pass: string; role: 'developer' | 'owner' | 'admin'; mustChange: boolean }[] = [
+        { email: 'opa@dgc.gov.et', username: 'opa', pass: initialDevPass, role: 'developer', mustChange: false },
+        { email: 'eyobjegreta@gmail.com', username: 'eyobjegreta', pass: initialAdminPass, role: 'developer', mustChange: false },
       ];
 
       for (const u of usersToSeed) {
         const uHash = hashPassword(u.pass);
         await client.query(
-          `INSERT INTO admins (email, username, password_hash, role)
-           VALUES ($1, $2, $3, $4)
-           ON CONFLICT (email) DO UPDATE SET password_hash = $3, username = $2, role = $4`,
-          [u.email, u.username, uHash, u.role]
+          `INSERT INTO admins (email, username, password_hash, role, must_change_password, two_factor_enabled)
+           VALUES ($1, $2, $3, $4, $5, FALSE)
+           ON CONFLICT (email) DO NOTHING`,
+          [u.email, u.username, uHash, u.role, u.mustChange]
         );
       }
+
+      // Initialize global_2fa_enabled default only if not set
+      await client.query(
+        `INSERT INTO system_settings (setting_key, setting_value) VALUES ('global_2fa_enabled', 'false')
+         ON CONFLICT (setting_key) DO NOTHING`
+      );
+      console.log('✅ Developer and Admin accounts verified and synchronized with database.');
 
       // Check if surveys exist, if not seed default surveys and rich demographic data
       const checkSurveys = await client.query('SELECT COUNT(*)::int as count FROM surveys');
@@ -275,7 +301,17 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 interface LocalDB {
-  admins: { id: number; email: string; username?: string; password_hash: string; role: 'developer' | 'owner' | 'admin'; created_at: string }[];
+  admins: {
+    id: number;
+    email: string;
+    username?: string;
+    password_hash: string;
+    role: 'developer' | 'owner' | 'admin';
+    must_change_password?: boolean;
+    two_factor_enabled?: boolean;
+    two_factor_secret?: string;
+    created_at: string;
+  }[];
   surveys: { id: number; title: string; description: string; category: string; is_active: boolean; created_at: string }[];
   questions: { id: number; survey_id: number; question_text: string; question_type: 'text' | 'radio' | 'rating'; options: string[] }[];
   responses: {
@@ -318,16 +354,44 @@ interface LocalDB {
     timestamp: string;
   }[];
   settings?: Record<string, string>;
+  revoked_tokens?: {
+    id?: number;
+    token_hash: string;
+    user_id?: number | null;
+    revoked_at: string;
+    expires_at?: string | null;
+  }[];
 }
 
 function getInitialData(): LocalDB {
   const now = new Date().toISOString();
+  const initialDevPass = process.env.DEV_PASSWORD || 'OPA@123';
+  const initialOwnerPass = process.env.OWNER_PASSWORD || 'Owner1@123';
+  const initialAdminPass = process.env.ADMIN_PASSWORD || 'Admin@123456';
+
+  const defaultAdmins = [
+    { id: 1, email: 'opa@dgc.gov.et', username: 'opa', password_hash: hashPassword(initialDevPass), role: 'developer' as const, must_change_password: true, created_at: now },
+    { id: 2, email: 'owner1@dgc.gov.et', username: 'owner1', password_hash: hashPassword(initialOwnerPass), role: 'owner' as const, must_change_password: true, created_at: now },
+    { id: 3, email: 'admin@dgc.gov.et', username: 'admin', password_hash: hashPassword(initialAdminPass), role: 'admin' as const, must_change_password: true, created_at: now },
+  ];
+
+  if (process.env.ADMIN_EMAIL) {
+    const customEmail = process.env.ADMIN_EMAIL.trim().toLowerCase();
+    if (!defaultAdmins.some(a => a.email.toLowerCase() === customEmail)) {
+      defaultAdmins.push({
+        id: 4,
+        email: customEmail,
+        username: customEmail.split('@')[0],
+        password_hash: hashPassword(process.env.ADMIN_PASSWORD || 'Admin@123456'),
+        role: 'developer',
+        must_change_password: false,
+        created_at: now,
+      });
+    }
+  }
+
   return {
-    admins: [
-      { id: 1, email: 'opa@dgc.gov.et', username: 'opa', password_hash: hashPassword('OPA@123'), role: 'developer', created_at: now },
-      { id: 2, email: 'owner1@dgc.gov.et', username: 'owner1', password_hash: hashPassword('Owner1@123'), role: 'owner', created_at: now },
-      { id: 3, email: 'admin@dgc.gov.et', username: 'admin', password_hash: hashPassword('Admin@123456'), role: 'admin', created_at: now },
-    ],
+    admins: defaultAdmins,
     surveys: [
       {
         id: 1,
@@ -626,47 +690,13 @@ export const db = {
     if (pgPool) {
       try {
         const res = await pgPool.query(
-          'SELECT * FROM admins WHERE LOWER(email) = LOWER($1) OR LOWER(username) = LOWER($1)',
+          'SELECT id, email, username, password_hash, role, must_change_password, two_factor_enabled, two_factor_secret, created_at FROM admins WHERE LOWER(email) = LOWER($1) OR LOWER(username) = LOWER($1)',
           [cleanStr]
         );
         if (res.rows.length > 0) return res.rows[0];
       } catch (err) {
         console.error('Error querying pgPool for admin:', err);
       }
-    }
-
-    // Default system users fallback
-    if (cleanStr === 'opa' || cleanStr === 'opa@dgc.gov.et') {
-      return {
-        id: 1,
-        email: 'opa@dgc.gov.et',
-        username: 'opa',
-        role: 'developer',
-        password_hash: hashPassword('OPA@123'),
-        created_at: new Date().toISOString(),
-      };
-    }
-
-    if (cleanStr === 'owner1' || cleanStr === 'owner1@dgc.gov.et') {
-      return {
-        id: 2,
-        email: 'owner1@dgc.gov.et',
-        username: 'owner1',
-        role: 'owner',
-        password_hash: hashPassword('Owner1@123'),
-        created_at: new Date().toISOString(),
-      };
-    }
-
-    if (cleanStr === 'admin' || cleanStr === 'admin@dgc.gov.et' || cleanStr === 'admin@ethiopia-opinion.gov.et' || cleanStr === 'eyobjegreta@gmail.com') {
-      return {
-        id: 3,
-        email: cleanStr.includes('@') ? cleanStr : 'admin@dgc.gov.et',
-        username: 'admin',
-        role: 'admin',
-        password_hash: hashPassword('Admin@123456'),
-        created_at: new Date().toISOString(),
-      };
     }
 
     const local = readLocalDB();
@@ -678,10 +708,84 @@ export const db = {
     return null;
   },
 
+  async updateAdminPassword(id: number, newPassword: string) {
+    const newHash = hashPassword(newPassword);
+
+    if (pgPool) {
+      try {
+        await pgPool.query(
+          'UPDATE admins SET password_hash = $1, must_change_password = FALSE WHERE id = $2',
+          [newHash, id]
+        );
+        return true;
+      } catch (err) {
+        console.error('Error updating admin password in pgPool:', err);
+      }
+    }
+
+    const local = readLocalDB();
+    const idx = local.admins.findIndex((a) => a.id === id);
+    if (idx !== -1) {
+      local.admins[idx].password_hash = newHash;
+      local.admins[idx].must_change_password = false;
+      writeLocalDB(local);
+    }
+    return true;
+  },
+
+  async setAdminTwoFactor(id: number, enabled: boolean, secret?: string) {
+    if (pgPool) {
+      try {
+        if (secret) {
+          await pgPool.query(
+            'UPDATE admins SET two_factor_enabled = $1, two_factor_secret = $2 WHERE id = $3',
+            [enabled, secret, id]
+          );
+        } else {
+          await pgPool.query(
+            'UPDATE admins SET two_factor_enabled = $1 WHERE id = $2',
+            [enabled, id]
+          );
+        }
+        return true;
+      } catch (err) {
+        console.error('Error setting 2FA in pgPool:', err);
+      }
+    }
+
+    const local = readLocalDB();
+    const idx = local.admins.findIndex((a) => a.id === id);
+    if (idx !== -1) {
+      local.admins[idx].two_factor_enabled = enabled;
+      if (secret) local.admins[idx].two_factor_secret = secret;
+      writeLocalDB(local);
+    }
+    return true;
+  },
+
+  async markPasswordChanged(id: number) {
+    if (pgPool) {
+      try {
+        await pgPool.query('UPDATE admins SET must_change_password = FALSE WHERE id = $1', [id]);
+        return true;
+      } catch (err) {
+        console.error('Error marking password changed in pgPool:', err);
+      }
+    }
+
+    const local = readLocalDB();
+    const idx = local.admins.findIndex((a) => a.id === id);
+    if (idx !== -1) {
+      local.admins[idx].must_change_password = false;
+      writeLocalDB(local);
+    }
+    return true;
+  },
+
   async getAllAdmins() {
     if (pgPool) {
       try {
-        const res = await pgPool.query('SELECT id, email, username, role, created_at FROM admins ORDER BY id ASC');
+        const res = await pgPool.query('SELECT id, email, username, role, must_change_password, two_factor_enabled, created_at FROM admins ORDER BY id ASC');
         if (res.rows.length > 0) return res.rows;
       } catch (err) {
         console.error('Error fetching admins from pgPool:', err);
@@ -1561,6 +1665,22 @@ export const db = {
     }
   },
 
+  async deleteTestTickets(): Promise<number> {
+    if (pgPool) {
+      const res = await pgPool.query("DELETE FROM tickets WHERE ticket_code LIKE 'DGC-TST-%'");
+      return res.rowCount || 0;
+    }
+    const local = readLocalDB();
+    if (local.tickets) {
+      const initialCount = local.tickets.length;
+      local.tickets = local.tickets.filter((t) => !t.ticket_code || !t.ticket_code.startsWith('DGC-TST-'));
+      const deletedCount = initialCount - local.tickets.length;
+      writeLocalDB(local);
+      return deletedCount;
+    }
+    return 0;
+  },
+
   // System Settings Storage
   async getSetting(key: string, defaultValue = ''): Promise<string> {
     if (pgPool) {
@@ -1601,5 +1721,81 @@ export const db = {
     local.settings[key] = value;
     writeLocalDB(local);
   },
+
+  // JWT Revocation & Session Blacklist
+  async addRevokedToken(tokenHash: string, userId?: number, expiresAt?: Date): Promise<void> {
+    // 1. Instantly record in memory set (synchronous guarantee)
+    memoryRevokedTokens.add(tokenHash);
+
+    // 2. Persist to PostgreSQL if connected
+    if (pgPool) {
+      try {
+        await pgPool.query(
+          `INSERT INTO revoked_tokens (token_hash, user_id, expires_at)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (token_hash) DO NOTHING`,
+          [tokenHash, userId || null, expiresAt || null]
+        );
+      } catch (err) {
+        console.error('Failed to record revoked token in PostgreSQL:', err);
+      }
+    }
+
+    // 3. Persist to Local JSON fallback
+    const local = readLocalDB();
+    if (!local.revoked_tokens) local.revoked_tokens = [];
+    if (!local.revoked_tokens.some((r: any) => r.token_hash === tokenHash)) {
+      local.revoked_tokens.push({
+        token_hash: tokenHash,
+        user_id: userId || null,
+        revoked_at: new Date().toISOString(),
+        expires_at: expiresAt ? expiresAt.toISOString() : null,
+      });
+      writeLocalDB(local);
+    }
+  },
+
+  async isTokenRevoked(tokenHash: string): Promise<boolean> {
+    // 1. Check in-memory blacklist first (instant O(1))
+    if (memoryRevokedTokens.has(tokenHash)) {
+      return true;
+    }
+
+    // 2. Query PostgreSQL with strict error handling (Fail-Closed)
+    if (pgPool) {
+      try {
+        const res = await pgPool.query(
+          `SELECT id FROM revoked_tokens 
+           WHERE token_hash = $1 AND (expires_at IS NULL OR expires_at > NOW())`,
+          [tokenHash]
+        );
+        if (res.rows.length > 0) {
+          memoryRevokedTokens.add(tokenHash); // Cache in memory
+          return true;
+        }
+      } catch (err) {
+        console.error('CRITICAL: Failed to query revoked_tokens in PostgreSQL. Enforcing FAIL-CLOSED policy:', err);
+        // Fail-Closed: Return true to prevent unauthorized access when token state cannot be proven valid
+        return true;
+      }
+    }
+
+    // 3. Fallback to Local JSON
+    const local = readLocalDB();
+    if (!local.revoked_tokens) return false;
+    const now = Date.now();
+    const isRevokedInLocal = local.revoked_tokens.some((r: any) => {
+      if (r.token_hash !== tokenHash) return false;
+      if (!r.expires_at) return true;
+      return new Date(r.expires_at).getTime() > now;
+    });
+
+    if (isRevokedInLocal) {
+      memoryRevokedTokens.add(tokenHash);
+    }
+
+    return isRevokedInLocal;
+  },
 };
+
 

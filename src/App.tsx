@@ -34,9 +34,15 @@ export default function App() {
   const [isAdminModalOpen, setIsAdminModalOpen] = useState<boolean>(false);
   const [isMaintenanceActive, setIsMaintenanceActive] = useState<boolean>(false);
 
-  const [adminToken, setAdminToken] = useState<string | null>(
-    localStorage.getItem('admin_token')
-  );
+  const [adminToken, setAdminToken] = useState<string | null>(() => {
+    // Check sessionStorage first, and clean up any legacy localStorage entry
+    const sessionTok = sessionStorage.getItem('admin_token');
+    const localTok = localStorage.getItem('admin_token');
+    if (localTok) {
+      localStorage.removeItem('admin_token');
+    }
+    return sessionTok || localTok || null;
+  });
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
 
   const handleOpenLogin = () => {
@@ -196,12 +202,16 @@ export default function App() {
         if (res.ok) {
           setAdminUser(data.admin);
         } else {
+          sessionStorage.removeItem('admin_token');
           localStorage.removeItem('admin_token');
           setAdminToken(null);
           setAdminUser(null);
         }
       } catch (err) {
+        sessionStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_token');
         setAdminToken(null);
+        setAdminUser(null);
       }
     };
 
@@ -244,12 +254,25 @@ export default function App() {
   };
 
   const handleLoginSuccess = (authData: AuthResponse) => {
+    sessionStorage.setItem('admin_token', authData.token);
+    localStorage.removeItem('admin_token');
     setAdminToken(authData.token);
     setAdminUser(authData.admin);
     setCurrentTab('admin');
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (adminToken) {
+      try {
+        await fetch('/api/admin/logout', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${adminToken}` },
+        });
+      } catch (err) {
+        console.warn('Failed to notify server logout:', err);
+      }
+    }
+    sessionStorage.removeItem('admin_token');
     localStorage.removeItem('admin_token');
     setAdminToken(null);
     setAdminUser(null);
@@ -285,12 +308,11 @@ export default function App() {
           {/* DGC Logo placed under announcement for Developer secret access */}
           <div className="pt-4 border-t border-slate-800/80 flex flex-col items-center space-y-2">
             <DgcLogo
-              onClick={handleOpenLogin}
               onLongPress={handleOpenLogin}
               className="opacity-95 hover:opacity-100 transition-opacity cursor-pointer active:scale-95 transition-transform"
             />
             <p className="text-[10px] text-slate-500 font-mono">
-              (ለተወሰኑ ሰዓታት በጥገና ላይ ነን © 2026 - EyobReta. All Rights Reserved)
+              (Developer / Admin: አድሚን ገፅ ለመግባት ሎጎውን ተጭነው ይያዙ / Long press logo to login)
             </p>
           </div>
         </div>

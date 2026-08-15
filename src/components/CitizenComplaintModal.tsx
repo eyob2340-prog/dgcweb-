@@ -95,8 +95,26 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
       });
 
       const data = await res.json();
-      if (res.ok) {
+      if (res.ok && data.ticket) {
         setCreatedTicket(data.ticket);
+        // Persist to browser localStorage for auto-remembering
+        try {
+          const savedStr = localStorage.getItem('dgc_my_tickets');
+          const savedList: any[] = savedStr ? JSON.parse(savedStr) : [];
+          const updatedList = [
+            {
+              ticket_code: data.ticket.ticket_code,
+              subject: data.ticket.subject,
+              category: data.ticket.category,
+              residence: data.ticket.residence,
+              created_at: data.ticket.created_at || new Date().toISOString(),
+            },
+            ...savedList.filter((item: any) => item.ticket_code !== data.ticket.ticket_code),
+          ].slice(0, 25);
+          localStorage.setItem('dgc_my_tickets', JSON.stringify(updatedList));
+        } catch (e) {
+          console.warn('Failed to save ticket to browser storage:', e);
+        }
       } else {
         setError(data.error || 'አቤቱታውን መመዝገብ አልተቻለም');
       }

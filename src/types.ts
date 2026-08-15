@@ -174,11 +174,15 @@ export interface AdminUser {
   email: string;
   username?: string;
   role: 'developer' | 'owner' | 'admin';
+  must_change_password?: boolean;
+  two_factor_enabled?: boolean;
   created_at?: string;
 }
 
 export interface AuthResponse {
   token: string;
+  mustChangePassword?: boolean;
+  twoFactorEnabled?: boolean;
   admin: AdminUser;
 }
 
