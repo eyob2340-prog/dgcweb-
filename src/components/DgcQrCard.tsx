@@ -230,7 +230,7 @@ export const DgcQrCard: React.FC<DgcQrCardProps> = ({ url, surveyTitle, onClose 
       <div className="flex items-center justify-between border-b border-slate-800 pb-3">
         <div className="flex items-center space-x-2 text-amber-300 font-bold text-sm">
           <QrCode className="w-5 h-5 text-amber-400" />
-          <span>የድሬዳዋ ኮሙዩኒኬሽን ብራንደድ QR ኮድ</span>
+          <span>የድሬዳዋ ኮሙኒኬሽን ብራንደድ QR ኮድ</span>
         </div>
         {onClose && (
           <button
@@ -270,7 +270,7 @@ export const DgcQrCard: React.FC<DgcQrCardProps> = ({ url, surveyTitle, onClose 
 
       {/* Helper text */}
       <p className="text-[11px] text-slate-300 font-medium">
-        ይህንን ኦፊሴላዊ የድሬዳዋ ኮሙዩኒኬሽን QR ኮድ ዳውንሎድ በማድረግ ለህዝብ ማሰራጨት ወይም በፕሪንት መጠቀም ይችላሉ::
+        ይህንን ኦፊሴላዊ የድሬዳዋ ኮሙኒኬሽን QR ኮድ ዳውንሎድ በማድረግ ለህዝብ ማሰራጨት ወይም በፕሪንት መጠቀም ይችላሉ::
       </p>
 
       {/* Action Buttons */}

@@ -64,6 +64,10 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
   const [disable2FaError, setDisable2FaError] = useState<string | null>(null);
   const [disabling2FaLoading, setDisabling2FaLoading] = useState<boolean>(false);
 
+  // User Deletion Modal State
+  const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
+  const [isDeletingUser, setIsDeletingUser] = useState<boolean>(false);
+
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -289,23 +293,31 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
     }
   };
 
-  const handleDeleteUser = async (targetUser: AdminUser) => {
-    if (!window.confirm(`እርግጠኛ ነዎት ተጠቃሚ [${targetUser.email}] እንዲሰረዝ ይፈልጋሉ?`)) return;
+  const handleDeleteUser = (targetUser: AdminUser) => {
+    setUserToDelete(targetUser);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    setIsDeletingUser(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/admin/users/${targetUser.id}`, {
+      const res = await fetch(`/api/admin/users/${userToDelete.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${adminToken}` },
       });
       const data = await res.json();
       if (res.ok) {
-        setMessage({ type: 'success', text: `ተጠቃሚ [${targetUser.email}] በስኬት ተሰርዟል!` });
+        setMessage({ type: 'success', text: `ተጠቃሚ [${userToDelete.email}] በስኬት ተሰርዟል!` });
+        setUserToDelete(null);
         fetchUsers();
       } else {
         setMessage({ type: 'error', text: data.error || 'ተጠቃሚውን መሰረዝ አልተቻለም' });
       }
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message || 'የኔትወርክ ስህተት' });
+    } finally {
+      setIsDeletingUser(false);
     }
   };
 
@@ -811,6 +823,58 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                 </button>
               </div>
             </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* User Deletion Confirmation Modal */}
+      {userToDelete && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-slate-900 border border-red-500/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5"
+          >
+            <div className="flex items-center space-x-3 text-red-400 border-b border-slate-800 pb-4">
+              <div className="p-3 bg-red-500/10 rounded-2xl border border-red-500/20">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">ተጠቃሚን መሰረዝ</h3>
+                <p className="text-xs text-red-400">የአድሚን አካውንት የማጥፊያ ማረጋገጫ</p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2 text-xs">
+              <p className="text-slate-300">
+                እርግጠኛ ነዎት ተጠቃሚ <strong className="text-white">[{userToDelete.email}]</strong> ከዳታቤዝ እንዲሰረዝ ይፈልጋሉ?
+              </p>
+              <div className="text-[11px] text-slate-400 flex items-center gap-2">
+                <span>ሚና: <strong className="text-amber-400 uppercase">{userToDelete.role}</strong></span>
+                <span>•</span>
+                <span>Username: <strong className="text-slate-200">{userToDelete.username || 'N/A'}</strong></span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isDeletingUser}
+                onClick={() => setUserToDelete(null)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl"
+              >
+                ተመለስ (Cancel)
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingUser}
+                onClick={confirmDeleteUser}
+                className="px-5 py-2 bg-red-600 hover:bg-red-500 text-white font-black text-xs rounded-xl shadow-lg flex items-center gap-1.5 cursor-pointer"
+              >
+                {isDeletingUser && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                <span>አረጋግጥና ሰርዝ</span>
+              </button>
+            </div>
           </motion.div>
         </div>
       )}

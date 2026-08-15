@@ -30,7 +30,7 @@ export const FooterModals: React.FC<PolicyModalProps> = ({ type, onClose }) => {
                 {type === 'privacy' ? 'የሚስጥራዊነት ፖሊሲ (Privacy Policy)' : 'የአጠቃቀም ህጎች (Terms of Use)'}
               </h2>
               <p className="text-xs text-blue-200 mt-0.5">
-                የድሬዳዋ አስተዳደር የመንግስት ኮሙዩኒኬሽን ጉዳዮች ቢሮ ህጋዊ መመሪያዎች
+                የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ ህጋዊ መመሪያዎች
               </p>
             </div>
           </div>

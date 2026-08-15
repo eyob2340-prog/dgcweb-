@@ -42,7 +42,7 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) => {
-  const [activeTab, setActiveTab] = useState<'analytics' | 'policy_report' | 'manage' | 'tickets' | 'users' | 'opa_control' | 'audit' | 'db'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'manage' | 'tickets' | 'users' | 'opa_control' | 'audit' | 'db'>('analytics');
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
@@ -169,6 +169,40 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
 
   return (
     <div className="space-y-6 sm:space-y-8">
+      {/* OPA Enterprise License & Engine Status Badge */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 p-4 sm:p-5 rounded-3xl border border-amber-500/40 shadow-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4"
+      >
+        <div className="flex items-center space-x-3.5 relative z-10">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
+            <Crown className="w-6 h-6 text-amber-400 animate-pulse" />
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-sm sm:text-base font-black text-white tracking-wide">
+                OPA Enterprise Intelligence Platform
+              </h3>
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-black tracking-wide">
+                1-Year Complimentary Enterprise License
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold">
+                ● Active (Zero Cost)
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 mt-1">
+              ለድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ በልዩ የቴክኖሎጂ ስጦታ የተበረከተ ተቋማዊ የትንታኔና የዜጎች አስተያየት ሲስተም
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2 text-xs font-mono font-bold text-slate-300 bg-slate-950/80 px-3.5 py-2 rounded-2xl border border-slate-800 shrink-0 relative z-10">
+          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <span>License: <strong className="text-amber-400">OPA-GOV-2026</strong></span>
+        </div>
+      </motion.div>
+
       {/* Top Stat Overview Cards with Futuristic Glow & Animations */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
         <motion.div
@@ -245,121 +279,120 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
       </div>
 
       {/* Primary Tab Navigation & Action Toolbar */}
-      <div className="bg-slate-900/80 backdrop-blur-xl p-3 sm:p-4 rounded-3xl border border-slate-800 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {/* Animated Tabs */}
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="bg-slate-900/90 backdrop-blur-2xl p-2 sm:p-2.5 rounded-2xl border border-slate-800/80 shadow-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        {/* Sleek Segmented Navigation Tabs */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5">
+          {/* Unified Analytics & Policy Intelligence Report */}
           <button
             onClick={() => setActiveTab('analytics')}
-            className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 flex items-center space-x-2 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-200 flex items-center space-x-2 whitespace-nowrap shrink-0 cursor-pointer ${
               activeTab === 'analytics'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/30'
-                : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/40'
+                : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/40'
             }`}
           >
-            <BarChart3 className="w-4 h-4 text-amber-300" />
-            <span>ቻርቶች እና አናሊቲክስ</span>
+            <BarChart3 className="w-4 h-4 text-sky-300 shrink-0" />
+            <span>አናሊቲክስና ሪፖርት</span>
           </button>
 
-          <button
-            onClick={() => setActiveTab('policy_report')}
-            className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 flex items-center space-x-2 ${
-              activeTab === 'policy_report'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/30'
-                : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
-            }`}
-          >
-            <FileText className="w-4 h-4 text-amber-300" />
-            <span>የፖሊሲና የሕዝብ እርካታ ሪፖርት</span>
-          </button>
-
+          {/* Survey Management */}
           <button
             onClick={() => setActiveTab('manage')}
-            className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 flex items-center space-x-2 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-200 flex items-center space-x-2 whitespace-nowrap shrink-0 cursor-pointer ${
               activeTab === 'manage'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/30'
-                : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/40'
+                : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/40'
             }`}
           >
-            <Vote className="w-4 h-4 text-amber-300" />
+            <Vote className="w-4 h-4 text-emerald-300 shrink-0" />
             <span>የጥናቶች ማኔጀር</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('tickets')}
-            className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 flex items-center space-x-2 ${
-              activeTab === 'tickets'
-                ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30 border border-amber-400'
-                : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
-            }`}
-          >
-            <MessageSquare className="w-4 h-4 text-amber-300" />
-            <span>የዜጎች አቤቱታዎችና ጥያቄዎች</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 flex items-center space-x-2 ${
-              activeTab === 'users'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/30'
-                : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
-            }`}
-          >
-            <UserCog className="w-4 h-4 text-amber-300" />
-            <span>
-              {currentUser?.role === 'admin' ? 'የኔ ፕሮፋይልና ፓስወርድ' : 'አካውንቶችና ደህንነት'}
+            <span className="px-1.5 py-0.5 rounded-md bg-slate-950/60 text-[10px] text-slate-300 font-mono">
+              {surveys.length}
             </span>
           </button>
 
-          {currentUser?.role === 'developer' && (
-            <button
-              onClick={() => setActiveTab('opa_control')}
-              className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 flex items-center space-x-2 ${
-                activeTab === 'opa_control'
-                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30 border border-purple-400/30'
-                  : 'bg-purple-950/60 text-purple-300 hover:bg-purple-900 hover:text-white border border-purple-800/50'
-              }`}
-            >
-              <Laptop className="w-4 h-4 text-amber-300" />
-              <span>OPA Developer Control</span>
-            </button>
-          )}
+          {/* Citizen Tickets & Grievances */}
+          <button
+            onClick={() => setActiveTab('tickets')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-200 flex items-center space-x-2 whitespace-nowrap shrink-0 cursor-pointer ${
+              activeTab === 'tickets'
+                ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30 border border-amber-400'
+                : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/40'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4 text-amber-300 shrink-0" />
+            <span>የዜጎች አቤቱታዎች</span>
+          </button>
 
-          {(currentUser?.role === 'developer' || currentUser?.role === 'owner') && (
+          {/* User Profile & Security */}
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-200 flex items-center space-x-2 whitespace-nowrap shrink-0 cursor-pointer ${
+              activeTab === 'users'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/40'
+                : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/40'
+            }`}
+          >
+            <UserCog className="w-4 h-4 text-indigo-300 shrink-0" />
+            <span>
+              {currentUser?.role === 'admin' ? 'የኔ ፕሮፋይል' : 'አካውንቶችና ደህንነት'}
+            </span>
+          </button>
+
+          {/* Audit Logs */}
+          {(currentUser?.role === 'developer' || currentUser?.role === 'owner' || currentUser?.role === 'admin') && (
             <button
               onClick={() => setActiveTab('audit')}
-              className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 flex items-center space-x-2 ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-200 flex items-center space-x-2 whitespace-nowrap shrink-0 cursor-pointer ${
                 activeTab === 'audit'
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/30'
-                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/40'
+                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/40'
               }`}
             >
-              <History className="w-4 h-4 text-amber-300" />
-              <span>የኦዲት መዝገብ (Audit Logs)</span>
+              <History className="w-4 h-4 text-violet-300 shrink-0" />
+              <span>የኦዲት መዝገብ</span>
             </button>
           )}
 
-          {currentUser?.role === 'developer' && (
+          {/* Telegram Settings (Developer & Owner) */}
+          {(currentUser?.role === 'developer' || currentUser?.role === 'owner') && (
             <button
               onClick={() => setActiveTab('db')}
               title="ቴሌግራም ቦት ሴቲንግ (Telegram Bot Settings)"
-              className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 flex items-center space-x-2 ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-200 flex items-center space-x-2 whitespace-nowrap shrink-0 cursor-pointer ${
                 activeTab === 'db'
                   ? 'bg-sky-600 text-white shadow-lg shadow-sky-600/30 border border-sky-400/30'
-                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
+                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/40'
               }`}
             >
-              <Send className="w-4 h-4 text-sky-400" />
-              <span>Telegram Bot Settings</span>
+              <Send className="w-4 h-4 text-cyan-300 shrink-0" />
+              <span>Telegram</span>
+            </button>
+          )}
+
+          {/* Developer Control Panel */}
+          {currentUser?.role === 'developer' && (
+            <button
+              onClick={() => setActiveTab('opa_control')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-200 flex items-center space-x-2 whitespace-nowrap shrink-0 cursor-pointer ${
+                activeTab === 'opa_control'
+                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30 border border-purple-400/30'
+                  : 'bg-purple-950/60 text-purple-300 hover:bg-purple-900 hover:text-white border border-purple-800/40'
+              }`}
+            >
+              <Laptop className="w-4 h-4 text-fuchsia-300 shrink-0" />
+              <span>OPA Dev</span>
             </button>
           )}
         </div>
 
+        {/* Create Survey Action CTA */}
         <button
           onClick={() => setIsBuilderOpen(true)}
-          className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl text-xs sm:text-sm font-black shadow-lg shadow-emerald-600/20 hover:shadow-emerald-500/40 transition-all flex items-center justify-center space-x-2 shrink-0 border border-emerald-400/30"
+          className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs sm:text-sm font-black shadow-lg shadow-emerald-600/20 hover:shadow-emerald-500/40 transition-all flex items-center justify-center space-x-2 shrink-0 border border-emerald-400/30 cursor-pointer self-stretch sm:self-auto"
         >
           <Plus className="w-4 h-4" />
-          <span>+ አዲስ መጠይቅ ፍጠር</span>
+          <span>+ አዲስ መጠይቅ</span>
         </button>
       </div>
 
@@ -379,24 +412,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
               onSelectSurvey={(id) => setSelectedSurveyId(id)}
               adminToken={adminToken}
               initialShowReport={false}
-            />
-          </motion.div>
-        )}
-
-        {activeTab === 'policy_report' && (
-          <motion.div
-            key="policy_report"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            <VisualAnalytics
-              surveys={surveys}
-              selectedSurveyId={selectedSurveyId}
-              onSelectSurvey={(id) => setSelectedSurveyId(id)}
-              adminToken={adminToken}
-              initialShowReport={true}
             />
           </motion.div>
         )}

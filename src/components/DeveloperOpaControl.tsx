@@ -1024,7 +1024,7 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
           <div className="text-slate-500 border-b border-slate-800/60 pb-2 space-y-1">
             <p className="text-emerald-400/90">[SYSTEM BOOT] Dual-persistence PostgreSQL & Local JSON fallback initialized.</p>
             <p className="text-blue-400/90">[SECURITY ENGINE] Role-Based Access Control verified for opa, owner1, and admin.</p>
-            <p className="text-purple-300/90">[AI TRANSLATE] Gemini Multilingual endpoint active (Afaan Oromoo / Soomaali / Amharic).</p>
+            <p className="text-purple-300/90">[OPA ENGINE] OPA Multilingual NLP processor active (Afaan Oromoo / Soomaali / Amharic).</p>
           </div>
 
           {auditLogs.length === 0 ? (

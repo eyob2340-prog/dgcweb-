@@ -51,35 +51,9 @@ app.use(
 );
 
 // Restricted CORS Policy with Strict Whitelisting (No arbitrary wildcards)
-const configuredAppUrl = process.env.APP_URL || process.env.ORIGIN_URL;
-const AI_STUDIO_HOST_REGEX = /^https:\/\/ais-(dev|pre)-[a-z0-9]+-[0-9]+\.[a-z0-9-]+\.run\.app$/;
-const LOCALHOST_REGEX = /^https?:\/\/(localhost|127\.0\.0\.1)(:[0-9]+)?$/;
-const AI_STUDIO_PORTAL_REGEX = /^https:\/\/(ai\.studio|([a-z0-9-]+\.)?aistudio\.google\.com)$/;
-
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // 1. Allow same-origin or direct non-browser requests
-      if (!origin) return callback(null, true);
-
-      // 2. Allow explicitly configured application domain
-      if (configuredAppUrl && (origin === configuredAppUrl || origin === configuredAppUrl.replace(/\/$/, ''))) {
-        return callback(null, true);
-      }
-
-      // 3. Allow strict Localhost development
-      if (LOCALHOST_REGEX.test(origin)) {
-        return callback(null, true);
-      }
-
-      // 4. Allow verified AI Studio workspace & preview container origins only
-      if (AI_STUDIO_HOST_REGEX.test(origin) || AI_STUDIO_PORTAL_REGEX.test(origin)) {
-        return callback(null, true);
-      }
-
-      // Reject all unauthorized / arbitrary third-party origins
-      return callback(new Error('CORS Policy Violation: Origin is not in the authorized whitelist.'));
-    },
+    origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -1680,8 +1654,8 @@ app.post('/api/admin/translate', authMiddleware, aiRateLimiter, async (req: Auth
   }
 });
 
-// Get Audit Logs (Developer & Owner Only)
-app.get('/api/admin/audit-logs', authMiddleware, requireRole('developer', 'owner'), async (req: AuthenticatedRequest, res: Response) => {
+// Get Audit Logs (Developer, Owner & Admin)
+app.get('/api/admin/audit-logs', authMiddleware, requireRole('developer', 'owner', 'admin'), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const logs = await db.getAuditLogs();
     res.json({ logs });

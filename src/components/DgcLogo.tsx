@@ -145,7 +145,7 @@ export const DgcLogo: React.FC<DgcLogoProps> = ({
             fontWeight="bold"
             fontFamily="sans-serif"
           >
-            ድሬዳዋ መንግስት ኮሙዩኒኬሽን
+            ድሬዳዋ መንግስት ኮሙኒኬሽን
           </text>
           <text
             x="225"
@@ -162,7 +162,7 @@ export const DgcLogo: React.FC<DgcLogoProps> = ({
 
         <div className="hidden sm:block text-left border-l border-slate-200 pl-3">
           <h2 className="text-xs font-black text-blue-900 leading-tight">
-            ድሬዳዋ ኮሙዩኒኬሽን
+            ድሬዳዋ ኮሙኒኬሽን
           </h2>
           <p className="text-[10px] text-amber-700 font-bold tracking-tight">
             የሕዝብ አስተያየት መሰብሰቢያ

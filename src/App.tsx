@@ -305,15 +305,12 @@ export default function App() {
             የአስተዳደሩ የመረጃ፣ የአቤቱታ እና የሕዝብ አስተያየት ፖርታል በአሁኑ ወቅት የተሻለ የአሰራር ዝመና እና የቴክኒክ ጥገና እየተደረገበት ይገኛል:: እባክዎ ከጥቂት ደቂቃዎች በኋላ ተመልሰው ይሞክሩ::
           </p>
 
-          {/* DGC Logo placed under announcement for Developer secret access */}
+          {/* DGC Logo */}
           <div className="pt-4 border-t border-slate-800/80 flex flex-col items-center space-y-2">
             <DgcLogo
               onLongPress={handleOpenLogin}
               className="opacity-95 hover:opacity-100 transition-opacity cursor-pointer active:scale-95 transition-transform"
             />
-            <p className="text-[10px] text-slate-500 font-mono">
-              (Developer / Admin: አድሚን ገፅ ለመግባት ሎጎውን ተጭነው ይያዙ / Long press logo to login)
-            </p>
           </div>
         </div>
 
@@ -530,15 +527,15 @@ export default function App() {
           <AdminDashboard adminToken={adminToken} />
         ) : (
           <div className="bg-slate-900/70 backdrop-blur-md p-12 rounded-3xl text-center border border-slate-800 space-y-4 max-w-lg mx-auto my-12 shadow-xl">
-            <h3 className="text-lg font-bold text-slate-100">ይህንን ክፍል ለማየት መግባት ያስፈልጋል</h3>
+            <h3 className="text-lg font-bold text-slate-100">የተፈቀደላቸው የስራ ኃላፊዎች መግቢያ</h3>
             <p className="text-xs text-slate-400">
-              የአድሚን ዳሽቦርድን፣ ቻርቶችን እና መጠይቆችን ለማስተዳደር እባክዎ በቢሮው LOGO ላይ ለ8 ሰከንድ ተጭነው በመያዝ ይግቡ::
+              የአድሚን ዳሽቦርድን፣ የትንታኔ ቻርቶችን እና የፖሊሲ ሪፖርቶችን ለማስተዳደር እባክዎ የመግቢያ ፈቃድዎን ይጠቀሙ::
             </p>
             <button
               onClick={() => setIsAdminModalOpen(true)}
-              className="px-6 py-2.5 bg-red-900/80 hover:bg-red-800 text-white rounded-2xl text-xs font-bold transition-all shadow-md border border-red-700/50"
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs font-bold transition-all shadow-md border border-blue-400/50"
             >
-              ወደ አድሚን መግቢያ (Restricted Access)
+              ወደ አድሚን መግቢያ (Admin Portal)
             </button>
           </div>
         )}

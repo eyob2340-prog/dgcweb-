@@ -149,7 +149,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
           ? {
               ...prev,
               percentage: 50,
-              stageLabel: '2/4 በGemini AI የኦፊሴላዊ የፖሊሲና የእርካታ ደረጃዎች በመቀመር ላይ...',
+              stageLabel: '2/4 በOPA Intelligence Engine የኦፊሴላዊ የፖሊሲና የእርካታ ደረጃዎች በመቀመር ላይ...',
             }
           : prev
       );
@@ -233,7 +233,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
         setTelegramStatus({
           loading: false,
           success: true,
-          message: data.message || 'የኤአይ ፖሊሲ ሪፖርትና ስቲስቲክሱ ወደ Telegram በስኬት ተልኳል!',
+          message: data.message || 'የፖሊሲ ትንታኔ ሪፖርትና ስቲስቲክሱ ወደ Telegram በስኬት ተልኳል!',
         });
       } else {
         setTelegramStatus({
@@ -831,7 +831,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
           <button
             onClick={handleDownloadCsv}
             className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-2xl text-xs font-black transition-all shadow-md flex items-center space-x-2"
-            title="የጥያቄዎችንና የAI ፖሊሲ ዳታ በExcel/CSV ያውርዱ"
+            title="የጥያቄዎችንና የፖሊሲ ትንታኔ ዳታ በExcel/CSV ያውርዱ"
           >
             <FileSpreadsheet className="w-4 h-4 text-slate-300" />
             <span>3. CSV / Excel</span>
@@ -841,7 +841,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
             onClick={handleExportTelegram}
             disabled={telegramStatus.loading}
             className="px-4 py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white border border-sky-400/30 rounded-2xl text-xs font-black transition-all shadow-lg shadow-sky-600/20 flex items-center space-x-2 disabled:opacity-50"
-            title="የAI ፖሊሲ ሪፖርትና ስቲስቲክሱን ወደ ቴሌግራም ይላኩ"
+            title="የፖሊሲ ትንታኔ ሪፖርትና ስቲስቲክሱን ወደ ቴሌግራም ይላኩ"
           >
             <Send className={`w-4 h-4 text-sky-200 ${telegramStatus.loading ? 'animate-spin' : ''}`} />
             <span>4. Telegram</span>
@@ -913,7 +913,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
         </div>
       ) : (
         <>
-          {/* Official AI Policy Report Box (Gemini AI Powered) - Shown when toggled or printed */}
+          {/* Official Policy Intelligence Report Box (OPA Engine Powered) - Shown when toggled or printed */}
           {showAiReport && (
             <div className="bg-white rounded-3xl border-2 border-slate-900 shadow-2xl overflow-hidden p-6 sm:p-10 space-y-8 relative transition-all duration-300">
               {/* Top Action Bar (No Print) */}
@@ -1282,6 +1282,13 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                           <p>ድሬዳዋ፣ ኢትዮጵያ</p>
                         </div>
                       </div>
+                    </div>
+
+                    {/* OFFICIAL ENTERPRISE INTELLIGENCE SYSTEM SEAL */}
+                    <div className="pt-6 mt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] text-slate-500 font-mono">
+                      <span>Engine: <strong>OPA Policy Intelligence Engine (v2.4 Enterprise)</strong></span>
+                      <span>License: <strong>1-Year Complimentary Enterprise License (Dire Dawa Admin)</strong></span>
+                      <span>Doc ID: <strong>{aiReport.official_header?.ref_code || 'DGC-DOC-2026'}</strong></span>
                     </div>
 
                   </div>

@@ -27,7 +27,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenPrivacy, onOpenTerms }) =>
                 © 2026 - EyobReta. All Rights Reserved.
               </p>
               <p className="text-[11px] text-slate-400 mt-0.5">
-                የድሬዳዋ አስተዳደር የመንግስት ኮሙዩኒኬရှင် ጉዳዮች ቢሮ • Anonymous Survey Platform
+                የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ • Anonymous Survey Platform
               </p>
             </div>
 

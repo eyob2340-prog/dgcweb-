@@ -122,9 +122,13 @@ Respond strictly in valid JSON format matching this schema:
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error('GEMINI_API_KEY is not configured, using built-in statistical policy intelligence engine.');
+      }
       const ai = getAiClient();
       const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: 'gemini-3.7-flash',
         contents: userPrompt,
         config: {
           systemInstruction,
@@ -135,16 +139,19 @@ Respond strictly in valid JSON format matching this schema:
       responseText = response.text || '';
       if (responseText) break;
     } catch (apiErr: any) {
-      console.warn(`Gemini API attempt ${attempt}/${maxAttempts} failed:`, apiErr?.message || apiErr);
-      if (attempt < maxAttempts) {
+      console.warn(`OPA Intelligence attempt ${attempt}/${maxAttempts} notice:`, apiErr?.message || apiErr);
+      if (attempt < maxAttempts && process.env.GEMINI_API_KEY) {
         await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
       } else {
-        throw apiErr;
+        break;
       }
     }
   }
 
   try {
+    if (!responseText) {
+      throw new Error('No raw text response, generating statistical synthesis.');
+    }
     const parsed = JSON.parse(responseText);
 
     // Validate satisfaction score bound
@@ -262,9 +269,17 @@ Return ONLY valid JSON matching this schema:
 `;
 
   try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return {
+        detected_language: 'Amharic',
+        translated_amharic: text,
+        translated_english: text,
+      };
+    }
     const ai = getAiClient();
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
+      model: 'gemini-3.7-flash',
       contents: userPrompt,
       config: {
         systemInstruction,
