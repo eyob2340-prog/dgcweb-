@@ -1560,7 +1560,7 @@ export const db = {
 
       if (q.question_type === 'radio') {
         const counts: Record<string, number> = {};
-        (q.options || []).forEach((opt) => {
+        (q.options || []).forEach((opt: any) => {
           counts[opt] = 0;
         });
 
