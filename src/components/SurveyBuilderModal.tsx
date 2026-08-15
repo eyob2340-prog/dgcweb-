@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
-import { X, Plus, Trash2, HelpCircle, Save, CheckCircle2, ListPlus } from 'lucide-react';
-import { QuestionType } from '../types';
+import React, { useState, useEffect } from 'react';
+import { X, Plus, Trash2, HelpCircle, Save, CheckCircle2, ListPlus, Edit3 } from 'lucide-react';
+import { QuestionType, Survey } from '../types';
 
 interface SurveyBuilderModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSurveyCreated: () => void;
   adminToken: string;
+  surveyToEdit?: Survey | null;
 }
 
 interface NewQuestion {
+  id?: number;
   question_text: string;
   question_type: QuestionType;
   options: string[];
@@ -20,7 +22,10 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
   onClose,
   onSurveyCreated,
   adminToken,
+  surveyToEdit,
 }) => {
+  const isEditing = Boolean(surveyToEdit);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('ፖለቲካ እና ኢኮኖሚ');
@@ -36,6 +41,43 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
   ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Pre-fill form if editing an existing survey
+  useEffect(() => {
+    if (surveyToEdit) {
+      setTitle(surveyToEdit.title || '');
+      setDescription(surveyToEdit.description || '');
+      setCategory(surveyToEdit.category || 'ፖለቲካ እና ኢኮኖሚ');
+      setTheme(surveyToEdit.theme || 'government');
+      setStartDate(surveyToEdit.start_date ? surveyToEdit.start_date.split('T')[0] : new Date().toISOString().split('T')[0]);
+      setEndDate(surveyToEdit.end_date ? surveyToEdit.end_date.split('T')[0] : '');
+      if (Array.isArray(surveyToEdit.questions) && surveyToEdit.questions.length > 0) {
+        setQuestions(
+          surveyToEdit.questions.map((q) => ({
+            id: q.id,
+            question_text: q.question_text,
+            question_type: q.question_type,
+            options: q.options && q.options.length > 0 ? [...q.options] : ['አዎ', 'አይደለም'],
+          }))
+        );
+      }
+    } else {
+      // Reset to defaults for new survey
+      setTitle('');
+      setDescription('');
+      setCategory('ፖለቲካ እና ኢኮኖሚ');
+      setTheme('government');
+      setStartDate(new Date().toISOString().split('T')[0]);
+      setEndDate('');
+      setQuestions([
+        {
+          question_text: 'ስለ አዲሱ የፖሊሲ ማሻሻያ የእርስዎን ስምምነት ደረጃ ይግለጹ፡',
+          question_type: 'radio',
+          options: ['በጣም እስማማለሁ', 'በከፊል እስማማለሁ', 'ያልወሰንኩ', 'አልስማማለሁ'],
+        },
+      ]);
+    }
+  }, [surveyToEdit, isOpen]);
 
   if (!isOpen) return null;
 
@@ -112,8 +154,11 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
     setLoading(true);
 
     try {
-      const res = await fetch('/api/admin/surveys', {
-        method: 'POST',
+      const endpoint = isEditing ? `/api/admin/surveys/${surveyToEdit?.id}` : '/api/admin/surveys';
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const res = await fetch(endpoint, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${adminToken}`,
@@ -134,7 +179,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
         onSurveyCreated();
         onClose();
       } else {
-        setError(data.error || 'መጠይቁን መፍጠር አልተቻለም::');
+        setError(data.error || (isEditing ? 'መጠይቁን ማስተካከል አልተቻለም::' : 'መጠይቁን መፍጠር አልተቻለም::'));
       }
     } catch (err) {
       setError('የኔትወርክ ስህተት::');
@@ -155,11 +200,19 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
             <X className="w-5 h-5" />
           </button>
           <div className="flex items-center space-x-2">
-            <ListPlus className="w-6 h-6 text-emerald-400" />
-            <h2 className="text-xl font-bold">አዲስ የሕዝብ መጠይቅ መፍጠሪያ (Survey Builder)</h2>
+            {isEditing ? (
+              <Edit3 className="w-6 h-6 text-amber-400" />
+            ) : (
+              <ListPlus className="w-6 h-6 text-emerald-400" />
+            )}
+            <h2 className="text-xl font-bold">
+              {isEditing ? `የጥናት መጠይቅ አርትዖት (Edit Survey #${surveyToEdit?.id})` : 'አዲስ የሕዝብ መጠይቅ መፍጠሪያ (Survey Builder)'}
+            </h2>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            አዳዲስ የፖለቲካ፣ የኢኮኖሚ እና የማህበራዊ ጉዳይ መጠይቆችን በቀላሉ መፍጠር ይችላሉ::
+            {isEditing
+              ? 'የመጠይቁን ርዕስ፣ መግለጫ፣ መደብ እና ጥያቄዎች እዚህ ማስተካከልና ማዘመን ይችላሉ::'
+              : 'አዳዲስ የፖለቲካ፣ የኢኮኖሚ እና የማህበራዊ ጉዳይ መጠይቆችን በቀላሉ መፍጠር ይችላሉ::'}
           </p>
         </div>
 

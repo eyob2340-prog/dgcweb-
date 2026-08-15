@@ -103,3 +103,18 @@ export function toEthiopianDate(gregorianDate: Date | string = new Date()): {
     formattedAmharic,
   };
 }
+
+export function formatEthiopianDate(gregorianDate?: Date | string | null): string {
+  if (!gregorianDate) return 'ነሐሴ 5 ቀን 2018 ዓ.ም.';
+  return toEthiopianDate(gregorianDate).formattedAmharic;
+}
+
+export function formatEthiopianDateTime(gregorianDate?: Date | string | null): string {
+  if (!gregorianDate) return 'ነሐሴ 5 ቀን 2018 ዓ.ም.';
+  const d = typeof gregorianDate === 'string' ? new Date(gregorianDate) : gregorianDate;
+  const eth = toEthiopianDate(d);
+  const timeStr = !isNaN(d.getTime())
+    ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : '';
+  return timeStr ? `${eth.formattedAmharic} (${timeStr})` : eth.formattedAmharic;
+}

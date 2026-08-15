@@ -1238,6 +1238,155 @@ export const db = {
     return newSurveyId;
   },
 
+  async updateSurvey(
+    surveyId: number,
+    data: {
+      title?: string;
+      description?: string;
+      category?: string;
+      theme?: string;
+      start_date?: string;
+      end_date?: string;
+      is_active?: boolean;
+      questions?: { id?: number; question_text: string; question_type: 'text' | 'radio' | 'rating'; options: string[] }[];
+    }
+  ) {
+    if (pgPool) {
+      const client = await pgPool.connect();
+      try {
+        await client.query('BEGIN');
+        
+        const setClauses: string[] = [];
+        const params: any[] = [];
+        let idx = 1;
+
+        if (data.title !== undefined) {
+          setClauses.push(`title = $${idx++}`);
+          params.push(data.title);
+        }
+        if (data.description !== undefined) {
+          setClauses.push(`description = $${idx++}`);
+          params.push(data.description);
+        }
+        if (data.category !== undefined) {
+          setClauses.push(`category = $${idx++}`);
+          params.push(data.category);
+        }
+        if (data.theme !== undefined) {
+          setClauses.push(`theme = $${idx++}`);
+          params.push(data.theme);
+        }
+        if (data.start_date !== undefined) {
+          setClauses.push(`start_date = $${idx++}`);
+          params.push(data.start_date || null);
+        }
+        if (data.end_date !== undefined) {
+          setClauses.push(`end_date = $${idx++}`);
+          params.push(data.end_date || null);
+        }
+        if (data.is_active !== undefined) {
+          setClauses.push(`is_active = $${idx++}`);
+          params.push(data.is_active);
+        }
+
+        if (setClauses.length > 0) {
+          params.push(surveyId);
+          await client.query(`UPDATE surveys SET ${setClauses.join(', ')} WHERE id = $${idx}`, params);
+        }
+
+        // If questions are provided, handle updates and additions
+        if (Array.isArray(data.questions) && data.questions.length > 0) {
+          // Fetch existing questions
+          const existingQRes = await client.query('SELECT id FROM questions WHERE survey_id = $1', [surveyId]);
+          const existingQIds = new Set(existingQRes.rows.map((r) => r.id));
+          const updatedQIds = new Set<number>();
+
+          for (const q of data.questions) {
+            if (q.id && existingQIds.has(q.id)) {
+              // Update existing question
+              await client.query(
+                'UPDATE questions SET question_text = $1, question_type = $2, options = $3 WHERE id = $4 AND survey_id = $5',
+                [q.question_text, q.question_type, JSON.stringify(q.options || []), q.id, surveyId]
+              );
+              updatedQIds.add(q.id);
+            } else {
+              // Insert new question
+              const insertRes = await client.query(
+                'INSERT INTO questions (survey_id, question_text, question_type, options) VALUES ($1, $2, $3, $4) RETURNING id',
+                [surveyId, q.question_text, q.question_type, JSON.stringify(q.options || [])]
+              );
+              if (insertRes.rows.length > 0) {
+                updatedQIds.add(insertRes.rows[0].id);
+              }
+            }
+          }
+
+          // Delete questions that were removed and don't have responses yet, or delete them cleanly
+          for (const oldId of existingQIds) {
+            if (!updatedQIds.has(oldId)) {
+              await client.query('DELETE FROM answers WHERE question_id = $1', [oldId]);
+              await client.query('DELETE FROM questions WHERE id = $1', [oldId]);
+            }
+          }
+        }
+
+        await client.query('COMMIT');
+        return true;
+      } catch (e) {
+        await client.query('ROLLBACK');
+        throw e;
+      } finally {
+        client.release();
+      }
+    }
+
+    const local = readLocalDB();
+    const survey = local.surveys.find((s) => s.id === surveyId) as any;
+    if (!survey) return false;
+
+    if (data.title !== undefined) survey.title = data.title;
+    if (data.description !== undefined) survey.description = data.description;
+    if (data.category !== undefined) survey.category = data.category;
+    if (data.theme !== undefined) survey.theme = data.theme;
+    if (data.start_date !== undefined) survey.start_date = data.start_date;
+    if (data.end_date !== undefined) survey.end_date = data.end_date;
+    if (data.is_active !== undefined) survey.is_active = data.is_active;
+
+    if (Array.isArray(data.questions) && data.questions.length > 0) {
+      const existingQs = local.questions.filter((q) => q.survey_id === surveyId);
+      const updatedQIds = new Set<number>();
+      let nextQId = local.questions.length > 0 ? Math.max(...local.questions.map((q) => q.id)) + 1 : 1;
+
+      for (const q of data.questions) {
+        if (q.id && existingQs.some((eq) => eq.id === q.id)) {
+          const target = local.questions.find((eq) => eq.id === q.id);
+          if (target) {
+            target.question_text = q.question_text;
+            target.question_type = q.question_type;
+            target.options = q.options || [];
+            updatedQIds.add(q.id);
+          }
+        } else {
+          const newId = nextQId++;
+          local.questions.push({
+            id: newId,
+            survey_id: surveyId,
+            question_text: q.question_text,
+            question_type: q.question_type,
+            options: q.options || [],
+          });
+          updatedQIds.add(newId);
+        }
+      }
+
+      // Remove deleted questions from local
+      local.questions = local.questions.filter((q) => q.survey_id !== surveyId || updatedQIds.has(q.id));
+    }
+
+    writeLocalDB(local);
+    return true;
+  },
+
   async toggleSurveyStatus(surveyId: number, isActive: boolean) {
     if (pgPool) {
       await pgPool.query('UPDATE surveys SET is_active = $1 WHERE id = $2', [isActive, surveyId]);

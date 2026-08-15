@@ -10,9 +10,10 @@ import { createServer as createViteServer } from 'vite';
 
 import { db } from './server/db';
 import { comparePassword, generateToken, verifyToken, authMiddleware, requireRole, revokeToken, AuthenticatedRequest } from './server/auth';
-import { sendTelegramReport, DEFAULT_TELEGRAM_BOT_TOKEN, DEFAULT_TELEGRAM_CHAT_ID, formatTelegramChatId, escapeMarkdown } from './server/telegram';
-import { generateSurveyAiReport, translateTextWithAi } from './server/ai';
+import { sendTelegramReport, sendDaily24hTelegramReport, DEFAULT_TELEGRAM_BOT_TOKEN, DEFAULT_TELEGRAM_CHAT_ID, formatTelegramChatId, escapeMarkdown } from './server/telegram';
+import { generateSurveyAiReport, translateTextWithAi, chatWithOfficeWorker } from './server/ai';
 import { sendTicketRecoveryOtp } from './server/email';
+import { toEthiopianDate, formatEthiopianDateTime } from './src/lib/ethiopianDate';
 
 // In-memory runtime settings store (synced with persistent storage)
 let activeBotToken = process.env.TELEGRAM_BOT_TOKEN || DEFAULT_TELEGRAM_BOT_TOKEN;
@@ -123,6 +124,16 @@ const aiRateLimiter = rateLimit({
   },
 });
 
+// 7. Public Citizen Chat Rate Limiter: 20 requests per 15 minutes per IP
+const publicChatLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  validate: { xForwardedForHeader: false },
+  message: {
+    error: 'በአጭር ጊዜ ውስጥ የበዛ የቻት ጥያቄ ቀርቧል:: እባክዎ ከጥቂት ደቂቃዎች በኋላ እንደገና ይሞክሩ:: (Rate limit reached: 20 questions per 15 minutes per IP)',
+  },
+});
+
 // Dynamic cryptographic salt for citizen anonymity
 const ANONYMOUS_SALT = process.env.ANONYMOUS_SALT || process.env.IP_SALT || crypto.randomBytes(32).toString('hex');
 
@@ -146,28 +157,6 @@ function escapeHtml(str: string | null | undefined): string {
     .replace(/'/g, '&#039;');
 }
 
-// Helper to format date/time in Ethiopian format (e.g., 15/8/2026 ጥዋት 7:07:22)
-function formatEthiopianDateTime(date: Date = new Date()): string {
-  const d = date.getDate();
-  const m = date.getMonth() + 1;
-  const y = date.getFullYear();
-
-  const hours = date.getHours();
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
-
-  let period = 'ጥዋት';
-  if (hours >= 12 && hours < 18) {
-    period = 'ከሰዓት';
-  } else if (hours >= 18 || hours < 6) {
-    period = 'ማታ';
-  } else {
-    period = 'ጥዋት';
-  }
-
-  const displayHours = hours % 12 || 12;
-  return `${d}/${m}/${y} ${period} ${displayHours}:${minutes}:${seconds}`;
-}
 
 // Helper for sending stylized 2FA OTP verification code to Telegram
 async function sendTelegram2FaOtp(email: string, otp: string, ip?: string) {
@@ -629,6 +618,52 @@ app.post('/api/tickets/recover', ticketRecoverLimiter, async (req: Request, res:
     res.json({ success: true, count: sanitizedTickets.length, tickets: sanitizedTickets });
   } catch (err: any) {
     handleApiError(res, req, err, 'አቤቱታውን መፈለግ አልተቻለም');
+  }
+});
+
+// ==================== PUBLIC AI CITIZEN CHAT WIDGET ENDPOINT ====================
+
+// Public Citizen Chat Assistant ('የቢሮ ሰራተኛ' Customer Service Representative)
+// Strictly rate-limited (10 req/15min/IP) & ZERO access to admin-only or PII data
+app.post('/api/public/chat', publicChatLimiter, async (req: Request, res: Response) => {
+  try {
+    const { message, history } = req.body;
+    if (!message || typeof message !== 'string' || !message.trim()) {
+      return res.status(400).json({ error: 'እባክዎ ትክክለኛ መልዕክት ያስገቡ (Please provide a valid message)' });
+    }
+
+    // Gathers ONLY safe, public non-sensitive aggregate statistics (zero PII, zero admin credentials)
+    let publicStats = {
+      activeSurveysCount: 0,
+      totalSurveysCount: 0,
+    };
+
+    try {
+      const publicSurveys = await db.getAllSurveys(false); // Only active public surveys
+      publicStats.activeSurveysCount = publicSurveys.length;
+      publicStats.totalSurveysCount = publicSurveys.length;
+    } catch (e) {
+      console.warn('Failed to retrieve public survey counts for chat assistant:', e);
+    }
+
+    const safeHistory = Array.isArray(history)
+      ? history
+          .filter((h: any) => h && typeof h.text === 'string' && (h.role === 'user' || h.role === 'model'))
+          .map((h: any) => ({
+            role: h.role as 'user' | 'model',
+            text: String(h.text).substring(0, 500),
+          }))
+          .slice(-6)
+      : [];
+
+    const reply = await chatWithOfficeWorker(message.trim(), safeHistory, publicStats);
+
+    res.json({
+      success: true,
+      reply,
+    });
+  } catch (err: any) {
+    handleApiError(res, req, err, 'የቢሮ ረዳት አገልግሎትን ማግኘት አልተቻለም');
   }
 });
 
@@ -1242,6 +1277,47 @@ app.post('/api/admin/surveys', authMiddleware, requireRole('developer', 'owner')
   }
 });
 
+// Update Existing Survey (Developer, Owner & Admin)
+app.put('/api/admin/surveys/:id', authMiddleware, requireRole('developer', 'owner', 'admin'), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const surveyId = parseInt(req.params.id, 10);
+    if (isNaN(surveyId)) return res.status(400).json({ error: 'ትክክለኛ ያልሆነ የመጠይቅ መለያ (Invalid Survey ID)' });
+
+    const { title, description, category, theme, start_date, end_date, is_active, questions } = req.body;
+
+    const existingSurvey = await db.getSurveyById(surveyId);
+    if (!existingSurvey) {
+      return res.status(404).json({ error: 'መጠይቁ አልተገኘም (Survey not found)' });
+    }
+
+    await db.updateSurvey(surveyId, {
+      title: title ? String(title).substring(0, 200) : undefined,
+      description: description !== undefined ? String(description).substring(0, 2000) : undefined,
+      category: category ? String(category).substring(0, 100) : undefined,
+      theme: theme || undefined,
+      start_date: start_date || undefined,
+      end_date: end_date || undefined,
+      is_active: typeof is_active === 'boolean' ? is_active : undefined,
+      questions: Array.isArray(questions) ? questions : undefined,
+    });
+
+    await db.addAuditLog(
+      req.adminUser?.email || 'admin@dgc.gov.et',
+      'UPDATE_SURVEY',
+      `የጥናት መጠይቅ [ID ${surveyId}: "${(title || existingSurvey.title).substring(0, 35)}..."] ተስተካክሏል::`,
+      req.ip
+    );
+
+    res.json({
+      success: true,
+      message: 'የጥናት መጠይቁ በስኬት ተሻሽሏል / ተስተካክሏል!',
+      surveyId,
+    });
+  } catch (err: any) {
+    handleApiError(res, req, err, 'መጠይቁን ለማስተካከል አልተቻለም');
+  }
+});
+
 // Toggle Survey Active/Inactive Status
 app.put('/api/admin/surveys/:id/toggle', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -1575,6 +1651,187 @@ app.post('/api/admin/telegram-test', authMiddleware, requireRole('developer', 'o
     }
   } catch (err: any) {
     res.status(500).json({ success: false, message: 'ወደ Telegram መገናኘት አልተቻለም' });
+  }
+});
+
+// Trigger 24-Hour Survey Data & AI Policy Report to Telegram (Developer, Owner & Admin)
+app.post('/api/admin/telegram/send-24h-report', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const surveys = await db.getAllSurveys(true);
+    const responses = await db.getAllRawResponses();
+    const answers = await db.getAllRawAnswers();
+    const tickets = await db.getAllTickets();
+
+    // Generate comprehensive AI Executive Briefing across all surveys
+    let aiSummaryText = `የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ የ24 ሰዓት የጥናት እና የህዝብ አስተያየት አጠቃላይ ትንተና:\n\n` +
+      `1. ጠቅላላ የተመዘገቡ የጥናት መጠይቆች: ${surveys.length} (ንቁ: ${surveys.filter((s: any) => s.is_active).length})\n` +
+      `2. ጠቅላላ የተሳተፉ ዜጎች ምላሾች: ${responses.length}\n` +
+      `3. የቀረቡ የዜጎች አቤቱታዎች እና ጥያቄዎች: ${tickets.length} (እልባት የተሰጣቸው: ${tickets.filter((t: any) => t.status === 'Resolved').length})\n\n` +
+      `📌 የፖሊሲ እና የአፈጻጸም አቅጣጫ: በዜጎች የቀረቡ ዋና ዋና አስተያየቶች በከተማ አገልግሎት አሰጣጥ፣ ውሃና መሰረተ-ልማት እንዲሁም ግልጽ የመረጃ ተደራሽነት ላይ ያተኮሩ ሲሆን የተገኙ ግኝቶች በየሴክተሩ እንዲተገበሩ ይመከራል።`;
+
+    // Try AI generation if at least one survey has analytics
+    try {
+      if (surveys.length > 0) {
+        const topSurveyAnalytics = await db.getSurveyAnalytics(surveys[0].id);
+        if (topSurveyAnalytics && topSurveyAnalytics.total_responses > 0) {
+          const aiReport = await generateSurveyAiReport(topSurveyAnalytics);
+          if (aiReport && aiReport.executive_summary) {
+            aiSummaryText = `[የዋናው ጥናት ፖሊሲ ትንተና: ${topSurveyAnalytics.survey.title}]\n\n` +
+              `🌟 የህዝብ እርካታ ደረጃ: ${aiReport.satisfaction_score}%\n` +
+              `📝 ማጠቃለያ: ${aiReport.executive_summary}\n\n` +
+              `🔑 ዋና ዋና ግኝቶች:\n` +
+              (aiReport.key_findings || []).map((k: string) => `• ${k}`).join('\n') +
+              `\n\n💡 የፖሊሲ ማሻሻያ ምክረ-ሃሳቦች:\n` +
+              (aiReport.policy_recommendations || []).map((p: string) => `• ${p}`).join('\n');
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('AI summary generation for 24h telegram report fallback:', e);
+    }
+
+    const result = await sendDaily24hTelegramReport(
+      { surveys, responses, answers, tickets },
+      aiSummaryText,
+      activeBotToken,
+      activeChatId
+    );
+
+    await db.addAuditLog(
+      req.adminUser?.email || 'admin@dgc.gov.et',
+      'TELEGRAM_24H_REPORT_DISPATCH',
+      `የ24 ሰዓት የዳታ ቋት ፋይል (CSV) እና AI የትንተና ሪፖርት ወደ Telegram ተልኳል::`,
+      req.ip
+    );
+
+    if (result.success) {
+      res.json({ success: true, message: result.message });
+    } else {
+      res.status(400).json({ success: false, message: result.message });
+    }
+  } catch (err: any) {
+    handleApiError(res, req, err, 'የ24 ሰዓት ሪፖርት ወደ Telegram መላክ አልተቻለም');
+  }
+});
+
+// ==================== ADMIN NOTIFICATION CENTER ====================
+app.get('/api/admin/notifications', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const tickets = await db.getAllTickets();
+    const surveys = await db.getAllSurveys(true);
+    const responses = await db.getAllRawResponses();
+
+    // 1. Pending & Urgent Tickets (አዲስ አቤቱታዎች እና አስቸኳይ ችግሮች)
+    const pendingTickets = tickets.filter((t: any) => t.status === 'Pending' || t.status === 'Under Review');
+    const urgentTickets = tickets.filter((t: any) => t.priority === 'Urgent' || t.priority === 'High');
+    const resolvedTickets = tickets.filter((t: any) => t.status === 'Resolved');
+
+    // 2. Recent Survey Responses in last 24 hours
+    const now = Date.now();
+    const twentyFourHoursAgo = now - 24 * 60 * 60 * 1000;
+    const recentResponses = responses.filter((r: any) => {
+      const time = new Date(r.submitted_at).getTime();
+      return !isNaN(time) && time >= twentyFourHoursAgo;
+    });
+
+    const notifications: Array<{
+      id: string;
+      type: 'ticket_new' | 'ticket_urgent' | 'ticket_status' | 'survey_response' | 'telegram_status';
+      title: string;
+      description: string;
+      time_eth: string;
+      priority: 'high' | 'medium' | 'info';
+      linkTab: 'tickets' | 'surveys' | 'analytics' | 'telegram';
+      refId?: string | number;
+      isRead?: boolean;
+    }> = [];
+
+    // Urgent Tickets alerts
+    urgentTickets.slice(0, 5).forEach((t: any) => {
+      notifications.push({
+        id: `notif-urgent-ticket-${t.id}`,
+        type: 'ticket_urgent',
+        title: `🚨 አስቸኳይ አቤቱታ: [${t.ticket_code}]`,
+        description: `${t.category} - ${t.subject || 'ዝርዝር መግለጫ የለውም'} (${t.residence || 'ድሬዳዋ'})`,
+        time_eth: formatEthiopianDateTime(t.created_at),
+        priority: 'high',
+        linkTab: 'tickets',
+        refId: t.ticket_code,
+      });
+    });
+
+    // New Pending Tickets
+    pendingTickets.slice(0, 5).forEach((t: any) => {
+      if (!urgentTickets.some((ut: any) => ut.id === t.id)) {
+        notifications.push({
+          id: `notif-new-ticket-${t.id}`,
+          type: 'ticket_new',
+          title: `📌 አዲስ አቤቱታ: [${t.ticket_code}]`,
+          description: `${t.category} - ${t.subject || ''} (ሁኔታ: ${t.status})`,
+          time_eth: formatEthiopianDateTime(t.created_at),
+          priority: 'medium',
+          linkTab: 'tickets',
+          refId: t.ticket_code,
+        });
+      }
+    });
+
+    // Recent Survey Responses count in last 24h
+    if (recentResponses.length > 0) {
+      notifications.push({
+        id: `notif-survey-24h-${recentResponses.length}`,
+        type: 'survey_response',
+        title: `📊 አዲስ የሰርቬይ ምላሽ (${recentResponses.length} በ24 ሰዓት)`,
+        description: `በመጨረሻዎቹ 24 ሰዓታት ውስጥ ${recentResponses.length} አዳዲስ የዜጎች ምላሾች ተመዝግበዋል።`,
+        time_eth: formatEthiopianDateTime(new Date()),
+        priority: 'info',
+        linkTab: 'surveys',
+      });
+    }
+
+    // Ticket Status Changes / Resolved Summary
+    if (resolvedTickets.length > 0) {
+      const latestResolved = resolvedTickets[0];
+      notifications.push({
+        id: `notif-ticket-status-${latestResolved.id}`,
+        type: 'ticket_status',
+        title: `✅ እልባት የተሰጠው አቤቱታ: [${latestResolved.ticket_code}]`,
+        description: `የአቤቱታው ሁኔታ ወደ '${latestResolved.status}' ተቀይሮ ምላሽ ተሰጥቶታል።`,
+        time_eth: formatEthiopianDateTime(latestResolved.updated_at || latestResolved.created_at),
+        priority: 'info',
+        linkTab: 'tickets',
+        refId: latestResolved.ticket_code,
+      });
+    }
+
+    // Telegram Bot & 24h Dispatch Status
+    const isTelegramReady = Boolean(activeBotToken && activeChatId);
+    notifications.push({
+      id: 'notif-telegram-status',
+      type: 'telegram_status',
+      title: isTelegramReady ? `✈️ የTelegram 24h ሪፖርት አገልግሎት: ዝግጁ` : `⚠️ የTelegram Bot አልተዋቀረም`,
+      description: isTelegramReady
+        ? `የ24 ሰዓት የዳታ ቋት (Excel/CSV) እና የGemini AI የፖሊሲ ትንተና በየቀኑ በTelegram ይላካል።`
+        : `የ24 ሰዓት ሪፖርት በፋይል ለመላክ እባክዎ Bot Token እና Chat ID ያስገቡ።`,
+      time_eth: formatEthiopianDateTime(new Date()),
+      priority: isTelegramReady ? 'info' : 'medium',
+      linkTab: 'telegram',
+    });
+
+    res.json({
+      notifications,
+      unreadCount: pendingTickets.length + urgentTickets.length,
+      stats: {
+        totalTickets: tickets.length,
+        pendingTickets: pendingTickets.length,
+        urgentTickets: urgentTickets.length,
+        totalSurveys: surveys.length,
+        totalResponses: responses.length,
+        responses24h: recentResponses.length,
+      },
+    });
+  } catch (err: any) {
+    handleApiError(res, req, err, 'የማሳወቂያዎችን ዝርዝር ማግኘት አልተቻለም');
   }
 });
 

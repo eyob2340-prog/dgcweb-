@@ -10,6 +10,7 @@ import { FooterModals } from './components/FooterModals';
 import { Survey, AdminUser, AuthResponse } from './types';
 import { CitizenComplaintModal } from './components/CitizenComplaintModal';
 import { TicketTrackerModal } from './components/TicketTrackerModal';
+import { CitizenChatWidget } from './components/CitizenChatWidget';
 import { DgcLogo } from './components/DgcLogo';
 import { FileText, Search, Plus, MessageSquare, Clock, ShieldCheck, Sparkles, Building2, Wrench } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -578,6 +579,9 @@ export default function App() {
         onOpenPrivacy={() => setPolicyModalType('privacy')}
         onOpenTerms={() => setPolicyModalType('terms')}
       />
+
+      {/* Public Citizen Chat Widget (Floating at Bottom-Right) */}
+      {currentTab === 'public' && <CitizenChatWidget isDarkMode={isDarkMode} />}
     </div>
   );
 }

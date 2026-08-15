@@ -4,6 +4,7 @@ import {
   BarChart3,
   Plus,
   Trash2,
+  Edit3,
   ToggleLeft,
   ToggleRight,
   Database,
@@ -28,6 +29,12 @@ import {
   Crown,
   Wrench,
   RefreshCw,
+  Bell,
+  Calendar,
+  AlertTriangle,
+  FileSpreadsheet,
+  Check,
+  ExternalLink,
 } from 'lucide-react';
 import { Survey, AuditLog, AdminUser } from '../types';
 import { VisualAnalytics } from './VisualAnalytics';
@@ -36,9 +43,21 @@ import { TelegramSettings } from './TelegramSettings';
 import { AdminTicketsView } from './AdminTicketsView';
 import { UserAccountsView } from './UserAccountsView';
 import { DeveloperOpaControl } from './DeveloperOpaControl';
+import { toEthiopianDate, formatEthiopianDate, formatEthiopianDateTime } from '../lib/ethiopianDate';
 
 interface AdminDashboardProps {
   adminToken: string;
+}
+
+interface AdminNotification {
+  id: string;
+  type: 'ticket_new' | 'ticket_urgent' | 'ticket_status' | 'survey_response' | 'telegram_status';
+  title: string;
+  description: string;
+  time_eth: string;
+  priority: 'high' | 'medium' | 'info';
+  linkTab: 'tickets' | 'surveys' | 'analytics' | 'telegram';
+  refId?: string | number;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) => {
@@ -49,7 +68,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
   const [selectedSurveyId, setSelectedSurveyId] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isBuilderOpen, setIsBuilderOpen] = useState<boolean>(false);
+  const [surveyToEdit, setSurveyToEdit] = useState<Survey | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
+
+  // Notification Center State
+  const [isNotificationOpen, setIsNotificationOpen] = useState<boolean>(false);
+  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
+  const [unreadNotifCount, setUnreadNotifCount] = useState<number>(0);
+  const [loadingNotifs, setLoadingNotifs] = useState<boolean>(false);
+
+  // 24-Hour Telegram Dispatch State
+  const [isSending24hReport, setIsSending24hReport] = useState<boolean>(false);
+  const [reportSendFeedback, setReportSendFeedback] = useState<{ success: boolean; message: string } | null>(null);
+
+  const ethCurrentDate = toEthiopianDate(new Date());
 
   const fetchCurrentUser = async () => {
     try {
@@ -65,8 +97,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
     }
   };
 
+  const fetchNotifications = async () => {
+    setLoadingNotifs(true);
+    try {
+      const res = await fetch('/api/admin/notifications', {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      const data = await res.json();
+      if (res.ok && Array.isArray(data.notifications)) {
+        setNotifications(data.notifications);
+        setUnreadNotifCount(data.unreadCount || 0);
+      }
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+    } finally {
+      setLoadingNotifs(false);
+    }
+  };
+
   useEffect(() => {
     fetchCurrentUser();
+    fetchNotifications();
   }, [adminToken]);
 
   const fetchSurveys = async () => {
@@ -158,6 +209,40 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
     }
   };
 
+  // Trigger 24-Hour Master Data & AI Policy Report to Telegram
+  const handleSend24hTelegramReport = async () => {
+    setIsSending24hReport(true);
+    setReportSendFeedback(null);
+    try {
+      const res = await fetch('/api/admin/telegram/send-24h-report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminToken}`,
+        },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setReportSendFeedback({
+          success: true,
+          message: data.message || 'የ24 ሰዓት የዳታ ፋይል (CSV) እና AI የትንተና ሪፖርት ወደ Telegram በስኬት ተልኳል!',
+        });
+      } else {
+        setReportSendFeedback({
+          success: false,
+          message: data.error || data.message || 'ወደ Telegram መላክ አልተቻለም። እባክዎ ቦት ሴቲንግ ያረጋግጡ::',
+        });
+      }
+    } catch (err: any) {
+      setReportSendFeedback({
+        success: false,
+        message: 'የኔትወርክ ስህተት አጋጥሟል::',
+      });
+    } finally {
+      setIsSending24hReport(false);
+    }
+  };
+
   const totalResponsesSum = surveys.reduce((acc, curr) => acc + (curr.total_responses || 0), 0);
   const activeSurveysCount = surveys.filter((s) => s.is_active).length;
 
@@ -169,39 +254,159 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      {/* OPA Enterprise License & Engine Status Badge */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 p-4 sm:p-5 rounded-3xl border border-amber-500/40 shadow-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4"
-      >
-        <div className="flex items-center space-x-3.5 relative z-10">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
-            <Crown className="w-6 h-6 text-amber-400 animate-pulse" />
+      {/* Top Header Row: Ethiopian Date, Notifications, and 24h Telegram Report CTA */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-900/90 backdrop-blur-2xl p-4 sm:p-5 rounded-3xl border border-slate-800 shadow-xl">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+            <Calendar className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-sm sm:text-base font-black text-white tracking-wide">
-                OPA Enterprise Intelligence Platform
-              </h3>
-              <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-black tracking-wide">
-                1-Year Complimentary Enterprise License
-              </span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold">
-                ● Active (Zero Cost)
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400 font-bold">የኢትዮጵያ ዘመን አቆጣጠር:</span>
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black">
+                {ethCurrentDate.formattedAmharic}
               </span>
             </div>
-            <p className="text-xs text-slate-300 mt-1">
-              ለድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ በልዩ የቴክኖሎጂ ስጦታ የተበረከተ ተቋማዊ የትንታኔና የዜጎች አስተያየት ሲስተም
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ ዲጂታል መድረክ
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 text-xs font-mono font-bold text-slate-300 bg-slate-950/80 px-3.5 py-2 rounded-2xl border border-slate-800 shrink-0 relative z-10">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>License: <strong className="text-amber-400">OPA-GOV-2026</strong></span>
+        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+          {/* Notification Center Trigger */}
+          <button
+            onClick={() => {
+              setIsNotificationOpen(!isNotificationOpen);
+              fetchNotifications();
+            }}
+            className="relative px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-2xl border border-slate-700 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+            title="ማሳወቂያ ማዕከል (Notification Center)"
+          >
+            <Bell className="w-4 h-4 text-amber-400" />
+            <span className="hidden sm:inline">ማሳወቂያዎች</span>
+            {unreadNotifCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-red-600 text-white text-[10px] font-black animate-pulse">
+                {unreadNotifCount}
+              </span>
+            )}
+          </button>
+
+          {/* 24-Hour Automated Telegram Dispatch Action Button */}
+          <button
+            onClick={handleSend24hTelegramReport}
+            disabled={isSending24hReport}
+            className="px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white rounded-2xl border border-sky-400/30 text-xs font-black shadow-lg shadow-sky-600/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            title="የ24 ሰዓት የዳታ ፋይል (CSV/Excel) እና የGemini AI ትንተና አሁኑኑ ወደ Telegram ይላኩ"
+          >
+            {isSending24hReport ? (
+              <RefreshCw className="w-4 h-4 animate-spin text-sky-200" />
+            ) : (
+              <Send className="w-4 h-4 text-sky-200" />
+            )}
+            <span>{isSending24hReport ? 'በመላክ ላይ...' : 'የ24h ዳታ ወደ Telegram ላክ'}</span>
+          </button>
         </div>
-      </motion.div>
+      </div>
+
+      {/* Report Dispatch Feedback Banner */}
+      {reportSendFeedback && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`p-4 rounded-2xl text-xs font-bold border flex items-center justify-between gap-3 ${
+            reportSendFeedback.success
+              ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
+              : 'bg-red-950/60 border-red-500/40 text-red-300'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {reportSendFeedback.success ? (
+              <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+            ) : (
+              <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+            )}
+            <span>{reportSendFeedback.message}</span>
+          </div>
+          <button
+            onClick={() => setReportSendFeedback(null)}
+            className="text-slate-400 hover:text-white text-xs underline cursor-pointer"
+          >
+            ዝጋ
+          </button>
+        </motion.div>
+      )}
+
+      {/* Notification Center Modal / Drawer */}
+      <AnimatePresence>
+        {isNotificationOpen && (
+          <div className="fixed inset-0 z-[120] flex items-start justify-end p-4 sm:p-6 bg-slate-950/70 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="bg-slate-900 border border-slate-700 text-slate-100 w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto relative"
+            >
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center space-x-2">
+                  <Bell className="w-5 h-5 text-amber-400" />
+                  <h3 className="text-base font-black text-white">🔔 የማሳወቂያ ማዕከል (Notification Center)</h3>
+                </div>
+                <button
+                  onClick={() => setIsNotificationOpen(false)}
+                  className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold"
+                >
+                  ዝጋ
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {loadingNotifs ? (
+                  <div className="p-8 text-center text-slate-400 text-xs flex items-center justify-center gap-2">
+                    <RefreshCw className="w-4 h-4 animate-spin text-amber-400" />
+                    <span>ማሳወቂያዎች በመጫን ላይ...</span>
+                  </div>
+                ) : notifications.length === 0 ? (
+                  <div className="p-8 text-center text-slate-500 text-xs italic">
+                    ምንም አዲስ ማሳወቂያ የለም:: ሁሉም ነገር የተረጋጋ ነው::
+                  </div>
+                ) : (
+                  notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      onClick={() => {
+                        if (notif.linkTab === 'tickets') setActiveTab('tickets');
+                        else if (notif.linkTab === 'surveys') setActiveTab('manage');
+                        else if (notif.linkTab === 'telegram') setActiveTab('db');
+                        setIsNotificationOpen(false);
+                      }}
+                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer hover:border-amber-400/60 ${
+                        notif.priority === 'high'
+                          ? 'bg-red-950/30 border-red-500/30 text-red-200'
+                          : notif.priority === 'medium'
+                          ? 'bg-amber-950/30 border-amber-500/30 text-amber-200'
+                          : 'bg-slate-950/60 border-slate-800 text-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                        <span className="font-bold text-white">{notif.title}</span>
+                        <span className="font-mono text-[10px] text-amber-300">{notif.time_eth}</span>
+                      </div>
+                      <p className="text-xs text-slate-300">{notif.description}</p>
+                      <div className="mt-2 flex items-center justify-end">
+                        <span className="text-[10px] text-sky-400 font-bold flex items-center gap-1 hover:underline">
+                          <span>ዝርዝሩን ይመልከቱ</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Top Stat Overview Cards with Futuristic Glow & Animations */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
@@ -388,7 +593,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
 
         {/* Create Survey Action CTA */}
         <button
-          onClick={() => setIsBuilderOpen(true)}
+          onClick={() => {
+            setSurveyToEdit(null);
+            setIsBuilderOpen(true);
+          }}
           className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs sm:text-sm font-black shadow-lg shadow-emerald-600/20 hover:shadow-emerald-500/40 transition-all flex items-center justify-center space-x-2 shrink-0 border border-emerald-400/30 cursor-pointer self-stretch sm:self-auto"
         >
           <Plus className="w-4 h-4" />
@@ -428,7 +636,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-4">
               <div className="flex items-center space-x-2">
                 <Vote className="w-5 h-5 text-amber-400" />
-                <h3 className="text-base font-black text-white">የመጠይቆች ዝርዝር እና ማስተካከያ</h3>
+                <h3 className="text-base font-black text-white">የመጠይቆች ዝርዝር እና ማስተካከያ (Survey Management & Editing)</h3>
               </div>
               <div className="relative w-full sm:w-72">
                 <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -488,14 +696,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
                         </button>
                       </td>
                       <td className="p-4 text-right space-x-2">
+                        {/* Edit Survey Button */}
+                        <button
+                          onClick={() => {
+                            setSurveyToEdit(s);
+                            setIsBuilderOpen(true);
+                          }}
+                          className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 cursor-pointer"
+                          title="መጠይቁን አስተካክል / አርትዕ (Edit Survey)"
+                        >
+                          <Edit3 className="w-3.5 h-3.5 text-amber-400" />
+                          <span>አርትዕ</span>
+                        </button>
+
                         <button
                           onClick={() => {
                             setSelectedSurveyId(s.id);
                             setActiveTab('analytics');
                           }}
-                          className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md"
+                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
                         >
-                          አናሊቲክስ ይመልከቱ
+                          አናሊቲክስ
                         </button>
 
                         <button
@@ -569,7 +790,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
               <table className="w-full text-left border-collapse text-xs sm:text-sm">
                 <thead>
                   <tr className="bg-slate-950/60 border-b border-slate-800 text-slate-400 font-bold uppercase text-[11px]">
-                    <th className="p-3.5">ሰዓት / ቀን</th>
+                    <th className="p-3.5">ሰዓት / ቀን (የኢትዮጵያ ቀን)</th>
                     <th className="p-3.5">ተጠቃሚ (Admin)</th>
                     <th className="p-3.5">ድርጊት (Action)</th>
                     <th className="p-3.5">ዝርዝር መግለጫ (Details)</th>
@@ -586,7 +807,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
                     auditLogs.map((log) => (
                       <tr key={log.id} className="hover:bg-slate-800/40 transition-colors">
                         <td className="p-3.5 font-mono text-slate-400 whitespace-nowrap">
-                          {new Date(log.created_at).toLocaleString('am-ET')}
+                          {formatEthiopianDateTime(log.created_at)}
                         </td>
                         <td className="p-3.5 font-bold text-slate-200">{log.admin_email}</td>
                         <td className="p-3.5">
@@ -617,12 +838,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
         )}
       </AnimatePresence>
 
-      {/* Survey Builder Modal */}
+      {/* Survey Builder & Editor Modal */}
       <SurveyBuilderModal
         isOpen={isBuilderOpen}
-        onClose={() => setIsBuilderOpen(false)}
-        onSurveyCreated={fetchSurveys}
+        onClose={() => {
+          setIsBuilderOpen(false);
+          setSurveyToEdit(null);
+        }}
+        onSurveyCreated={() => {
+          fetchSurveys();
+          setSurveyToEdit(null);
+        }}
         adminToken={adminToken}
+        surveyToEdit={surveyToEdit}
       />
 
       {/* Survey Delete Confirmation Modal */}
@@ -661,7 +889,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
                   type="button"
                   disabled={isDeletingSurvey}
                   onClick={() => setSurveyToDelete(null)}
-                  className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl text-xs font-bold transition-all"
+                  className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl text-xs font-bold transition-all cursor-pointer"
                 >
                   ተመለስ (Cancel)
                 </button>
@@ -669,7 +897,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
                   type="button"
                   disabled={isDeletingSurvey}
                   onClick={confirmDeleteSurvey}
-                  className="px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-black rounded-2xl text-xs shadow-lg flex items-center gap-1.5 transition-all disabled:opacity-50"
+                  className="px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-black rounded-2xl text-xs shadow-lg flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isDeletingSurvey ? (
                     <RefreshCw className="w-4 h-4 animate-spin" />
@@ -686,4 +914,5 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken }) =>
     </div>
   );
 };
+
 
