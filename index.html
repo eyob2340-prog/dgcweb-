@@ -98,6 +98,22 @@
       src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
       async
     ></script>
+    <script>
+      // Prevent white flash on load by applying initial theme
+      (function() {
+        try {
+          var saved = localStorage.getItem('dgc_theme');
+          var isDark = saved ? saved === 'dark' : true;
+          if (isDark) {
+            document.documentElement.style.backgroundColor = '#020617'; // bg-slate-950
+            document.documentElement.style.color = '#f1f5f9'; // text-slate-100
+          } else {
+            document.documentElement.style.backgroundColor = '#f8fafc'; // bg-slate-50
+            document.documentElement.style.color = '#0f172a'; // text-slate-900
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <!-- Google Translate widget renders here (shown inside Header via CSS positioning) -->
