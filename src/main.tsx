@@ -27,6 +27,8 @@ createRoot(document.getElementById('root')!).render(
 );
 
 try {
+  const loader = document.getElementById('dgc-initial-loader');
+  if (loader) loader.style.display = 'none';
   (window as unknown as { __dgc_mounted?: boolean }).__dgc_mounted = true;
   window.dispatchEvent(new Event('dgc-mounted'));
 } catch {}

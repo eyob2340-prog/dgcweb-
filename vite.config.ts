@@ -25,17 +25,13 @@ export default defineConfig(() => {
       // Chunk splitting to enable lazy loading & smaller initial bundles
       rollupOptions: {
         output: {
-          manualChunks: {
-            // React core — always needed
-            'react-vendor': ['react', 'react-dom'],
-            // Motion library — lazy-loaded chunks benefit
-            'motion-vendor': ['motion/react'],
-            // Recharts — heavy, only used in AdminDashboard
-            'recharts-vendor': ['recharts'],
-            // PDF / QR tools — only used on demand
-            'export-vendor': ['jspdf', 'html2canvas', 'qrcode'],
-            // Lucide icons — tree-shaken but still benefits from isolation
-            'icons-vendor': ['lucide-react'],
+          manualChunks(id) {
+            if (id.includes('jspdf') || id.includes('html2canvas')) {
+              return 'pdf-vendor';
+            }
+            if (id.includes('recharts')) {
+              return 'chart-vendor';
+            }
           },
         },
       },

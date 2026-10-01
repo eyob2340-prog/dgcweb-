@@ -69,6 +69,8 @@
   }
   window.addEventListener('dgc-mounted', function () {
     window.__dgc_mounted = true;
+    var loader = document.getElementById('dgc-initial-loader');
+    if (loader) loader.style.display = 'none';
     var fb = document.getElementById('dgc-boot-fallback');
     if (fb && fb.parentNode) fb.parentNode.removeChild(fb);
   });
@@ -76,7 +78,9 @@
   function showFallback(reason) {
     if (window.__dgc_mounted) return;
     var root = document.getElementById('root');
-    if (root && root.querySelector && !root.querySelector('#dgc-initial-loader') && root.childNodes.length > 0) return; // app is alive
+    if (root && root.childNodes.length > 0) return; // app is alive
+    var loader = document.getElementById('dgc-initial-loader');
+    if (loader) loader.style.display = 'none';
     if (document.getElementById('dgc-boot-fallback')) return;
 
     var box = document.createElement('div');
