@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="am">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DGC — የድሬዳዋ አስተዳደር የሕዝብ አቤቱታ እና አስተያየት ፖርታል</title>
+    <meta name="description" content="የድሬዳዋ ከተማ አስተዳደር ኦፊሴላዊ የሕዝብ አቤቱታ፣ ጥያቄ እና የሕዝብ አስተያየት ፖርታል። አቤቱታዎን ያስገቡ፣ ሁኔታዎን ይከታተሉ፣ እና በሕዝብ ጥናቶች ይሳተፉ።" />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content="DGC — የድሬዳዋ አስተዳደር ሕዝብ ፖርታል" />
+    <meta property="og:description" content="የድሬዳዋ ከተማ አስተዳደር ኦፊሴላዊ የሕዝብ አቤቱታ እና አስተያየት ፖርታል" />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Preconnect for Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    </noscript>
+
+    <!-- ═══════════════════════════════════════════════════════
+         Google Translate Widget — DGC Custom Styling
+         Supports: አማርኛ | English | Afaan Oromoo | ትግርኛ | Af-Soomaali
+         ═══════════════════════════════════════════════════════ -->
+    <style>
+      /* Remove Google's top-of-page banner bar */
+      .goog-te-banner-frame.skiptranslate,
+      .goog-te-banner-frame {
+        display: none !important;
+      }
+      body {
+        top: 0 !important;
+        position: static !important;
+      }
+      /* Remove Google logo / attribution text */
+      .goog-logo-link,
+      .goog-te-gadget > span > a,
+      .goog-te-gadget > span {
+        display: none !important;
+      }
+      .goog-te-gadget {
+        font-size: 0 !important;
+      }
+
+      /* Custom select dropdown styling to match dark DGC theme */
+      .goog-te-gadget select {
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        font-family: 'Inter', sans-serif !important;
+        background: rgba(15, 23, 42, 0.95) !important;
+        color: #f1f5f9 !important;
+        border: 1px solid rgba(71, 85, 105, 0.7) !important;
+        border-radius: 12px !important;
+        padding: 6px 12px !important;
+        cursor: pointer !important;
+        outline: none !important;
+        min-width: 140px !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 0 1px rgba(245,158,11,0.05) !important;
+        transition: border-color 0.2s !important;
+        appearance: auto !important;
+      }
+      .goog-te-gadget select:hover {
+        border-color: rgba(245, 158, 11, 0.55) !important;
+      }
+      .goog-te-gadget select:focus {
+        border-color: #f59e0b !important;
+        box-shadow: 0 0 0 2px rgba(245,158,11,0.2), 0 4px 20px rgba(0,0,0,0.4) !important;
+      }
+
+      /* Container passed from React (#gt-mount-point) */
+      #gt-mount-point {
+        display: inline-flex;
+        align-items: center;
+      }
+    </style>
+
+    <!-- Google Translate Initialization -->
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          {
+            pageLanguage: 'am',
+            includedLanguages: 'am,en,om,ti,so',
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+            autoDisplay: false,
+          },
+          'gt-mount-point'
+        );
+      }
+    </script>
+    <script
+      type="text/javascript"
+      src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+      async
+    ></script>
+  </head>
+  <body>
+    <!-- Google Translate widget renders here (shown inside Header via CSS positioning) -->
+    <div id="gt-mount-point" style="position:fixed;top:12px;right:160px;z-index:9999;"></div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

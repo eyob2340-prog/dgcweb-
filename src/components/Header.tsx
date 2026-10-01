@@ -1,0 +1,166 @@
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { LogOut, WifiOff, RefreshCw, CheckCircle2, Sun, Moon, ShieldCheck } from 'lucide-react';
+import { AdminUser } from '../types';
+import { DgcLogo } from './DgcLogo';
+import { Language, translations } from '../lib/i18n';
+
+interface HeaderProps {
+  currentTab: 'public' | 'admin';
+  setCurrentTab: (tab: 'public' | 'admin') => void;
+  adminUser: AdminUser | null;
+  onLogout: () => void;
+  onOpenLogin: () => void;
+  language: Language;
+  onLanguageChange: (lang: Language) => void;
+  offlineCount: number;
+  isOnline: boolean;
+  onSyncOffline: () => void;
+  isSyncing: boolean;
+  isDarkMode?: boolean;
+  onToggleTheme?: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({
+  currentTab,
+  setCurrentTab,
+  adminUser,
+  onLogout,
+  onOpenLogin,
+  language,
+  offlineCount,
+  isOnline,
+  onSyncOffline,
+  isSyncing,
+  isDarkMode = true,
+  onToggleTheme,
+}) => {
+  const t = translations[language] || translations.am;
+  const [scrolled, setScrolled] = useState(false);
+
+  // Scroll Listener for styling
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <header className="sticky top-0 sm:top-2 z-30 transition-all duration-300 max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 no-print pt-1 sm:pt-2 pb-1">
+      <div
+        className={`rounded-2xl sm:rounded-3xl border transition-all duration-300 px-3 sm:px-6 py-2.5 sm:py-3.5 backdrop-blur-xl shadow-xl flex items-center justify-between gap-2 sm:gap-4 ${
+          isDarkMode
+            ? scrolled
+              ? 'bg-slate-900/95 border-blue-500/30 shadow-blue-950/40'
+              : 'bg-slate-900/80 border-slate-800/80 shadow-slate-950/30'
+            : scrolled
+            ? 'bg-white/95 border-blue-200 shadow-blue-100/60'
+            : 'bg-white/80 border-slate-200 shadow-slate-200/50'
+        }`}
+      >
+          {/* DGC Logo with Secret Admin Trigger */}
+          <div className="flex items-center space-x-3 shrink-0">
+            <DgcLogo
+              onLongPress={onOpenLogin}
+              onClick={() => setCurrentTab('public')}
+            />
+          </div>
+
+          {/* Center 100% Privacy Badge */}
+          <div
+            className={`hidden md:flex items-center space-x-2 px-4 py-1.5 rounded-full border shadow-inner transition-all ${
+              isDarkMode
+                ? 'bg-gradient-to-r from-blue-950/80 to-slate-900/80 border-amber-500/40 text-amber-300'
+                : 'bg-gradient-to-r from-blue-50 to-amber-50/50 border-amber-300 text-amber-900'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4 text-amber-500 shrink-0 animate-pulse" />
+            <span className="text-xs font-black tracking-wide">
+              {t.privacyBadge}
+            </span>
+          </div>
+
+          {/* Right Header Controls */}
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Theme Toggle Button with Motion Animation */}
+            {onToggleTheme && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.92 }}
+                onClick={onToggleTheme}
+                title={isDarkMode ? 'ወደ ላይት ሞድ ቀይር (Light Mode)' : 'ወደ ዳርክ ሞድ ቀይር (Dark Mode)'}
+                className={`p-2.5 sm:p-3 rounded-2xl transition-all duration-300 border flex items-center justify-center shadow-md cursor-pointer ${
+                  isDarkMode
+                    ? 'bg-slate-900/90 text-amber-300 border-amber-500/40 hover:border-amber-400 hover:shadow-amber-500/20'
+                    : 'bg-white text-blue-600 border-blue-200 hover:border-blue-400 hover:shadow-blue-200/50'
+                }`}
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  {isDarkMode ? (
+                    <motion.div
+                      key="sun"
+                      initial={{ rotate: -90, scale: 0 }}
+                      animate={{ rotate: 0, scale: 1 }}
+                      exit={{ rotate: 90, scale: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Sun className="w-4 h-4 text-amber-400" />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="moon"
+                      initial={{ rotate: 90, scale: 0 }}
+                      animate={{ rotate: 0, scale: 1 }}
+                      exit={{ rotate: 90, scale: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Moon className="w-4 h-4 text-blue-600" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            )}
+
+            {/* Offline Queue Badge & Sync Button */}
+            {(!isOnline || offlineCount > 0) && (
+              <div className="flex items-center space-x-2 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1.5 rounded-2xl text-xs font-bold text-amber-500 animate-pulse">
+                {!isOnline ? (
+                  <WifiOff className="w-3.5 h-3.5 text-amber-500" />
+                ) : (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                )}
+                <span className="hidden sm:inline">
+                  {!isOnline ? 'ኦፍላይን ሞድ' : `${offlineCount} በኦፍላይን የተቀመጠ`}
+                </span>
+                {offlineCount > 0 && isOnline && (
+                  <button
+                    onClick={onSyncOffline}
+                    disabled={isSyncing}
+                    className="ml-1 bg-amber-500 hover:bg-amber-400 text-slate-950 px-2 py-0.5 rounded-xl text-[10px] font-black transition-all flex items-center gap-1 shadow cursor-pointer"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
+                    <span>{t.syncNow}</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Admin Logout / Status Indicator */}
+            {adminUser ? (
+              <button
+                onClick={onLogout}
+                title="ውጣ (Logout)"
+                className="px-3.5 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-500 hover:text-red-400 border border-red-500/30 rounded-2xl transition-all flex items-center space-x-1.5 text-xs font-bold shadow-sm cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">ውጣ</span>
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </header>
+  );
+};

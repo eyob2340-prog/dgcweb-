@@ -1,0 +1,8 @@
+{
+  "name": "የድሬዳዋ አስተዳደር ኮሙኒኬሽን ጉዳዮች ቢሮ - የሕዝብ አስተያየትና ጥናት መድረክ",
+  "description": "የተጠበቀ ሚስጥራዊነት ያለው የሕዝብ አስተያየት መሰብሰቢያና የአድሚን አናሊቲክስ ዳሽቦርድ (Official Confidential Public Survey & Analytics Platform)",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
