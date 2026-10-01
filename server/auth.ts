@@ -1,3 +1,4 @@
+/// <reference path="../globals.d.ts" />
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
@@ -36,6 +37,10 @@ export interface AdminPayload {
 export interface AuthenticatedRequest extends Request {
   adminUser?: AdminPayload;
   token?: string;
+  headers?: any;
+  baseUrl?: string;
+  path?: string;
+  ip?: string;
 }
 
 export function hashPassword(password: string): string {
@@ -91,9 +96,9 @@ export async function isTokenRevoked(token: string): Promise<boolean> {
 }
 
 // Helper to parse cookies from incoming request headers
-export function parseCookies(req: Request): Record<string, string> {
+export function parseCookies(req: Request | any): Record<string, string> {
   const list: Record<string, string> = {};
-  const cookieHeader = req.headers.cookie;
+  const cookieHeader = req?.headers?.cookie;
   if (!cookieHeader) return list;
   cookieHeader.split(';').forEach((cookie) => {
     const parts = cookie.split('=');

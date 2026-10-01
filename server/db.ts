@@ -1,3 +1,4 @@
+/// <reference path="../globals.d.ts" />
 import fs from 'fs';
 import path from 'path';
 import { Pool } from 'pg';
