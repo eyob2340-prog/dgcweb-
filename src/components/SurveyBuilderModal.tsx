@@ -287,6 +287,17 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
       }
     }
 
+    // Validate that required translations (Afaan Oromoo and Soomaali) are present before publishing
+    const hasOromo = Boolean(translations.om?.title?.trim());
+    const hasSomali = Boolean(translations.so?.title?.trim());
+    if (!hasOromo || !hasSomali) {
+      const missing: string[] = [];
+      if (!hasOromo) missing.push('Afaan Oromoo (Oromo)');
+      if (!hasSomali) missing.push('Soomaali (Somali)');
+      setError(`የግዴታ የትርጉም ቋንቋዎች አልተሟሉም (${missing.join(' እና ')}):: እባክዎ "🌐 ሁሉንም ተርጉም" ይጫኑ ወይም በቋንቋ ታቦቹ በኩል ትርጉሞቹን ለብቻቸው ያስገቡ::`);
+      return;
+    }
+
     setLoading(true);
 
     try {

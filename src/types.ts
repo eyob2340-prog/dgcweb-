@@ -100,6 +100,7 @@ export interface SurveySubmission {
   demographics?: Demographics;
   answers: AnswerSubmission[];
   captcha_answer?: number;
+  language?: string;
 }
 
 export interface RadioBreakdown {

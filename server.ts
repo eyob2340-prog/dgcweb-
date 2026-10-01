@@ -581,7 +581,7 @@ app.post('/api/surveys/:id/responses', citizenMaintenanceMiddleware, submissionL
       });
     }
 
-    const { answers, demographics } = req.body;
+    const { answers, demographics, language } = req.body;
     if (!Array.isArray(answers) || answers.length === 0) {
       return res.status(400).json({ error: 'እባክዎ የመጠይቅ መልሶችን ያስገቡ (Answers are required)' });
     }
@@ -617,6 +617,17 @@ app.post('/api/surveys/:id/responses', citizenMaintenanceMiddleware, submissionL
         }
         if (Array.isArray(q.options) && q.options.length > 0) {
           const allowedOptions = q.options.map((opt: string) => opt.trim());
+          // Also allow options from any translations of this question (e.g. Oromo, Somali)
+          if (survey.translations && typeof survey.translations === 'object') {
+            for (const langKey of Object.keys(survey.translations)) {
+              const transQ = survey.translations[langKey]?.questions?.find((tq: any) => tq.id === q.id);
+              if (Array.isArray(transQ?.options)) {
+                for (const topt of transQ.options) {
+                  if (typeof topt === 'string') allowedOptions.push(topt.trim());
+                }
+              }
+            }
+          }
           if (!allowedOptions.includes(val)) {
             return res.status(400).json({ error: `ለጥያቄ "${q.question_text.substring(0, 30)}..." የተመረጠው አማራጭ ከተፈቀዱት ምርጫዎች ውጭ ነው` });
           }
@@ -644,7 +655,11 @@ app.post('/api/surveys/:id/responses', citizenMaintenanceMiddleware, submissionL
       }
     }
 
-    const responseId = await db.submitResponse(surveyId, ipHash, validatedAnswers, sanitizedDemographics);
+    const sanitizedLanguage = typeof language === 'string' && ['am', 'om', 'so', 'en', 'ti', 'fr'].includes(language.trim().toLowerCase())
+      ? language.trim().toLowerCase()
+      : 'am';
+
+    const responseId = await db.submitResponse(surveyId, ipHash, validatedAnswers, sanitizedDemographics, sanitizedLanguage);
 
     await db.addAuditLog(
       'CITIZEN_PUBLIC',

@@ -123,6 +123,8 @@ async function initPgDatabase() {
           submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
+        ALTER TABLE responses ADD COLUMN IF NOT EXISTS language VARCHAR(20) DEFAULT 'am';
+
         CREATE TABLE IF NOT EXISTS answers (
           id SERIAL PRIMARY KEY,
           response_id INT REFERENCES responses(id) ON DELETE CASCADE,
@@ -263,10 +265,10 @@ async function seedPgInitialData(client: any) {
   const surveyIdMap = new Map<number, number>();
   for (const s of initialData.surveys) {
     const res = await client.query(
-      `INSERT INTO surveys (id, title, description, category, theme, is_active, created_at) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7) 
+      `INSERT INTO surveys (id, title, description, category, theme, is_active, created_at, translations) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
        ON CONFLICT (id) DO NOTHING RETURNING id`,
-      [s.id, s.title, s.description, s.category, 'government', s.is_active, s.created_at]
+      [s.id, s.title, s.description, s.category, (s as any).theme || 'government', s.is_active, s.created_at, JSON.stringify((s as any).translations || {})]
     );
     const insertedId = res.rows.length > 0 ? res.rows[0].id : s.id;
     surveyIdMap.set(s.id, insertedId);
@@ -369,7 +371,16 @@ interface LocalDB {
     two_factor_secret?: string;
     created_at: string;
   }[];
-  surveys: { id: number; title: string; description: string; category: string; is_active: boolean; created_at: string }[];
+  surveys: {
+    id: number;
+    title: string;
+    description: string;
+    category: string;
+    theme?: string;
+    is_active: boolean;
+    created_at: string;
+    translations?: Record<string, any>;
+  }[];
   questions: { id: number; survey_id: number; question_text: string; question_type: 'text' | 'radio' | 'rating'; options: string[] }[];
   responses: {
     id: number;
@@ -380,6 +391,7 @@ interface LocalDB {
     gender?: string;
     education?: string;
     residence?: string;
+    language?: string;
   }[];
   answers: { id: number; response_id: number; question_id: number; answer_text?: string; rating_value?: number }[];
   audit_logs: { id: number; admin_email: string; action: string; details: string; timestamp: string; ip_address?: string }[];
@@ -462,6 +474,43 @@ function getInitialData(): LocalDB {
     surveys: [
       {
         id: 1,
+        title: 'የድሬደዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ - የአስተዳደሩን አዲሱን መንግስት ምስረታ አስመልክቶ ከአመራሩና ከአዲሱ የምክር ቤት ተመራጮች ህዝቡ የሚጠብቃቸውን የልማትና የዲሞክራሲ እንቅስቃሴና ቀጣይ ተስፋዎችን በተመለከተ እንደ ድሬደዋ የሕዝብ አስተያየት ለመሰብሰብ የተዘጋጀ መነሻ መጠይቅ (መስከረም 2019 ዓ.ም)',
+        description: '1. መግቢያ፡ በቅርቡ በድሬደዋም ሆነ እንደ ሀገር አሳታፊ፣ ግልጽ፣ ዴሞክራሲያዊ ምርጫ መካሄዱ ይታወቃል። የምርጫዉን ውጤት ተከትሎም የዐዲስ መንግሥት ምሥረታ እተካሄደ ይገኛል፡፡ በዚህም የድሬደዋ አስተዳደር ምክር ቤት መስራች ጉባኤውን ያካሄደ ሲሆን በዚህም የተለያዩ ከፍተኛ አመራሮች ሹመት ተካሂዱዋል። በመሆኑም አዲሱ ምክር ቤትና አመራር በቀጣይ የድሬደዋን ሁለንተናዊ ብልጽግና ለማረጋገጥ በሚሰራቸው ሁሉ አቀፍ እንቅስቃሴና ትኩረት ሊደረግባቸው ይጋብል በሚሉ ጉዳዮች ላይ የህብረተሰቡን ሀሳብና አስተያየት ማሰባሰብ አስፈልጓል። ስለሆነም ለድሬደዋ ልማትና እድገት ይበልጥ መረጋገጥ ሁሉም የድርሻውን እንዲያበረክት የሚጠበቅ ሲሆን ለዚህም እርሶ ሃሳብና አስተያየቶን በመስጠት ለብልጽግና ጉዞው ስኬታማነት የበኩሎን እንዲያበረክቱ በአክብሮት እንጠይቃለን።\n\n2. የዚህ መጠይቅ ዋና አላማ፡ በድሬደዋ አስተዳደር ምክር ቤቱ መስራች ጉባኤውን በማካሄድ የተለያዩ ከፍተኛ አመራሮች ሹመት ተካሂዱዋል። በመሆኑም አዲሱ ምክር ቤትና አመራር በቀጣይ የድሬደዋን ሁለንተናዊ ብልጽግና ለማረጋገጥ በሚሰራቸው ሁሉ አቀፍ እንቅስቃሴ ዙሪያና ከህብረተሱ የሚጠበቁ ጉዳዮችን አስመልክ የተዘጋጀ መጠይቅ ነው፡፡',
+        category: 'ፖለቲካ እና ኢኮኖሚ',
+        theme: 'government',
+        is_active: true,
+        created_at: new Date().toISOString(),
+        translations: {
+          om: {
+            title: "Biiroo Dhimmoota Kominikeeshinii Mootummaa Bulchiinsa Dirree Dawaa - Hundeeffama mootummaa haaraa bulchiinsichaa ilaalchisee hooggansaa fi miseensota mana maree haaraa filataman irraa socho'iinsa misoomaa fi dimokraasii ummanni eegu fi abdiilee fuulduraa irratti yaada uummata Dirree Dawaa walitti qabuuf qophaa'e (Fuulbana 2019)",
+            description: "1. Seensa: Dhiyeenya kana Dirree Dawaattis ta'ee akka biyyaatti filannoon hirmaachisaa, ifaafi dimokraatawaa ta'e gaggeeffamuun isaa ni beekama. Bu'aa filannichaa hordofuunis hundeeffamni mootummaa haaraa adeemsifamaa jira. Kanaanis Manni Maree Bulchiinsa Dirree Dawaa yaa'ii hundeeffamaa kan gaggeesse yoo ta'u, kanaanis muudamni hooggantoota olaanoo adda addaa raawwatameera. Kanaafuu, manni maree fi hooggansi haaraan fuulduratti badhaadhina hundagaleessa Dirree Dawaa mirkaneessuuf socho'iinsa maraa taasisan irratti dhimmoota xiyyeeffannoon kennamuufii qabu jedhaman irratti yaadaa fi ilaalcha uummataa walitti qabuun barbaachiseera. Kanaafuu, misoomaa fi guddina Dirree Dawaa caalaatti mirkaneessuuf hundi gahee isaa akka gumaachu kan eegamu yoo ta'u, kanaafis isinis yaada keessan kennuudhaan milkaa'ina imala badhaadhinaatiif qooda keessan akka gumaachitan kabajaan gaafanna.\n\n2. Kaayyoo Guddaa Gaaffannoo Kanaa: Manni Maree Bulchiinsa Dirree Dawaa yaa'ii hundeeffamaa gaggeessuun muudama hooggantoota olaanoo adda addaa raawwateera. Kanaafuu, gaaffannoo kun manni maree fi hooggansi haaraan fuulduratti badhaadhina hundagaleessa Dirree Dawaa mirkaneessuuf socho'iinsa taasisan irratti dhimmoota uummata irraa eegaman ilaalchisee kan qophaa'edha.",
+            category: "Poliitikaa fi Dinagdee",
+            questions: [
+              { id: 1, question_text: "Dhiyeenya kana Itoophiyaan filannoo waliigalaa hirmaachisaa, ifaafi dimokraatawaa ta'ee fi fudhatama uummataa qabu gaggeessiteetti. Bu'aa filannichaa hordofuunis qophii hundeeffama mootummaa haaraa irra jirti. Kanaafuu, mootummaa sadarkaa federaalaatti hundeeffamu irraa abdiilee fi hojiiwwan ijoo eegdan ilaalchisee yaada qabdan nuuf qoodduu?", options: [] },
+              { id: 2, question_text: "Hundeeffama mootummaa kanaan walqabatee gaheen uummataa maal ta'uu qaba jettanii yaaddu?", options: [] },
+              { id: 3, question_text: "Manni Maree Bulchiinsa Dirree Dawaa yaa'ii hundeeffamaa gaggeessuun Af-yaa'ii mana marichaa dabalatee Kantiibaa bulchiinsichaa fi hoogganoota dhaabbilee adda addaa gaggeessan muudeera. Kanaafuu, hoogganoota amma gara aangootti dhufan ilaalchisee yaadaa fi ilaalcha qabdan nuuf ibsuu dandeessuu?", options: [] },
+              { id: 4, question_text: "Hooggansi haaraan socho'iinsa nagaa, misoomaa fi dimokraasii Dirree Dawaatti eegalame sadarkaa olaanaatti itti fufsiisuu keessatti maal gochuu qaba jettanii yaaddu? Gama kanaan yaada qabdan nuuf qoodduu?", options: [] },
+              { id: 5, question_text: "Manni maree fi hooggansi haaraan fuulduratti badhaadhina hundagaleessa Dirree Dawaa mirkaneessuuf socho'iinsa maraa taasisan keessatti eenyu irraa maal eegama dhimmoota jedhan irratti yaada qabdan nuuf qoodduu?", options: [] },
+              { id: 6, question_text: "Waggoota dhufan keessatti Dirree Dawaatti gama hundaan dhimmoota raawwatamuu qabu jettanii yaaddanii fi gahee fi hirmaannaa qooda fudhattoota adda addaa ilaalchisee yaada dabalataa yoo qabaattan nuuf ibsaa?", options: [] }
+            ]
+          },
+          so: {
+            title: "Xafiiska Arrimaha Isgaadhsiinta Dawladda Ee Maamulka Diridhaba - Xog-ururin ku saabsan dhismaha dawladda cusub ee maamulka, rajada iyo dhaqdhaqaaqyada horumarineed iyo dimuqraadiyadeed ee ay shacabku ka filayaan hoggaanka cusub iyo xubnaha golaha ee la doortay (Sebtembar 2019)",
+            description: "1. Horudhac: Waxaa la wada ogsoon yahay in dhowaan magaalada Diridhaba iyo guud ahaan dalka ay ka qabsoontay doorasho loo dhan yahay, hufan oo dimuqraadi ah. Natiijadii doorashada ka dibna waxaa socda dhismaha dawlad cusub. Golaha Maamulka Diridhaba ayaa qabtay kalfadhigiisii aasaaska, waxaana lagu magacaabay hoggaamiyeyaal sare oo kala duwan. Sidaa darteed, waxaa lagama maarmaan noqotay in la ururiyo fikradaha iyo talooyinka dadweynaha ee ku saabsan dhaqdhaqaaqyada loo dhan yahay iyo arrimaha ay tahay in diiradda la saaro si loo xaqiijiyo barwaaqada guud ee Diridhaba. Sidaas daraaddeed, iyadoo la filayo in qof kastaa doorkiisa ka qaato horumarka Diridhaba, waxaan si xushmad leh idiinka codsaneynaa inaad fikradihiinna iyo talooyinkiinna ku darsataan guusha socdaalka barwaaqada.\n\n2. Ujeeddada Guud Ee Xog-ururintan: Golaha Maamulka Diridhaba wuxuu qabtay kalfadhigii furitaanka waxaana lagu magacaabay mas'uuliyiin sare oo kala duwan. Sidaa darteed, xog-ururintan waxaa loo diyaariyay dhaqdhaqaaqyada guud ee golaha cusub iyo hoggaanku ku xaqiijinayaan barwaaqada Diridhaba iyo arrimaha laga filayo bulshada.",
+            category: "Siyaasadda & Dhaqaalaha",
+            questions: [
+              { id: 1, question_text: "Dhowaan Itoobiya waxay qabatay doorasho guud oo loo dhan yahay, hufan, dimuqraadi ah oo ay bulshadu aqbashay. Natiijadii doorashada ka dibna waxay ku jirtaa diyaarinta dhismaha dawlad cusub. Sidaa darteed, maxay yihiin rajada iyo howlaha ugu waaweyn ee aad ka filaysaan dawladda laga dhisayo heer federaal, ma nala wadaagi kartaa fikraddaada?", options: [] },
+              { id: 2, question_text: "Dhismaha dawladdan cusub ee la xidhiidha, maxay kula tahay inuu noqdo doorka shacabku?", options: [] },
+              { id: 3, question_text: "Golaha Maamulka Diridhaba isagoo qabtay kalfadhigii furitaanka wuxuu magacaabay Afhayeenka golaha, Duqa maamulka iyo madaxda hay'adaha kala duwan. Sidaa darteed, ma noo sharxi kartaa fikraddaada ku aaddan hoggaamiyeyaasha cusub ee xilka qabtay?", options: [] },
+              { id: 4, question_text: "Hoggaanka cusubi maxay kula tahay inay sameeyaan si ay heer sare ugu sii wadaan dhaqdhaqaaqyada nabadda, horumarka iyo dimuqraadiyadda ee laga bilaabay Diridhaba? Ma nala wadaagi kartaa fikraddaada iyo taladaada arrintan ku saabsan?", options: [] },
+              { id: 5, question_text: "Golaha cusub iyo hoggaanku si ay mustaqbalka u xaqiijiyaan barwaaqada guud ee Diridhaba, maxaa laga filayaa cid kasta, ma nala wadaagi kartaa fikraddaada?", options: [] },
+              { id: 6, question_text: "Sannadaha soo socda arrimaha ay tahay in lagu qabto dhammaan qaybaha kala duwan ee Diridhaba iyo doorka daneeyayaasha kala duwan ma haysaa fikrad ama talo dheeraad ah oo aad noo sheegto?", options: [] }
+            ]
+          }
+        }
+      },
+      {
+        id: 2,
         title: 'የ2018 የፓርላማና የኢኮኖሚ አፈጻጸም የሕዝብ አስተያየት (2026 Parliamentary & Economy Opinion)',
         description: 'በአገራዊ የኢኮኖሚ ማሻሻያ፣ በኑሮ ውድነት ቅናሽ ጥረቶች እና በፓርላማው ቁጥጥር ላይ የተጠቃሚዎች ሚስጥራዊ አስተያየት',
         category: 'ፖለቲካ እና ኢኮኖሚ',
@@ -469,7 +518,7 @@ function getInitialData(): LocalDB {
         created_at: new Date(Date.now() - 7 * 86400000).toISOString(),
       },
       {
-        id: 2,
+        id: 3,
         title: 'የከተማ መሠረተ ልማት እና የሕዝብ ትራንስፖርት አገልግሎት እርካታ',
         description: 'በትራንስፖርት፣ በንጹህ መጠጥ ውኃ እና የኤሌክትሪክ አገልግሎት ጥራት ላይ የሚሰጥ አጠቃላይ ዳሰሳ',
         category: 'መሠረተ ልማት',
@@ -477,7 +526,7 @@ function getInitialData(): LocalDB {
         created_at: new Date(Date.now() - 3 * 86400000).toISOString(),
       },
       {
-        id: 3,
+        id: 4,
         title: 'የትምህርትና የጤና ዘርፍ ማሻሻያዎች የሕዝብ ዳሰሳ',
         description: 'በህዝብ ትምህርት ቤቶች እና በሆስፒታሎች አገልግሎት አሰጣጥ ላይ የህብረተሰቡን አስተያየት ለመሰብሰብ የተዘጋጀ',
         category: 'ማህበራዊ ጉዳዮች',
@@ -485,7 +534,7 @@ function getInitialData(): LocalDB {
         created_at: new Date(Date.now() - 1 * 86400000).toISOString(),
       },
       {
-        id: 4,
+        id: 5,
         title: 'የድሬዳዋ ስማርት ሲቲ እና ዲጂታል አሰራር የሕዝብ እርካታ ዳሰሳ',
         description: 'በኦንላይን የከተማ አገልግሎቶች፣ የመንግስት ኮሙኒኬሽን መረጃ ተዳራሽነት እና የዲጂታል ቴክኖሎጂ ተጠቃሚነት ላይ የተዘጋጀ',
         category: 'ቴክኖሎጂና አሰራር',
@@ -494,24 +543,32 @@ function getInitialData(): LocalDB {
       },
     ],
     questions: [
-      // Survey 1 Questions
-      { id: 1, survey_id: 1, question_text: 'በአሁኑ ወቅት ያለው የኢኮኖሚ ማሻሻያ እርምጃዎች አቅጣጫ ምን ያህል ተስፋ ሰጪ ነው ብለው ያስባሉ?', question_type: 'radio', options: ['በጣም ተስፋ ሰጪ ነው', 'በከፊል ተስፋ ሰጪ ነው', 'ያልወሰንኩ', 'ተስፋ አስቆራጭ ነው'] },
-      { id: 2, survey_id: 1, question_text: 'የመንግስት የኑሮ ውድነትን የመቆጣጠር ስራ እና ድጎማዎችን እንዴት ይገመግሙታል?', question_type: 'rating', options: [] },
-      { id: 3, survey_id: 1, question_text: 'ፓርላማው የመንግስት አካላትን በግልጽነትና በተጠያቂነት በመቆጣጠር ረገድ ያለው ሚና እንዴት ነው?', question_type: 'radio', options: ['በጣም ጥሩ', 'መካከለኛ', 'ዝቅተኛ', 'በጣም ዝቅተኛ'] },
-      { id: 4, survey_id: 1, question_text: 'ለቀጣይ የፖሊሲ ማሻሻያዎች ለመንግስት የሚያስተላልፉት ዋና ጥቆማ ወይም አስተያየት ካለ በዝርዝር ይፃፉ፡', question_type: 'text', options: [] },
+      // Survey 1 Questions (Official Government Formation Survey)
+      { id: 1, survey_id: 1, question_text: 'በቅርቡ ኢትዮጵያ ያካሄደችዉ አሳታፊ፣ ግልጽና፣ ዴሞክራሲያዊ እና ሕዝባዊ ቅቡልነት ያለዉ ጠቅላላ ምርጫ አካሂዳለች፡፡ የምርጫዉን ውጤት ተከትሎም የአዲስ መንግሥት ምሥረታ ዝግጅት ላይ ናት፡፡ በመሆኑም በፌደራል ደረጃ ከሚመሰረተው መንግስት የሚጠብቁዋቸውን ተስፋዎችና አበይት ተግባራት በተመለከተ ያሎትን ሃሳብ ቢያካፍሉን?', question_type: 'text', options: [] },
+      { id: 2, survey_id: 1, question_text: 'ከዚሁ የመንግስት ምስረታ ጋር ተያይዞ የህዝቡስ ድርሻ ምን መሆን ይገባል ብለው ያስባሉ?', question_type: 'text', options: [] },
+      { id: 3, survey_id: 1, question_text: 'በድሬደዋ አስተዳደር ምክር ቤት መስራች ጉባኤውን በማካሄድ የምክር ቤቱን አፈጉባኢን ጨምሮ የአስተዳደሩን ከንቲባና የተለያዩ ተቋማትን የሚመሩ ሃላፊዎችን ሹመት አካሂደዋል ። በመሆኑም አሁን ወደ ስልጣን እንዲመጡ የተደረጉ አመራሮች አስመልክቶ ያሎት ሃሳብና አስተያየት ቢገልጹልን?', question_type: 'text', options: [] },
+      { id: 4, survey_id: 1, question_text: 'አዲሱ አመራር በድሬደዋ የተጀመሩ የሰላምና፣ የልማት የዲሞክራሲ እንቅስቃሴዎችን በላቀ ደረጃ በማስቀጠል ረገድ ምን ማድረግ ይገባዋል ብለው ያስባሉ? በዚህ ረገድ ያሎትን ሃሳብና አስተያየቶን ቢያካፍሉን?', question_type: 'text', options: [] },
+      { id: 5, survey_id: 1, question_text: 'አዲሱ ምክር ቤትና አመራር በቀጣይ የድሬደዋን ሁለንተናዊ ብልጽግና ለማረጋገጥ በሚሰራቸው ሁሉ አቀፍ እንቅስቃሴ ዙሪያ ከማን ምን ይጠበቃል በሚሉ ጉዳዪዮች ዙሪያ ያሎትን ሃሳብና አስተያየት ቢያካፍሉን?', question_type: 'text', options: [] },
+      { id: 6, survey_id: 1, question_text: 'በቀጣዮቹ አመታት በድሬደዋ አጠቃላይ በሁሉም ዘርፎች ሊከናወኑ ይገባቸዋል በሚሏቸው ጉዳዮችና የተለያዩ ባለድርሻ አካላት ሚና እና ተሳትፎን በተመለከተ ተጨማሪ ሀሳብና አስተያየት ካሎዎት ይግለፁልን?', question_type: 'text', options: [] },
 
       // Survey 2 Questions
-      { id: 5, survey_id: 2, question_text: 'በአካባቢዎ ያለው የህዝብ ትራንስፖርት (አውቶቡስ/ታክሲ) ተaccessibility እና ምቾት እንዴት ያዩታል?', question_type: 'radio', options: ['በጣም ጥሩ', 'አጥጋቢ', 'ችግር አለበት', 'በጣም አስቸጋሪ'] },
-      { id: 6, survey_id: 2, question_text: 'የውኃና የኤሌክትሪክ አቅርቦት ዘላቂነትና አስተማማኝነት ደረጃ፡', question_type: 'rating', options: [] },
-      { id: 7, survey_id: 2, question_text: 'በመሠረተ ልማት ዝርጋታ ወቅት የሚታዩ መዘግየቶችን ለመቅረፍ ምን መደረግ አለበት?', question_type: 'text', options: [] },
+      { id: 7, survey_id: 2, question_text: 'በአሁኑ ወቅት ያለው የኢኮኖሚ ማሻሻያ እርምጃዎች አቅጣጫ ምን ያህል ተስፋ ሰጪ ነው ብለው ያስባሉ?', question_type: 'radio', options: ['በጣም ተስፋ ሰጪ ነው', 'በከፊል ተስፋ ሰጪ ነው', 'ያልወሰንኩ', 'ተስፋ አስቆራጭ ነው'] },
+      { id: 8, survey_id: 2, question_text: 'የመንግስት የኑሮ ውድነትን የመቆጣጠር ስራ እና ድጎማዎችን እንዴት ይገመግሙታል?', question_type: 'rating', options: [] },
+      { id: 9, survey_id: 2, question_text: 'ፓርላማው የመንግስት አካላትን በግልጽነትና በተጠያቂነት በመቆጣጠር ረገድ ያለው ሚና እንዴት ነው?', question_type: 'radio', options: ['በጣም ጥሩ', 'መካከለኛ', 'ዝቅተኛ', 'በጣም ዝቅተኛ'] },
+      { id: 10, survey_id: 2, question_text: 'ለቀጣይ የፖሊሲ ማሻሻያዎች ለመንግስት የሚያስተላልፉት ዋና ጥቆማ ወይም አስተያየት ካለ በዝርዝር ይፃፉ፡', question_type: 'text', options: [] },
 
       // Survey 3 Questions
-      { id: 8, survey_id: 3, question_text: 'የመንግስት ህክምና ተቋማት እና ሆስፒታሎች የመድኃኒትና የህክምና ቁሳቁስ አቅርቦት ደረጃ፡', question_type: 'rating', options: [] },
-      { id: 9, survey_id: 3, question_text: 'ከትምህርት ጥራት ማሻሻያ ጋር ተያይዞ የተወሰዱ እርምጃዎችን ይደግፋሉ?', question_type: 'radio', options: ['ሙሉ በሙሉ እደግፋለሁ', 'በከፊል እደግፋለሁ', 'አልደግፍም', 'አስተያየት የለኝም'] },
+      { id: 11, survey_id: 3, question_text: 'በአካባቢዎ ያለው የህዝብ ትራንስፖርት (አውቶቡስ/ታክሲ) ተaccessibility እና ምቾት እንዴት ያዩታል?', question_type: 'radio', options: ['በጣም ጥሩ', 'አጥጋቢ', 'ችግር አለበት', 'በጣም አስቸጋሪ'] },
+      { id: 12, survey_id: 3, question_text: 'የውኃና የኤሌክትሪክ አቅርቦት ዘላቂነትና አስተማማኝነት ደረጃ፡', question_type: 'rating', options: [] },
+      { id: 13, survey_id: 3, question_text: 'በመሠረተ ልማት ዝርጋታ ወቅት የሚታዩ መዘግየቶችን ለመቅረፍ ምን መደረግ አለበት?', question_type: 'text', options: [] },
 
       // Survey 4 Questions
-      { id: 10, survey_id: 4, question_text: 'የድሬዳዋ አስተዳደር የኦንላይን እና ዲጂታል አገልግሎቶች አሰጣጥ ምቾት እንዴት ይገመግሙታል?', question_type: 'rating', options: [] },
-      { id: 11, survey_id: 4, question_text: 'የመንግስት መረጃዎች እና ውሳኔዎች በቴሌግራም እና በሶሻል ሚዲያ ተዳራሽ የመሆናቸው ደረጃ፡', question_type: 'radio', options: ['በጣም ከፍተኛ', 'ከፍተኛ', 'መካከለኛ', 'ዝቅተኛ'] },
+      { id: 14, survey_id: 4, question_text: 'የመንግስት ህክምና ተቋማት እና ሆስፒታሎች የመድኃኒትና የህክምና ቁሳቁስ አቅርቦት ደረጃ፡', question_type: 'rating', options: [] },
+      { id: 15, survey_id: 4, question_text: 'ከትምህርት ጥራት ማሻሻያ ጋር ተያይዞ የተወሰዱ እርምጃዎችን ይደግፋሉ?', question_type: 'radio', options: ['ሙሉ በሙሉ እደግፋለሁ', 'በከፊል እደግፋለሁ', 'አልደግፍም', 'አስተያየት የለኝም'] },
+
+      // Survey 5 Questions
+      { id: 16, survey_id: 5, question_text: 'የድሬዳዋ አስተዳደር የኦንላይን እና ዲጂታል አገልግሎቶች አሰጣጥ ምቾት እንዴት ይገመግሙታል?', question_type: 'rating', options: [] },
+      { id: 17, survey_id: 5, question_text: 'የመንግስት መረጃዎች እና ውሳኔዎች በቴሌግራም እና በሶሻል ሚዲያ ተዳራሽ የመሆናቸው ደረጃ፡', question_type: 'radio', options: ['በጣም ከፍተኛ', 'ከፍተኛ', 'መካከለኛ', 'ዝቅተኛ'] },
     ],
     responses: [
       // Survey 1 Responses (Balanced male & female, age, residence)
@@ -1105,14 +1162,15 @@ export const db = {
     surveyId: number,
     ipHash: string,
     answers: { question_id: number; answer_text?: string; rating_value?: number }[],
-    demographics?: { age_group?: string; gender?: string; education?: string; residence?: string }
+    demographics?: { age_group?: string; gender?: string; education?: string; residence?: string },
+    language: string = 'am'
   ) {
     if (pgPool) {
       const client = await pgPool.connect();
       try {
         await client.query('BEGIN');
         const respRes = await client.query(
-          'INSERT INTO responses (survey_id, ip_hash, age_group, gender, education, residence) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+          'INSERT INTO responses (survey_id, ip_hash, age_group, gender, education, residence, language) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
           [
             surveyId,
             ipHash,
@@ -1120,6 +1178,7 @@ export const db = {
             demographics?.gender || null,
             demographics?.education || null,
             demographics?.residence || null,
+            language || 'am',
           ]
         );
         const responseId = respRes.rows[0].id;
@@ -1176,6 +1235,7 @@ export const db = {
       gender: demographics?.gender,
       education: demographics?.education,
       residence: demographics?.residence,
+      language: language || 'am',
     };
     local.responses.push(newResp);
 
