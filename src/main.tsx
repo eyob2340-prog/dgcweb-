@@ -25,3 +25,9 @@ createRoot(document.getElementById('root')!).render(
     </ErrorBoundary>
   </StrictMode>,
 );
+
+try {
+  (window as unknown as { __dgc_mounted?: boolean }).__dgc_mounted = true;
+  window.dispatchEvent(new Event('dgc-mounted'));
+} catch {}
+

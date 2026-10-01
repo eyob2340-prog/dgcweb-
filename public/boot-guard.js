@@ -67,9 +67,16 @@
     } catch (e) {}
     return out.slice(0, 10);
   }
+  window.addEventListener('dgc-mounted', function () {
+    window.__dgc_mounted = true;
+    var fb = document.getElementById('dgc-boot-fallback');
+    if (fb && fb.parentNode) fb.parentNode.removeChild(fb);
+  });
+
   function showFallback(reason) {
+    if (window.__dgc_mounted) return;
     var root = document.getElementById('root');
-    if (root && root.childNodes.length > 0) return; // app is alive
+    if (root && root.querySelector && !root.querySelector('#dgc-initial-loader') && root.childNodes.length > 0) return; // app is alive
     if (document.getElementById('dgc-boot-fallback')) return;
 
     var box = document.createElement('div');
@@ -108,15 +115,21 @@
 
   window.addEventListener('error', function (e) {
     lastError = (e && e.message) || 'Script error';
-    setTimeout(function () { showFallback(lastError); }, 1500);
+    setTimeout(function () {
+      if (!window.__dgc_mounted) showFallback(lastError);
+    }, 2000);
   });
   window.addEventListener('unhandledrejection', function (e) {
     var r = e && e.reason;
     lastError = (r && (r.message || String(r))) || 'Unhandled promise rejection';
   });
-  // If React has not mounted anything after 10 seconds (slow network, blocked script, failed chunk)
+  // Allow up to 45 seconds for cold start / slow 3G/4G connections
   window.addEventListener('load', function () {
-    setTimeout(function () { showFallback('App did not start within 15 seconds'); }, 15000);
+    setTimeout(function () {
+      if (!window.__dgc_mounted) {
+        showFallback('App did not finish starting within 45 seconds (slow network or server wakeup)');
+      }
+    }, 45000);
   });
 
   // Load Google Fonts without blocking first paint
