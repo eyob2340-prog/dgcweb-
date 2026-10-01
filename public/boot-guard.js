@@ -38,8 +38,35 @@
     };
   }
 
-  // 3. Fallback screen
+  // 3. Fallback screen + self-diagnostics
   var lastError = '';
+  var problems = [];
+  function note(msg) { if (problems.length < 12 && problems.indexOf(msg) === -1) problems.push(msg); }
+
+  // Resource (script/css) load failures do not bubble: listen in the capture phase
+  window.addEventListener('error', function (e) {
+    var t = e && e.target;
+    if (t && t !== window && (t.src || t.href)) note('LOAD FAILED: ' + (t.src || t.href));
+  }, true);
+  // Content-Security-Policy blocks
+  document.addEventListener('securitypolicyviolation', function (e) {
+    note('CSP BLOCKED (' + e.violatedDirective + '): ' + (e.blockedURI || 'inline'));
+  });
+
+  function resourceReport() {
+    var out = [];
+    try {
+      var list = performance.getEntriesByType('resource');
+      for (var i = 0; i < list.length; i++) {
+        var r = list[i];
+        if (/\.(js|css)(\?|$)/.test(r.name) || r.name.indexOf('/assets/') !== -1) {
+          var short = r.name.replace(location.origin, '');
+          out.push(short.slice(0, 60) + ' -> status ' + (r.responseStatus || '?') + ', ' + Math.round(r.duration) + 'ms, ' + (r.transferSize || 0) + 'B');
+        }
+      }
+    } catch (e) {}
+    return out.slice(0, 10);
+  }
   function showFallback(reason) {
     var root = document.getElementById('root');
     if (root && root.childNodes.length > 0) return; // app is alive
@@ -65,13 +92,16 @@
     btn.onclick = function () { location.reload(); };
     inner.appendChild(h); inner.appendChild(p); inner.appendChild(btn);
 
-    var detail = reason || lastError;
-    if (detail) {
-      var d = document.createElement('pre');
-      d.textContent = String(detail).slice(0, 300);
-      d.style.cssText = 'margin-top:16px;font-size:11px;color:#64748b;white-space:pre-wrap;word-break:break-word';
-      inner.appendChild(d);
-    }
+    var detail = [reason || lastError]
+      .concat(problems)
+      .concat(['--- resources ---'])
+      .concat(resourceReport())
+      .concat(['--- page ---', location.href, 'online=' + navigator.onLine])
+      .join('\n');
+    var d = document.createElement('pre');
+    d.textContent = detail.slice(0, 1500);
+    d.style.cssText = 'margin-top:16px;font-size:11px;color:#94a3b8;white-space:pre-wrap;word-break:break-all;text-align:left;background:#0f172a;padding:10px;border-radius:8px';
+    inner.appendChild(d);
     box.appendChild(inner);
     document.body.appendChild(box);
   }
@@ -86,7 +116,7 @@
   });
   // If React has not mounted anything after 10 seconds (slow network, blocked script, failed chunk)
   window.addEventListener('load', function () {
-    setTimeout(function () { showFallback('App did not start within 10 seconds'); }, 10000);
+    setTimeout(function () { showFallback('App did not start within 15 seconds'); }, 15000);
   });
 
   // Load Google Fonts without blocking first paint
