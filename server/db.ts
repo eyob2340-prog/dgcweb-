@@ -1340,6 +1340,48 @@ export const db = {
     });
   },
 
+  async getTodaySurveyStats(surveyId: number, residence?: string): Promise<{
+    todaySurveyTotal: number;
+    todayWoredaTotal: number;
+    allTimeSurveyTotal: number;
+  }> {
+    if (pgPool) {
+      try {
+        const res = await pgPool.query(
+          `SELECT 
+             COUNT(*) FILTER (WHERE submitted_at >= CURRENT_DATE)::int as today_survey_total,
+             COUNT(*) FILTER (WHERE submitted_at >= CURRENT_DATE AND LOWER(TRIM(COALESCE(residence, ''))) = LOWER(TRIM(COALESCE($2, ''))))::int as today_woreda_total,
+             COUNT(*)::int as all_time_survey_total
+           FROM responses
+           WHERE survey_id = $1`,
+          [surveyId, residence || '']
+        );
+        const row = res.rows[0] || {};
+        return {
+          todaySurveyTotal: Math.max(1, Number(row.today_survey_total) || 1),
+          todayWoredaTotal: Math.max(1, Number(row.today_woreda_total) || 1),
+          allTimeSurveyTotal: Math.max(1, Number(row.all_time_survey_total) || 1),
+        };
+      } catch (err) {
+        console.error('Failed to getTodaySurveyStats from pgPool:', err);
+      }
+    }
+
+    const local = readLocalDB();
+    const respList = (local.responses || []).filter((r: any) => r.survey_id === surveyId);
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const todayList = respList.filter((r: any) => new Date(r.submitted_at).getTime() >= startOfDay);
+    const normalizedRes = (residence || '').trim().toLowerCase();
+    const woredaToday = todayList.filter((r: any) => (r.residence || '').trim().toLowerCase() === normalizedRes);
+
+    return {
+      todaySurveyTotal: Math.max(1, todayList.length),
+      todayWoredaTotal: Math.max(1, woredaToday.length),
+      allTimeSurveyTotal: Math.max(1, respList.length),
+    };
+  },
+
   async createSurvey(data: {
     title: string;
     description: string;

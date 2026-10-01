@@ -52,12 +52,14 @@ interface AdminDashboardProps {
 
 interface AdminNotification {
   id: string;
-  type: 'ticket_new' | 'ticket_urgent' | 'ticket_status' | 'survey_response' | 'telegram_status';
+  type: 'ticket_new' | 'ticket_urgent' | 'ticket_status' | 'survey_response' | 'telegram_status' | 'audit_log';
+  category?: 'surveys' | 'tickets' | 'audit' | 'system';
   title: string;
   description: string;
   time_eth: string;
+  raw_timestamp?: number;
   priority: 'high' | 'medium' | 'info';
-  linkTab: 'tickets' | 'surveys' | 'analytics' | 'telegram';
+  linkTab: 'tickets' | 'surveys' | 'analytics' | 'telegram' | 'audit';
   refId?: string | number;
 }
 
@@ -77,6 +79,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [unreadNotifCount, setUnreadNotifCount] = useState<number>(0);
   const [loadingNotifs, setLoadingNotifs] = useState<boolean>(false);
+  const [notifFilter, setNotifFilter] = useState<'all' | 'surveys' | 'tickets' | 'audit'>('all');
 
   // 24-Hour Telegram Dispatch State
   const [isSending24hReport, setIsSending24hReport] = useState<boolean>(false);
@@ -351,13 +354,77 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div className="flex items-center space-x-2">
                   <Bell className="w-5 h-5 text-amber-400" />
-                  <h3 className="text-base font-black text-white">🔔 የማሳወቂያ ማዕከል (Notification Center)</h3>
+                  <h3 className="text-base font-black text-white">🔔 የማሳወቂያ ማዕከል (Live Notifications)</h3>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={fetchNotifications}
+                    disabled={loadingNotifs}
+                    className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
+                    title="አድስ (Refresh Notifications)"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${loadingNotifs ? 'animate-spin text-amber-400' : 'text-slate-400'}`} />
+                    <span className="hidden sm:inline">አድስ</span>
+                  </button>
+                  <button
+                    onClick={() => setIsNotificationOpen(false)}
+                    className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold"
+                  >
+                    ዝጋ
+                  </button>
+                </div>
+              </div>
+
+              {/* Category Filter Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
                 <button
-                  onClick={() => setIsNotificationOpen(false)}
-                  className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold"
+                  onClick={() => setNotifFilter('all')}
+                  className={`px-3 py-1 rounded-xl font-bold whitespace-nowrap transition-all ${
+                    notifFilter === 'all'
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                      : 'bg-slate-800/70 text-slate-400 hover:bg-slate-800 border border-transparent'
+                  }`}
                 >
-                  ዝጋ
+                  ሁሉም ({notifications.length})
+                </button>
+                <button
+                  onClick={() => setNotifFilter('surveys')}
+                  className={`px-3 py-1 rounded-xl font-bold whitespace-nowrap transition-all flex items-center gap-1 ${
+                    notifFilter === 'surveys'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                      : 'bg-slate-800/70 text-slate-400 hover:bg-slate-800 border border-transparent'
+                  }`}
+                >
+                  <span>📝 ምላሾች</span>
+                  <span className="text-[10px] opacity-75">
+                    ({notifications.filter((n) => n.type === 'survey_response').length})
+                  </span>
+                </button>
+                <button
+                  onClick={() => setNotifFilter('tickets')}
+                  className={`px-3 py-1 rounded-xl font-bold whitespace-nowrap transition-all flex items-center gap-1 ${
+                    notifFilter === 'tickets'
+                      ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40'
+                      : 'bg-slate-800/70 text-slate-400 hover:bg-slate-800 border border-transparent'
+                  }`}
+                >
+                  <span>🎫 አቤቱታዎች</span>
+                  <span className="text-[10px] opacity-75">
+                    ({notifications.filter((n) => n.type.startsWith('ticket')).length})
+                  </span>
+                </button>
+                <button
+                  onClick={() => setNotifFilter('audit')}
+                  className={`px-3 py-1 rounded-xl font-bold whitespace-nowrap transition-all flex items-center gap-1 ${
+                    notifFilter === 'audit'
+                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                      : 'bg-slate-800/70 text-slate-400 hover:bg-slate-800 border border-transparent'
+                  }`}
+                >
+                  <span>🛡️ ደህንነት</span>
+                  <span className="text-[10px] opacity-75">
+                    ({notifications.filter((n) => n.type === 'audit_log').length})
+                  </span>
                 </button>
               </div>
 
@@ -372,36 +439,73 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                     ምንም አዲስ ማሳወቂያ የለም:: ሁሉም ነገር የተረጋጋ ነው::
                   </div>
                 ) : (
-                  notifications.map((notif) => (
-                    <div
-                      key={notif.id}
-                      onClick={() => {
-                        if (notif.linkTab === 'tickets') setActiveTab('tickets');
-                        else if (notif.linkTab === 'surveys') setActiveTab('manage');
-                        else if (notif.linkTab === 'telegram') setActiveTab('db');
-                        setIsNotificationOpen(false);
-                      }}
-                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer hover:border-amber-400/60 ${
-                        notif.priority === 'high'
-                          ? 'bg-red-950/30 border-red-500/30 text-red-200'
-                          : notif.priority === 'medium'
-                          ? 'bg-amber-950/30 border-amber-500/30 text-amber-200'
-                          : 'bg-slate-950/60 border-slate-800 text-slate-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                        <span className="font-bold text-white">{notif.title}</span>
-                        <span className="font-mono text-[10px] text-amber-300">{notif.time_eth}</span>
+                  (() => {
+                    const filtered = notifications.filter((notif) => {
+                      if (notifFilter === 'all') return true;
+                      if (notifFilter === 'surveys') return notif.type === 'survey_response';
+                      if (notifFilter === 'tickets') return notif.type.startsWith('ticket');
+                      if (notifFilter === 'audit') return notif.type === 'audit_log';
+                      return true;
+                    });
+
+                    if (filtered.length === 0) {
+                      return (
+                        <div className="p-8 text-center text-slate-500 text-xs italic">
+                          በዚህ ምድብ ውስጥ ምንም ማሳወቂያ የለም::
+                        </div>
+                      );
+                    }
+
+                    return filtered.map((notif) => (
+                      <div
+                        key={notif.id}
+                        onClick={() => {
+                          if (notif.linkTab === 'tickets') setActiveTab('tickets');
+                          else if (notif.linkTab === 'surveys') setActiveTab('manage');
+                          else if (notif.linkTab === 'analytics') {
+                            setActiveTab('analytics');
+                            if (notif.refId) setSelectedSurveyId(Number(notif.refId));
+                          } else if (notif.linkTab === 'audit') setActiveTab('audit');
+                          else if (notif.linkTab === 'telegram') setActiveTab('opa_control');
+                          setIsNotificationOpen(false);
+                        }}
+                        className={`p-3.5 rounded-2xl border transition-all cursor-pointer hover:border-amber-400/60 ${
+                          notif.priority === 'high'
+                            ? 'bg-red-950/30 border-red-500/30 text-red-200'
+                            : notif.priority === 'medium'
+                            ? 'bg-amber-950/30 border-amber-500/30 text-amber-200'
+                            : notif.type === 'survey_response'
+                            ? 'bg-emerald-950/20 border-emerald-500/20 text-emerald-200'
+                            : 'bg-slate-950/60 border-slate-800 text-slate-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
+                          <div className="flex items-center gap-1.5 font-bold text-white">
+                            {notif.type === 'survey_response' ? (
+                              <Vote className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            ) : notif.type === 'ticket_urgent' ? (
+                              <AlertTriangle className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                            ) : notif.type === 'ticket_new' ? (
+                              <MessageSquare className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                            ) : notif.type === 'ticket_status' ? (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                            ) : (
+                              <ShieldCheck className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                            )}
+                            <span className="line-clamp-1">{notif.title}</span>
+                          </div>
+                          <span className="font-mono text-[10px] text-amber-300 shrink-0 ml-2">{notif.time_eth}</span>
+                        </div>
+                        <p className="text-xs text-slate-300 pl-5">{notif.description}</p>
+                        <div className="mt-2 flex items-center justify-end">
+                          <span className="text-[10px] text-sky-400 font-bold flex items-center gap-1 hover:underline">
+                            <span>ዝርዝሩን ይመልከቱ</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </span>
+                        </div>
                       </div>
-                      <p className="text-xs text-slate-300">{notif.description}</p>
-                      <div className="mt-2 flex items-center justify-end">
-                        <span className="text-[10px] text-sky-400 font-bold flex items-center gap-1 hover:underline">
-                          <span>ዝርዝሩን ይመልከቱ</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </span>
-                      </div>
-                    </div>
-                  ))
+                    ));
+                  })()
                 )}
               </div>
             </motion.div>

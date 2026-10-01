@@ -11,7 +11,7 @@ import { createServer as createViteServer } from 'vite';
 
 import { db } from './server/db';
 import { comparePassword, generateToken, verifyToken, authMiddleware, requireRole, revokeToken, isTokenRevoked, extractToken, AuthenticatedRequest } from './server/auth';
-import { sendTelegramReport, sendDaily24hTelegramReport, DEFAULT_TELEGRAM_BOT_TOKEN, DEFAULT_TELEGRAM_CHAT_ID, formatTelegramChatId, escapeMarkdown, classifyAnswerSentiment } from './server/telegram';
+import { sendTelegramReport, sendDaily24hTelegramReport, sendRealtimeSurveySubmissionAlert, DEFAULT_TELEGRAM_BOT_TOKEN, DEFAULT_TELEGRAM_CHAT_ID, formatTelegramChatId, escapeMarkdown, classifyAnswerSentiment } from './server/telegram';
 import { generateSurveyAiReport, translateTextWithAi, translateSurveyWithAi, translateSurveyAllLanguagesWithAi, chatWithOfficeWorker } from './server/ai';
 import { sendTicketRecoveryOtp } from './server/email';
 import { toEthiopianDate, formatEthiopianDateTime } from './src/lib/ethiopianDate';
@@ -736,6 +736,44 @@ app.post('/api/surveys/:id/responses', citizenMaintenanceMiddleware, submissionL
       `አዲስ የሕዝብ አስተያየት ለጥናት ID ${surveyId} ("${survey.title.substring(0, 30)}") በዜጋ ተመዝግቧል::`,
       req.ip
     );
+
+    // Asynchronously dispatch immediate real-time Telegram alert for this individual submission
+    (async () => {
+      try {
+        const dbBotToken = await db.getSetting('telegram_bot_token');
+        const dbChatId = await db.getSetting('telegram_chat_id');
+        const botToken = dbBotToken || activeBotToken;
+        const chatId = dbChatId || activeChatId;
+
+        if (botToken && chatId) {
+          const stats = await db.getTodaySurveyStats(surveyId, sanitizedDemographics.residence);
+          const enrichedAnswers = validatedAnswers.map((va) => {
+            const q = questionMap.get(va.question_id);
+            return {
+              question_id: va.question_id,
+              question_text: q?.question_text || `ጥያቄ ${va.question_id}`,
+              question_type: q?.question_type || 'text',
+              answer_text: va.answer_text,
+              rating_value: va.rating_value,
+            };
+          });
+
+          await sendRealtimeSurveySubmissionAlert({
+            surveyId,
+            surveyTitle: survey.title,
+            category: survey.category || 'አጠቃላይ',
+            responseId,
+            demographics: sanitizedDemographics,
+            answers: enrichedAnswers,
+            stats,
+            botToken,
+            chatId,
+          });
+        }
+      } catch (tgErr) {
+        console.error('Failed to send real-time Telegram survey alert:', tgErr);
+      }
+    })();
 
     res.status(201).json({
       success: true,
@@ -2326,6 +2364,9 @@ app.get('/api/admin/notifications', authMiddleware, async (req: AuthenticatedReq
     const tickets = await db.getAllTickets();
     const surveys = await db.getAllSurveys(true);
     const responses = await db.getAllRawResponses();
+    const auditLogs = await db.getAuditLogs();
+
+    const surveyMap = new Map<number, any>(surveys.map((s: any) => [s.id, s]));
 
     // 1. Pending & Urgent Tickets (አዲስ አቤቱታዎች እና አስቸኳይ ችግሮች)
     const pendingTickets = tickets.filter((t: any) => t.status === 'Pending' || t.status === 'Under Review');
@@ -2342,24 +2383,59 @@ app.get('/api/admin/notifications', authMiddleware, async (req: AuthenticatedReq
 
     const notifications: Array<{
       id: string;
-      type: 'ticket_new' | 'ticket_urgent' | 'ticket_status' | 'survey_response' | 'telegram_status';
+      type: 'survey_response' | 'ticket_urgent' | 'ticket_new' | 'ticket_status' | 'audit_log' | 'telegram_status';
+      category: 'surveys' | 'tickets' | 'audit' | 'system';
       title: string;
       description: string;
       time_eth: string;
+      raw_timestamp: number;
       priority: 'high' | 'medium' | 'info';
-      linkTab: 'tickets' | 'surveys' | 'analytics' | 'telegram';
+      linkTab: 'tickets' | 'surveys' | 'analytics' | 'telegram' | 'audit';
       refId?: string | number;
       isRead?: boolean;
     }> = [];
 
+    // Real Live Survey Responses (latest 15 submissions)
+    const sortedResponses = [...responses].sort((a: any, b: any) => {
+      const tB = new Date(b.submitted_at).getTime() || b.id || 0;
+      const tA = new Date(a.submitted_at).getTime() || a.id || 0;
+      return tB - tA;
+    });
+
+    sortedResponses.slice(0, 15).forEach((r: any) => {
+      const s = surveyMap.get(r.survey_id);
+      const surveyTitle = s?.title || `ጥናት #${r.survey_id}`;
+      const resText = r.residence ? `📍 መኖሪያ: ${r.residence}` : '📍 መኖሪያ: ያልተገለጸ';
+      const demoParts = [
+        r.age_group ? `ዕድሜ: ${r.age_group}` : '',
+        r.gender ? `ጾታ: ${r.gender}` : '',
+      ].filter(Boolean);
+      const demoStr = demoParts.length > 0 ? ` (${demoParts.join(', ')})` : '';
+
+      notifications.push({
+        id: `notif-resp-${r.id}`,
+        type: 'survey_response',
+        category: 'surveys',
+        title: `📝 አዲስ የዜጋ ምላሽ: [${surveyTitle}]`,
+        description: `${resText}${demoStr} • የምላሽ መለያ #${r.id}`,
+        time_eth: formatEthiopianDateTime(r.submitted_at),
+        raw_timestamp: new Date(r.submitted_at).getTime() || Date.now(),
+        priority: 'info',
+        linkTab: 'analytics',
+        refId: r.survey_id,
+      });
+    });
+
     // Urgent Tickets alerts
-    urgentTickets.slice(0, 5).forEach((t: any) => {
+    urgentTickets.slice(0, 10).forEach((t: any) => {
       notifications.push({
         id: `notif-urgent-ticket-${t.id}`,
         type: 'ticket_urgent',
+        category: 'tickets',
         title: `🚨 አስቸኳይ አቤቱታ: [${t.ticket_code}]`,
-        description: `${t.category} - ${t.subject || 'ዝርዝር መግለጫ የለውም'} (${t.residence || 'ድሬዳዋ'})`,
+        description: `${t.category} - ${t.subject || 'ዝርዝር መግለጫ የለውም'} (📍 ${t.residence || 'ድሬዳዋ'})`,
         time_eth: formatEthiopianDateTime(t.created_at),
+        raw_timestamp: new Date(t.created_at).getTime() || Date.now(),
         priority: 'high',
         linkTab: 'tickets',
         refId: t.ticket_code,
@@ -2367,14 +2443,16 @@ app.get('/api/admin/notifications', authMiddleware, async (req: AuthenticatedReq
     });
 
     // New Pending Tickets
-    pendingTickets.slice(0, 5).forEach((t: any) => {
+    pendingTickets.slice(0, 10).forEach((t: any) => {
       if (!urgentTickets.some((ut: any) => ut.id === t.id)) {
         notifications.push({
           id: `notif-new-ticket-${t.id}`,
           type: 'ticket_new',
+          category: 'tickets',
           title: `📌 አዲስ አቤቱታ: [${t.ticket_code}]`,
           description: `${t.category} - ${t.subject || ''} (ሁኔታ: ${t.status})`,
           time_eth: formatEthiopianDateTime(t.created_at),
+          raw_timestamp: new Date(t.created_at).getTime() || Date.now(),
           priority: 'medium',
           linkTab: 'tickets',
           refId: t.ticket_code,
@@ -2382,58 +2460,58 @@ app.get('/api/admin/notifications', authMiddleware, async (req: AuthenticatedReq
       }
     });
 
-    // Recent Survey Responses count in last 24h
-    if (recentResponses.length > 0) {
+    // Resolved Tickets
+    resolvedTickets.slice(0, 5).forEach((t: any) => {
       notifications.push({
-        id: `notif-survey-24h-${recentResponses.length}`,
-        type: 'survey_response',
-        title: `📊 አዲስ የሰርቬይ ምላሽ (${recentResponses.length} በ24 ሰዓት)`,
-        description: `በመጨረሻዎቹ 24 ሰዓታት ውስጥ ${recentResponses.length} አዳዲስ የዜጎች ምላሾች ተመዝግበዋል።`,
-        time_eth: formatEthiopianDateTime(new Date()),
-        priority: 'info',
-        linkTab: 'surveys',
-      });
-    }
-
-    // Ticket Status Changes / Resolved Summary
-    if (resolvedTickets.length > 0) {
-      const latestResolved = resolvedTickets[0];
-      notifications.push({
-        id: `notif-ticket-status-${latestResolved.id}`,
+        id: `notif-ticket-status-${t.id}`,
         type: 'ticket_status',
-        title: `✅ እልባት የተሰጠው አቤቱታ: [${latestResolved.ticket_code}]`,
-        description: `የአቤቱታው ሁኔታ ወደ '${latestResolved.status}' ተቀይሮ ምላሽ ተሰጥቶታል።`,
-        time_eth: formatEthiopianDateTime(latestResolved.updated_at || latestResolved.created_at),
+        category: 'tickets',
+        title: `✅ እልባት የተሰጠው አቤቱታ: [${t.ticket_code}]`,
+        description: `${t.category} - ${t.subject || ''} (የአቤቱታው ሁኔታ ወደ '${t.status}' ተቀይሯል)`,
+        time_eth: formatEthiopianDateTime(t.updated_at || t.created_at),
+        raw_timestamp: new Date(t.updated_at || t.created_at).getTime() || Date.now(),
         priority: 'info',
         linkTab: 'tickets',
-        refId: latestResolved.ticket_code,
+        refId: t.ticket_code,
       });
-    }
-
-    // Telegram Bot & 24h Dispatch Status
-    const isTelegramReady = Boolean(activeBotToken && activeChatId);
-    notifications.push({
-      id: 'notif-telegram-status',
-      type: 'telegram_status',
-      title: isTelegramReady ? `✈️ የTelegram 24h ሪፖርት አገልግሎት: ዝግጁ` : `⚠️ የTelegram Bot አልተዋቀረም`,
-      description: isTelegramReady
-        ? `የ24 ሰዓት የPDF ሪፖርት፣ የዳታ ቋት (Excel/CSV) እና የ OPA AI Engine የፖሊሲ ትንተና በየቀኑ በTelegram ይላካል።`
-        : `የ24 ሰዓት ሪፖርት በፋይል ለመላክ እባክዎ Bot Token እና Chat ID ያስገቡ።`,
-      time_eth: formatEthiopianDateTime(new Date()),
-      priority: isTelegramReady ? 'info' : 'medium',
-      linkTab: 'telegram',
     });
+
+    // Security & Administrative Audit Logs (excluding repetitive raw survey submission pings)
+    const auditEvents = (auditLogs || [])
+      .filter((a: any) => a.action !== 'SURVEY_SUBMISSION')
+      .slice(0, 8);
+
+    auditEvents.forEach((a: any) => {
+      const isSecurity = a.action.includes('FAIL') || a.action.includes('SECURITY') || a.action.includes('AUTH');
+      notifications.push({
+        id: `notif-audit-${a.id}`,
+        type: 'audit_log',
+        category: 'audit',
+        title: `🛡️ የስርዓት እንቅስቃሴ: [${a.action}]`,
+        description: `${a.details} (አድራጊ: ${a.admin_email || 'ሲስተም'})`,
+        time_eth: formatEthiopianDateTime(a.timestamp),
+        raw_timestamp: new Date(a.timestamp).getTime() || Date.now(),
+        priority: isSecurity ? 'high' : 'info',
+        linkTab: 'audit',
+        refId: a.id,
+      });
+    });
+
+    // Sort all notifications chronologically descending (newest first)
+    notifications.sort((a, b) => (b.raw_timestamp || 0) - (a.raw_timestamp || 0));
 
     res.json({
       notifications,
-      unreadCount: pendingTickets.length + urgentTickets.length,
+      unreadCount: pendingTickets.length + urgentTickets.length + recentResponses.length,
       stats: {
         totalTickets: tickets.length,
         pendingTickets: pendingTickets.length,
         urgentTickets: urgentTickets.length,
+        resolvedTickets: resolvedTickets.length,
         totalSurveys: surveys.length,
         totalResponses: responses.length,
         responses24h: recentResponses.length,
+        totalAuditLogs: auditLogs.length,
       },
     });
   } catch (err: any) {

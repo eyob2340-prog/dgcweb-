@@ -493,4 +493,139 @@ export async function sendDaily24hTelegramReport(
   };
 }
 
+/**
+ * Real-time individual survey submission alert sent immediately to Telegram.
+ * Delivers respondent demographics, today's participation counts for woreda and survey,
+ * and individual Q&A with positive/negative/neutral sentiment indicators.
+ */
+export async function sendRealtimeSurveySubmissionAlert(params: {
+  surveyId: number;
+  surveyTitle: string;
+  category: string;
+  responseId: number;
+  demographics: {
+    age_group?: string;
+    gender?: string;
+    education?: string;
+    residence?: string;
+  };
+  answers: Array<{
+    question_id: number;
+    question_text: string;
+    question_type: string;
+    answer_text?: string;
+    rating_value?: number;
+  }>;
+  stats: {
+    todaySurveyTotal: number;
+    todayWoredaTotal: number;
+    allTimeSurveyTotal: number;
+  };
+  botToken?: string;
+  chatId?: string;
+}): Promise<{ success: boolean; message: string }> {
+  const token = params.botToken || process.env.TELEGRAM_BOT_TOKEN || DEFAULT_TELEGRAM_BOT_TOKEN;
+  const rawChatId = params.chatId || process.env.TELEGRAM_CHAT_ID || DEFAULT_TELEGRAM_CHAT_ID;
+  const targetChatId = formatTelegramChatId(rawChatId);
+
+  if (!token || !targetChatId) {
+    return {
+      success: false,
+      message: 'የTelegram Bot Token ወይም Chat ID አልተዋቀረም',
+    };
+  }
+
+  const escapeHtml = (text?: string | null): string => {
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  };
+
+  const ethDate = toEthiopianDate(new Date());
+  const dateAm = ethDate.formattedAmharic;
+  const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+  const res = params.demographics.residence || 'ያልተገለጸ';
+  const age = params.demographics.age_group || 'ያልተገለጸ';
+  const gender = params.demographics.gender || 'ያልተገለጸ';
+  const edu = params.demographics.education || 'ያልተገለጸ';
+
+  // Format Individual Questions & Answers
+  const answersListHtml = (params.answers || []).map((ans, idx) => {
+    const sentiment = classifyAnswerSentiment(ans.question_type, ans.answer_text, ans.rating_value);
+    const badge =
+      sentiment.sentiment === 'positive'
+        ? '🟢 አውንታዊ'
+        : sentiment.sentiment === 'negative'
+        ? '🔴 አሉታዊ'
+        : '⚪ ገለልተኛ';
+
+    let displayVal = '';
+    if (ans.question_type === 'rating') {
+      displayVal = `⭐ <b>${ans.rating_value || 0} / 5</b> (${sentiment.labelAm})`;
+    } else {
+      const trimmed = (ans.answer_text || 'ባዶ').trim();
+      const shortVal = trimmed.length > 300 ? trimmed.substring(0, 300) + '...' : trimmed;
+      displayVal = `<b>${escapeHtml(shortVal)}</b> [${badge}]`;
+    }
+
+    const shortQ = ans.question_text.length > 120 ? ans.question_text.substring(0, 120) + '...' : ans.question_text;
+    return `<b>ጥያቄ ${idx + 1}:</b> <i>${escapeHtml(shortQ)}</i>\n👉 <b>ምላሽ:</b> ${displayVal}`;
+  }).join('\n\n');
+
+  let messageHtml = `🔔 <b>አዲስ የዜጋ የሰርቬይ ምላሽ ተመዝግቧል! (Live Submission)</b>\n`;
+  messageHtml += `🏢 <b>የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ</b>\n`;
+  messageHtml += `━━━━━━━━━━━━━━━━━━━━━\n`;
+  messageHtml += `📌 <b>ጥናት:</b> <b>${escapeHtml(params.surveyTitle)}</b>\n`;
+  messageHtml += `🏷️ <b>መደብ:</b> ${escapeHtml(params.category || 'አጠቃላይ')} | 🆔 <b>መለያ:</b> <code>#${params.responseId}</code>\n\n`;
+
+  messageHtml += `👤 <b>የተሳታፊው ስነ-ሕዝብ (Demographics):</b>\n`;
+  messageHtml += `• 📍 <b>መኖሪያ / ወረዳ:</b> <b>${escapeHtml(res)}</b>\n`;
+  messageHtml += `• 👥 <b>ዕድሜ:</b> ${escapeHtml(age)} | <b>ጾታ:</b> ${escapeHtml(gender)}\n`;
+  messageHtml += `• 🎓 <b>ትምህርት:</b> ${escapeHtml(edu)}\n\n`;
+
+  messageHtml += `📊 <b>የቀን ተሳትፎ ማጠቃለያ (Daily Turnout):</b>\n`;
+  messageHtml += `• 📅 <b>ዛሬ የተሳተፉ ጠቅላላ ዜጎች:</b> <b>${params.stats.todaySurveyTotal}</b> ሰዎች\n`;
+  messageHtml += `• 📍 <b>ከዚህ ወረዳ (${escapeHtml(res)}) ዛሬ:</b> <b>${params.stats.todayWoredaTotal}</b> ሰዎች ተሳትፈዋል\n`;
+  messageHtml += `• 🌐 <b>የዚህ ጥናት ጠቅላላ ተሳታፊ:</b> <b>${params.stats.allTimeSurveyTotal}</b> ሰዎች\n\n`;
+
+  messageHtml += `📝 <b>የዜጋው ዝርዝር መልሶች (Citizen's Answers):</b>\n`;
+  messageHtml += `${answersListHtml}\n\n`;
+
+  messageHtml += `🕒 <b>የተመዘገበበት ሰዓት:</b> ${escapeHtml(dateAm)} [${timeStr}]\n`;
+  messageHtml += `━━━━━━━━━━━━━━━━━━━━━\n`;
+  messageHtml += `🤖 <i>OPA AI Civics Engine • ራስ-ሰር የቀጥታ ማሳወቂያ</i>`;
+
+  // Safe length check (Telegram message limit is 4096)
+  if (messageHtml.length > 4000) {
+    messageHtml = messageHtml.substring(0, 3950) + '\n\n... <i>(ሙሉው መረጃ በዳታቤዝ ውስጥ ተመዝግቧል)</i>';
+  }
+
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: targetChatId,
+        text: messageHtml,
+        parse_mode: 'HTML',
+      }),
+    });
+
+    const data = await res.json();
+    if (data.ok) {
+      return { success: true, message: 'የቀጥታ ማሳወቂያ ወደ Telegram በስኬት ተልኳል' };
+    } else {
+      console.warn('Telegram API error on live alert:', data.description);
+      return { success: false, message: `Telegram Error: ${data.description}` };
+    }
+  } catch (err: any) {
+    console.error('Failed to send live alert to Telegram:', err);
+    return { success: false, message: err.message };
+  }
+}
+
+
 
