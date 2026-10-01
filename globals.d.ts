@@ -1,142 +1,240 @@
-// Ambient declarations for clean IDE resolution and 0 problems
-declare var process: any;
+// =================================================================
+// globals.d.ts — Universal ambient type declarations
+// This file is a SCRIPT (not a module), so it has NO import/export.
+// It must be included in tsconfig.json "include" for the TS Language
+// Server to automatically apply it to every file in the project.
+// =================================================================
+
+// ─── Node.js Globals ──────────────────────────────────────────────
+declare var process: {
+  env: Record<string, string | undefined>;
+  argv: string[];
+  exit(code?: number): never;
+  cwd(): string;
+  [key: string]: any;
+};
 declare var Buffer: any;
 declare var __dirname: string;
 declare var __filename: string;
-declare var setTimeout: any;
-declare var clearTimeout: any;
-declare var setInterval: any;
-declare var clearInterval: any;
+declare var setTimeout: (fn: (...args: any[]) => any, ms?: number, ...args: any[]) => any;
+declare var clearTimeout: (id?: any) => void;
+declare var setInterval: (fn: (...args: any[]) => any, ms?: number, ...args: any[]) => any;
+declare var clearInterval: (id?: any) => void;
+declare var global: any;
+declare var require: any;
+declare var module: any;
+declare var exports: any;
 
+// ─── Node built-in modules ────────────────────────────────────────
 declare module 'crypto' {
-  export function randomBytes(size: number, callback?: any): any;
-  export function createHash(algorithm: string, options?: any): any;
-  export function randomUUID(): string;
-  export function timingSafeEqual(a: any, b: any): boolean;
-  const crypto: any;
-  export default crypto;
+  function randomBytes(size: number): Buffer;
+  function randomBytes(size: number, callback: (err: Error | null, buf: Buffer) => void): void;
+  function createHash(algorithm: string, options?: any): any;
+  function randomUUID(): string;
+  function timingSafeEqual(a: any, b: any): boolean;
+  const webcrypto: any;
 }
 
 declare module 'node:crypto' {
-  export function randomBytes(size: number, callback?: any): any;
-  export function createHash(algorithm: string, options?: any): any;
-  export function randomUUID(): string;
-  export function timingSafeEqual(a: any, b: any): boolean;
-  const crypto: any;
-  export default crypto;
+  export * from 'crypto';
 }
 
+declare module 'path' {
+  function join(...paths: string[]): string;
+  function resolve(...paths: string[]): string;
+  function dirname(p: string): string;
+  function basename(p: string, ext?: string): string;
+  function extname(p: string): string;
+  const sep: string;
+  const delimiter: string;
+}
+
+declare module 'node:path' {
+  export * from 'path';
+}
+
+declare module 'fs' {
+  function readFileSync(path: any, options?: any): any;
+  function writeFileSync(path: any, data: any, options?: any): void;
+  function existsSync(path: any): boolean;
+  function mkdirSync(path: any, options?: any): void;
+  function unlinkSync(path: any): void;
+  function createWriteStream(path: any, options?: any): any;
+  function readFile(path: any, options: any, callback: (err: any, data: any) => void): void;
+}
+
+declare module 'node:fs' {
+  export * from 'fs';
+}
+
+// ─── Third-party modules ──────────────────────────────────────────
 declare module 'express' {
-  export interface Request {
-    [key: string]: any;
-    headers?: any;
-    baseUrl?: string;
-    path?: string;
-    ip?: string;
-    body?: any;
-    params?: any;
-    query?: any;
-    cookies?: Record<string, string>;
+  interface RequestHandler {
+    (req: Request, res: Response, next: NextFunction): any;
   }
-  export interface Response {
+  interface Request {
+    [key: string]: any;
+    headers: any;
+    body: any;
+    params: any;
+    query: any;
+    cookies: any;
+    ip: string;
+    baseUrl: string;
+    path: string;
+    method: string;
+    url: string;
+    get(name: string): string | undefined;
+  }
+  interface Response {
     [key: string]: any;
     status(code: number): this;
     json(body?: any): this;
     send(body?: any): this;
-    cookie(name: string, val: string, options?: any): this;
+    sendFile(path: string, options?: any, callback?: any): void;
+    cookie(name: string, val: any, options?: any): this;
     clearCookie(name: string, options?: any): this;
     setHeader(name: string, value: any): this;
-    sendFile(path: string): this;
+    redirect(url: string): void;
+    redirect(status: number, url: string): void;
+    end(data?: any): this;
   }
-  export type NextFunction = (err?: any) => void;
-  const express: any;
-  export default express;
+  type NextFunction = (err?: any) => void;
+  interface Application {
+    [key: string]: any;
+    use(...args: any[]): this;
+    get(path: any, ...handlers: any[]): this;
+    post(path: any, ...handlers: any[]): this;
+    put(path: any, ...handlers: any[]): this;
+    delete(path: any, ...handlers: any[]): this;
+    patch(path: any, ...handlers: any[]): this;
+    listen(port: number, host?: string, callback?: () => void): any;
+    set(setting: string, val: any): this;
+  }
+  interface Router {
+    [key: string]: any;
+    use(...args: any[]): this;
+    get(path: any, ...handlers: any[]): this;
+    post(path: any, ...handlers: any[]): this;
+    put(path: any, ...handlers: any[]): this;
+    delete(path: any, ...handlers: any[]): this;
+    patch(path: any, ...handlers: any[]): this;
+  }
+  function express(): Application;
+  namespace express {
+    function static(root: string, options?: any): RequestHandler;
+    function Router(options?: any): Router;
+    function json(options?: any): RequestHandler;
+    function urlencoded(options?: any): RequestHandler;
+  }
+  export = express;
 }
 
 declare module 'jsonwebtoken' {
-  const jwt: any;
-  export default jwt;
+  function sign(payload: any, secret: any, options?: any): string;
+  function verify(token: string, secret: any, options?: any): any;
+  function decode(token: string, options?: any): any;
+  class JsonWebTokenError extends Error {}
+  class TokenExpiredError extends JsonWebTokenError {}
+  namespace jwt {}
+  export { sign, verify, decode, JsonWebTokenError, TokenExpiredError };
 }
 
 declare module 'bcryptjs' {
-  const bcrypt: any;
-  export default bcrypt;
+  function hashSync(data: string, saltOrRounds: number | string): string;
+  function hash(data: string, saltOrRounds: number | string): Promise<string>;
+  function compareSync(data: string, encrypted: string): boolean;
+  function compare(data: string, encrypted: string): Promise<boolean>;
+  function genSaltSync(rounds?: number): string;
+  function genSalt(rounds?: number): Promise<string>;
 }
 
 declare module 'dotenv' {
-  const dotenv: any;
-  export default dotenv;
-}
-
-declare module 'path' {
-  const path: any;
-  export default path;
-}
-
-declare module 'fs' {
-  const fs: any;
-  export default fs;
+  function config(options?: any): { parsed?: Record<string, string>; error?: Error };
+  function parse(src: string | Buffer): Record<string, string>;
 }
 
 declare module 'pg' {
-  export class Pool {
+  class Pool {
     constructor(config?: any);
     connect(): Promise<any>;
-    query(text: any, params?: any[]): Promise<any>;
+    query(text: any, params?: any[]): Promise<{ rows: any[]; rowCount: number; [key: string]: any }>;
     on(event: string, listener: (...args: any[]) => void): this;
     end(): Promise<void>;
   }
-  const pg: any;
-  export default pg;
+  class Client {
+    constructor(config?: any);
+    connect(): Promise<void>;
+    query(text: any, params?: any[]): Promise<{ rows: any[]; rowCount: number }>;
+    release(err?: boolean | Error): void;
+    end(): Promise<void>;
+  }
 }
 
 declare module 'cors' {
-  const cors: any;
-  export default cors;
+  function cors(options?: any): any;
+  namespace cors {}
+  export = cors;
 }
 
 declare module 'helmet' {
-  const helmet: any;
-  export default helmet;
+  function helmet(options?: any): any;
+  namespace helmet {}
+  export = helmet;
 }
 
 declare module 'express-rate-limit' {
-  const rateLimit: any;
-  export default rateLimit;
+  function rateLimit(options?: any): any;
+  namespace rateLimit {}
+  export = rateLimit;
 }
 
 declare module 'vite' {
-  export function createServer(options?: any): Promise<any>;
-  const vite: any;
-  export default vite;
+  function createServer(options?: any): Promise<any>;
+  function build(options?: any): Promise<any>;
+  interface UserConfig { [key: string]: any; }
+  function defineConfig(config: any): any;
 }
 
 declare module '@google/genai' {
-  export class GoogleGenAI {
+  class GoogleGenAI {
     constructor(options?: any);
     models: any;
+    getGenerativeModel(params: any): any;
+  }
+  class GenerativeModel {
+    generateContent(request: any): Promise<any>;
+    generateContentStream(request: any): Promise<any>;
   }
 }
 
 declare module 'jspdf' {
-  const jsPDF: any;
-  export default jsPDF;
+  class jsPDF {
+    constructor(options?: any);
+    [key: string]: any;
+  }
+  export = jsPDF;
 }
 
 declare module 'qrcode' {
-  const qrcode: any;
-  export default qrcode;
+  function toDataURL(text: string, options?: any): Promise<string>;
+  function toBuffer(text: string, options?: any): Promise<Buffer>;
+  function toString(text: string, options?: any): Promise<string>;
 }
 
 declare module 'otplib' {
-  export function generateSecret(): string;
-  export function generateURI(options: any): string;
-  export function verifySync(options: any): boolean;
-  const otplib: any;
-  export default otplib;
+  function generateSecret(): string;
+  function generateURI(options: any): string;
+  function verifySync(options: any): boolean;
+  const authenticator: {
+    generateSecret(): string;
+    keyuri(user: string, service: string, secret: string): string;
+    verify(options: { token: string; secret: string }): boolean;
+    generate(secret: string): string;
+  };
 }
 
 declare module 'nodemailer' {
-  const nodemailer: any;
-  export default nodemailer;
+  function createTransporter(options: any): any;
+  function createTransport(options: any): any;
 }
