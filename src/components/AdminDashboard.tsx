@@ -678,13 +678,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                           </span>
                         </td>
                         <td className="p-4 text-center">
-                          <div className="inline-flex items-center gap-1 bg-slate-950 px-2.5 py-1 rounded-xl border border-slate-800">
-                            <span title="አማርኛ (ኦሪጅናል)">🇪🇹</span>
-                            <span title="English" className={transKeys.includes('en') ? 'opacity-100' : 'opacity-25 grayscale'}>🇬🇧</span>
-                            <span title="Afaan Oromoo" className={transKeys.includes('om') ? 'opacity-100' : 'opacity-25 grayscale'}>🟢</span>
-                            <span title="ትግርኛ" className={transKeys.includes('ti') ? 'opacity-100' : 'opacity-25 grayscale'}>🔵</span>
-                            <span title="Af-Soomaali" className={transKeys.includes('so') ? 'opacity-100' : 'opacity-25 grayscale'}>🟣</span>
-                            <span title="Français" className={transKeys.includes('fr') ? 'opacity-100' : 'opacity-25 grayscale'}>🇫🇷</span>
+                          <div className="inline-flex items-center gap-1.5 bg-slate-950 px-2.5 py-1 rounded-xl border border-slate-800">
+                            <span title="አማርኛ (ኦሪጅናል)" className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">AM ✓</span>
+                            <span title="Afaan Oromoo (Oromo)" className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${transKeys.includes('om') ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-500 bg-slate-900 opacity-60'}`}>
+                              OM {transKeys.includes('om') ? '✓' : '—'}
+                            </span>
+                            <span title="Soomaali (Somali)" className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${transKeys.includes('so') ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-500 bg-slate-900 opacity-60'}`}>
+                              SO {transKeys.includes('so') ? '✓' : '—'}
+                            </span>
+                            {transKeys.includes('en') && (
+                              <span title="English" className="text-[11px] font-bold text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded">EN ✓</span>
+                            )}
                           </div>
                         </td>
                         <td className="p-4 text-center font-black text-amber-300">{s.total_responses || 0}</td>

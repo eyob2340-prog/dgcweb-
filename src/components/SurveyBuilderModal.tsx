@@ -428,6 +428,28 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
               <span>{isTranslating ? 'እየተተረጎመ ነው...' : '🌐 ሁሉንም ተርጉም (Translate All)'}</span>
             </button>
           </div>
+
+          {/* Translation Completeness Indicators */}
+          <div className="flex flex-wrap items-center gap-2 px-6 py-2.5 bg-slate-950/40 border-b border-slate-800 text-[11px] font-bold">
+            <span className="text-slate-400">የትርጉም ሁኔታ (Completeness):</span>
+            <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              አማርኛ ✓ Complete
+            </span>
+            <span className={`px-2.5 py-0.5 rounded-lg border ${
+              Boolean(translations.om?.title?.trim())
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+            }`}>
+              Afaan Oromoo {Boolean(translations.om?.title?.trim()) ? '✓ Complete' : '⚠️ Missing'}
+            </span>
+            <span className={`px-2.5 py-0.5 rounded-lg border ${
+              Boolean(translations.so?.title?.trim())
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+            }`}>
+              Somali {Boolean(translations.so?.title?.trim()) ? '✓ Complete' : '⚠️ Missing'}
+            </span>
+          </div>
         </div>
 
         {/* Feedback Alerts */}
@@ -447,6 +469,25 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[65vh] overflow-y-auto">
+          {/* Active Translation Indicator Banner */}
+          <div className={`p-3 rounded-2xl border text-xs font-bold flex items-center justify-between ${
+            activeLangTab === 'am'
+              ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+              : 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+          }`}>
+            <span>
+              አሁን እያረሙ ያሉት፦ <strong>{
+                activeLangTab === 'am' ? 'አማርኛ — Amharic (ዋና ቋንቋ)' :
+                activeLangTab === 'om' ? 'Afaan Oromoo — Oromo' :
+                activeLangTab === 'so' ? 'Soomaali — Somali' :
+                activeLangTab === 'en' ? 'English' : activeLangTab
+              }</strong>
+            </span>
+            <span className="text-[10px] opacity-75">
+              {activeLangTab === 'am' ? 'ምንጭ ቋንቋ' : 'የተለየ ትርጉም'}
+            </span>
+          </div>
+
           {activeLangTab === 'am' ? (
             /* ================= Amharic Primary Form ================= */
             <div className="space-y-5">

@@ -13,8 +13,8 @@ export const DgcLogo: React.FC<DgcLogoProps> = ({
 }) => {
   const [pressProgress, setPressProgress] = useState<number>(0);
   const [isPressing, setIsPressing] = useState<boolean>(false);
-  const pressTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pressStartTimeRef = useRef<number>(0);
 
   const startPress = (e?: React.SyntheticEvent) => {
