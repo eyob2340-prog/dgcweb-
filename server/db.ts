@@ -35,10 +35,15 @@ if (DATABASE_URL) {
     const poolMax = parseInt(process.env.PG_MAX_POOL || '50', 10);
     pgPool = new Pool({
       connectionString: DATABASE_URL,
-      ssl: DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: true },
+      ssl: DATABASE_URL.includes('localhost')
+        ? false
+        : { rejectUnauthorized: process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true' },
       max: poolMax, // Supports 100+ concurrent users without starvation
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
+    });
+    pgPool.on('error', (err) => {
+      console.error('🚨 Unexpected error on idle PostgreSQL client (recovered):', err);
     });
     console.log(`🔗 PostgreSQL Database configured with DATABASE_URL (Pool Max: ${poolMax}).`);
     initPgDatabase();
