@@ -37,10 +37,17 @@ export interface AdminPayload {
 export interface AuthenticatedRequest extends Request {
   adminUser?: AdminPayload;
   token?: string;
-  headers?: any;
-  baseUrl?: string;
-  path?: string;
-  ip?: string;
+  body: any;
+  params: any;
+  query: any;
+  headers: any;
+  cookies: any;
+  baseUrl: string;
+  path: string;
+  ip: string;
+  method: string;
+  url: string;
+  [key: string]: any;
 }
 
 export function hashPassword(password: string): string {

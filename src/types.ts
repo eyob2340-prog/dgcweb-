@@ -157,6 +157,7 @@ export interface AuditLog {
 }
 
 export interface AiReportResponse {
+  ai_available?: boolean;
   executive_summary: string;
   introduction?: string;
   key_findings: string[];

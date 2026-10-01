@@ -13,6 +13,7 @@ declare var process: {
   cwd(): string;
   [key: string]: any;
 };
+declare type Buffer = any;
 declare var Buffer: any;
 declare var __dirname: string;
 declare var __filename: string;
@@ -27,10 +28,12 @@ declare var exports: any;
 
 // ─── Node built-in modules ────────────────────────────────────────
 declare module 'crypto' {
-  function randomBytes(size: number): Buffer;
-  function randomBytes(size: number, callback: (err: Error | null, buf: Buffer) => void): void;
+  function randomBytes(size: number): any;
+  function randomBytes(size: number, callback: (err: Error | null, buf: any) => void): void;
   function createHash(algorithm: string, options?: any): any;
   function randomUUID(): string;
+  function randomInt(min: number, max: number): number;
+  function randomInt(max: number): number;
   function timingSafeEqual(a: any, b: any): boolean;
   const webcrypto: any;
 }
@@ -59,8 +62,13 @@ declare module 'fs' {
   function existsSync(path: any): boolean;
   function mkdirSync(path: any, options?: any): void;
   function unlinkSync(path: any): void;
+  function renameSync(oldPath: any, newPath: any): void;
+  function copyFileSync(src: any, dest: any, flags?: number): void;
+  function mkdtempSync(prefix: string, options?: any): string;
   function createWriteStream(path: any, options?: any): any;
   function readFile(path: any, options: any, callback: (err: any, data: any) => void): void;
+  function statSync(path: any, options?: any): any;
+  function readdirSync(path: any, options?: any): any;
 }
 
 declare module 'node:fs' {
@@ -86,6 +94,8 @@ declare module 'express' {
     url: string;
     get(name: string): string | undefined;
   }
+  // Named exports that TypeScript looks for with { Request, Response, NextFunction } imports
+  export type { Request, Response, NextFunction };
   interface Response {
     [key: string]: any;
     status(code: number): this;

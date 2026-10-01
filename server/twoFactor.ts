@@ -47,8 +47,8 @@ export function verifyTwoFactorToken(token: string, secret: string): boolean {
   if (!token || !secret) return false;
   const cleanToken = token.toString().trim().replace(/\s+/g, '');
   try {
-    const res = verifySync({ token: cleanToken, secret });
-    return Boolean(res && res.valid);
+    const res: any = verifySync({ token: cleanToken, secret });
+    return Boolean(res === true || (res && res.valid));
   } catch (err) {
     console.error('[2FA Verification Error]:', err);
     return false;

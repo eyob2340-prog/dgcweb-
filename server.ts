@@ -591,7 +591,7 @@ app.post('/api/surveys/:id/responses', citizenMaintenanceMiddleware, submissionL
       return res.status(400).json({ error: 'የተላከው የመልሶች ብዛት ከተፈቀደው በላይ ነው (Too many answers submitted)' });
     }
 
-    const questionMap = new Map((survey.questions || []).map((q: any) => [q.id, q]));
+    const questionMap = new Map<number, any>((survey.questions || []).map((q: any) => [q.id as number, q]));
     const validatedAnswers: { question_id: number; answer_text?: string; rating_value?: number }[] = [];
 
     for (const ans of answers) {

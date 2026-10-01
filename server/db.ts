@@ -1455,7 +1455,7 @@ export const db = {
         if (Array.isArray(data.questions) && data.questions.length > 0) {
           // Fetch existing questions
           const existingQRes = await client.query('SELECT id FROM questions WHERE survey_id = $1', [surveyId]);
-          const existingQIds = new Set(existingQRes.rows.map((r) => r.id));
+          const existingQIds = new Set<number>(existingQRes.rows.map((r: any) => r.id as number));
           const updatedQIds = new Set<number>();
 
           for (const q of data.questions) {
