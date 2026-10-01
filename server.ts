@@ -45,112 +45,111 @@ const HOST = '0.0.0.0';
 app.set('trust proxy', 1);
 
 // ── Security Headers ──────────────────────────────────────────────────────────
-// Helmet with full production-grade configuration
-app.use(
-  helmet({
-    // Content-Security-Policy: strict allowlist — blocks XSS, clickjacking injections
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
+const isDev = process.env.NODE_ENV !== 'production';
 
-        // Scripts: allow self + inline scripts (React hydration) + Google Gemini API + Google Translate
-        // No inline <script> blocks remain (bootstrap code lives in /boot-guard.js and /gt-init.js),
-        // so 'unsafe-inline' is intentionally NOT allowed for scripts.
-        scriptSrc: [
-          "'self'",
-          "'unsafe-eval'",      // Kept only for the Google Translate widget scripts
-          'https://translate.google.com',
-          'https://translate.googleapis.com',
-          'https://www.gstatic.com',
-        ],
-        scriptSrcAttr: ["'none'"],
+if (!isDev) {
+  // Helmet with full production-grade configuration
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
 
-        // Styles: allow self + inline styles (Tailwind utilities) + Google Fonts + Google Translate
-        styleSrc: [
-          "'self'",
-          "'unsafe-inline'",    // Required: Tailwind CSS generates inline style attributes
-          'https://fonts.googleapis.com',
-          'https://translate.googleapis.com',
-          'https://www.gstatic.com',
-        ],
+          scriptSrc: [
+            "'self'",
+            "'unsafe-eval'",
+            "'unsafe-inline'",
+            'https://translate.google.com',
+            'https://translate.googleapis.com',
+            'https://www.gstatic.com',
+          ],
+          scriptSrcAttr: ["'none'"],
 
-        // Fonts: Google Fonts CDN only
-        fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+          styleSrc: [
+            "'self'",
+            "'unsafe-inline'",
+            'https://fonts.googleapis.com',
+            'https://translate.googleapis.com',
+            'https://www.gstatic.com',
+          ],
 
-        // Images: allow self, data URIs (QR codes / canvas export), blob URLs, and Google Translate
-        imgSrc: [
-          "'self'",
-          'data:',
-          'blob:',
-          'https://translate.google.com',
-          'https://translate.googleapis.com',
-          'https://www.gstatic.com',
-        ],
+          fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
 
-        // Fetch/XHR: self + Google Generative AI (Gemini) + Telegram Bot API + Google Translate
-        connectSrc: [
-          "'self'",
-          'https://generativelanguage.googleapis.com',
-          'https://api.telegram.org',
-          'https://translate.googleapis.com',
-        ],
+          imgSrc: [
+            "'self'",
+            'data:',
+            'blob:',
+            'https://translate.google.com',
+            'https://translate.googleapis.com',
+            'https://www.gstatic.com',
+            'https://www.google.com',
+            'https://fonts.gstatic.com',
+          ],
 
-        // Workers & Service Workers: self only
-        workerSrc: ["'self'", 'blob:'],
+          connectSrc: [
+            "'self'",
+            'https://generativelanguage.googleapis.com',
+            'https://api.telegram.org',
+            'https://translate.googleapis.com',
+            'wss:',
+            'ws:',
+          ],
 
-        // Frames: allow Google Maps embed & OpenStreetMap
-        frameSrc: [
-          "'self'",
-          'https://maps.google.com',
-          'https://www.google.com',
-          'https://*.google.com',
-          'https://*.openstreetmap.org',
-        ],
-        frameAncestors: ["'none'"],
+          workerSrc: ["'self'", 'blob:'],
 
-        // Object/embed tags: block (Flash, plugins)
-        objectSrc: ["'none'"],
+          frameSrc: [
+            "'self'",
+            'https://maps.google.com',
+            'https://www.google.com',
+            'https://*.google.com',
+            'https://*.openstreetmap.org',
+          ],
+          frameAncestors: ["'none'"],
 
-        // Base URI: restrict to self to prevent base tag injection
-        baseUri: ["'self'"],
-
-        // Form targets: self only
-        formAction: ["'self'"],
-
-        // Upgrade insecure requests in production
-        upgradeInsecureRequests: [],
+          objectSrc: ["'none'"],
+          baseUri: ["'self'"],
+          formAction: ["'self'"],
+        },
       },
-    },
 
-    // X-Frame-Options: DENY — prevents clickjacking
-    frameguard: { action: 'deny' },
+      // X-Frame-Options: DENY — prevents clickjacking
+      frameguard: { action: 'deny' },
 
-    // HTTP Strict Transport Security: 1 year, include subdomains
-    hsts: {
-      maxAge: 31536000,          // 1 year in seconds
-      includeSubDomains: true,
-      preload: true,
-    },
+      // HTTP Strict Transport Security: 1 year, include subdomains
+      hsts: {
+        maxAge: 31536000,          // 1 year in seconds
+        includeSubDomains: true,
+        preload: true,
+      },
 
-    // X-Content-Type-Options: nosniff — prevents MIME-type sniffing
-    noSniff: true,
+      // X-Content-Type-Options: nosniff — prevents MIME-type sniffing
+      noSniff: true,
 
-    // X-DNS-Prefetch-Control: off
-    dnsPrefetchControl: { allow: false },
+      // X-DNS-Prefetch-Control: off
+      dnsPrefetchControl: { allow: false },
 
-    // Referrer-Policy: strict-origin-when-cross-origin
-    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+      // Referrer-Policy: strict-origin-when-cross-origin
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 
-    // X-Permitted-Cross-Domain-Policies: none
-    permittedCrossDomainPolicies: { permittedPolicies: 'none' },
+      // X-Permitted-Cross-Domain-Policies: none
+      permittedCrossDomainPolicies: { permittedPolicies: 'none' },
 
-    // X-Download-Options: noopen (IE legacy)
-    ieNoOpen: true,
+      // X-Download-Options: noopen (IE legacy)
+      ieNoOpen: true,
 
-    // Cross-Origin-Embedder-Policy: disabled — needed for QR/canvas blob exports
-    crossOriginEmbedderPolicy: false,
-  })
-);
+      // Cross-Origin-Embedder-Policy: disabled — needed for QR/canvas blob exports
+      crossOriginEmbedderPolicy: false,
+    })
+  );
+} else {
+  // In development: disable all caching and Helmet headers so Vite HMR works cleanly
+  app.use((_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+  });
+}
 
 // Permissions-Policy: disable all sensitive browser APIs not used by this app
 app.use((_req, res, next) => {

@@ -96,7 +96,16 @@
     var btn = document.createElement('button');
     btn.textContent = 'እንደገና ጫን (Reload)';
     btn.style.cssText = 'padding:10px 22px;border:0;border-radius:12px;background:#f59e0b;color:#0f172a;font-weight:700;font-size:14px;cursor:pointer';
-    btn.onclick = function () { location.reload(); };
+    btn.onclick = function () {
+      try {
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            names.forEach(function(n) { caches.delete(n); });
+          });
+        }
+      } catch (e) {}
+      window.location.href = window.location.origin + window.location.pathname + '?_reload=' + Date.now();
+    };
     inner.appendChild(h); inner.appendChild(p); inner.appendChild(btn);
 
     var detail = [reason || lastError]
