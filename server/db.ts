@@ -233,30 +233,18 @@ async function initPgDatabase() {
       }
       console.log('✅ Developer and Admin accounts verified and synchronized with database.');
 
-      // Global 2FA: Enforce ON on production deployment
-      if (isProduction) {
-        await client.query(
-          `INSERT INTO system_settings (setting_key, setting_value) VALUES ('global_2fa_enabled', 'true')
-           ON CONFLICT (setting_key) DO UPDATE SET setting_value = 'true'`
-        );
-        console.log('🔒 Production deployment: Global 2FA enforced ON in PostgreSQL system_settings.');
-      } else {
-        await client.query(
-          `INSERT INTO system_settings (setting_key, setting_value) VALUES ('global_2fa_enabled', 'false')
-           ON CONFLICT (setting_key) DO NOTHING`
-        );
-      }
+      // Global 2FA default: false (can be enabled by developer/admin in settings)
+      await client.query(
+        `INSERT INTO system_settings (setting_key, setting_value) VALUES ('global_2fa_enabled', 'false')
+         ON CONFLICT (setting_key) DO NOTHING`
+      );
 
-      // Check if surveys exist, if not seed default surveys and rich demographic data (STOPPED on production)
-      if (!isProduction) {
-        const checkSurveys = await client.query('SELECT COUNT(*)::int as count FROM surveys');
-        if (checkSurveys.rows[0].count === 0) {
-          console.log('🌱 Development mode: Seeding initial surveys and demographic response data into PostgreSQL...');
-          await seedPgInitialData(client);
-          console.log('🎉 Default surveys and rich demographic responses successfully seeded into PostgreSQL!');
-        }
-      } else {
-        console.log('🛡️ Production deployment: Automatic sample seed is disabled. PostgreSQL database will start without mock survey data.');
+      // Check if surveys exist, if not seed default surveys and rich demographic data
+      const checkSurveys = await client.query('SELECT COUNT(*)::int as count FROM surveys');
+      if (checkSurveys.rows[0].count === 0) {
+        console.log('🌱 Seeding initial surveys, questions, tickets, and rich demographic response data into PostgreSQL...');
+        await seedPgInitialData(client);
+        console.log('🎉 Default surveys and rich demographic responses successfully seeded into PostgreSQL!');
       }
     } finally {
       client.release();
@@ -665,58 +653,65 @@ function getInitialData(): LocalDB {
       { id: 29, response_id: 10, question_id: 1, answer_text: 'በከፊል ተስፋ ሰጪ ነው' },
       { id: 30, response_id: 10, question_id: 2, rating_value: 3 },
 
-      // Answers for Survey 2
-      { id: 31, response_id: 11, question_id: 5, answer_text: 'አጥጋቢ' },
-      { id: 32, response_id: 11, question_id: 6, rating_value: 3 },
-      { id: 33, response_id: 11, question_id: 7, answer_text: 'የኮንትራክተሮች ቁጥጥር እና የጊዜ ገደብ በጥብቅ መከበር አለበት::' },
+      // Answers for Survey 2 (Parliamentary & Economy)
+      { id: 31, response_id: 11, question_id: 7, answer_text: 'በከፊል ተስፋ ሰጪ ነው' },
+      { id: 32, response_id: 11, question_id: 8, rating_value: 3 },
+      { id: 33, response_id: 11, question_id: 9, answer_text: 'መካከለኛ' },
+      { id: 34, response_id: 11, question_id: 10, answer_text: 'የኮንትራክተሮች ቁጥጥር እና የጊዜ ገደብ በጥብቅ መከበር አለበት::' },
 
-      { id: 34, response_id: 12, question_id: 5, answer_text: 'በጣም ጥሩ' },
-      { id: 35, response_id: 12, question_id: 6, rating_value: 4 },
-      { id: 36, response_id: 12, question_id: 7, answer_text: 'የስማርት ሲቲ እና ኤሌክትሪክ አውቶቡስ አቅርቦት ቢሰፋ::' },
+      { id: 35, response_id: 12, question_id: 7, answer_text: 'በጣም ተስፋ ሰጪ ነው' },
+      { id: 36, response_id: 12, question_id: 8, rating_value: 4 },
+      { id: 37, response_id: 12, question_id: 9, answer_text: 'በጣም ጥሩ' },
+      { id: 38, response_id: 12, question_id: 10, answer_text: 'የስማርት ሲቲ እና ኤሌክትሪክ አውቶቡስ አቅርቦት ቢሰፋ::' },
 
-      { id: 37, response_id: 13, question_id: 5, answer_text: 'በጣም ጥሩ' },
-      { id: 38, response_id: 13, question_id: 6, rating_value: 5 },
+      { id: 39, response_id: 13, question_id: 7, answer_text: 'በጣም ተስፋ ሰጪ ነው' },
+      { id: 40, response_id: 13, question_id: 8, rating_value: 5 },
+      { id: 41, response_id: 13, question_id: 9, answer_text: 'በጣም ጥሩ' },
 
-      { id: 39, response_id: 14, question_id: 5, answer_text: 'አጥጋቢ' },
-      { id: 40, response_id: 14, question_id: 6, rating_value: 4 },
+      { id: 42, response_id: 14, question_id: 7, answer_text: 'በከፊል ተስፋ ሰጪ ነው' },
+      { id: 43, response_id: 14, question_id: 8, rating_value: 4 },
+      { id: 44, response_id: 14, question_id: 9, answer_text: 'መካከለኛ' },
 
-      { id: 41, response_id: 15, question_id: 5, answer_text: 'ችግር አለበት' },
-      { id: 42, response_id: 15, question_id: 6, rating_value: 2 },
+      { id: 45, response_id: 15, question_id: 7, answer_text: 'ተስፋ አስቆራጭ ነው' },
+      { id: 46, response_id: 15, question_id: 8, rating_value: 2 },
+      { id: 47, response_id: 15, question_id: 9, answer_text: 'ዝቅተኛ' },
 
-      { id: 43, response_id: 16, question_id: 5, answer_text: 'በጣም ጥሩ' },
-      { id: 44, response_id: 16, question_id: 6, rating_value: 4 },
+      { id: 48, response_id: 16, question_id: 7, answer_text: 'በጣም ተስፋ ሰጪ ነው' },
+      { id: 49, response_id: 16, question_id: 8, rating_value: 4 },
+      { id: 50, response_id: 16, question_id: 9, answer_text: 'በጣም ጥሩ' },
 
-      // Answers for Survey 3
-      { id: 45, response_id: 17, question_id: 8, rating_value: 4 },
-      { id: 46, response_id: 17, question_id: 9, answer_text: 'ሙሉ በሙሉ እደግፋለሁ' },
+      // Answers for Survey 3 (Infrastructure & Transport)
+      { id: 51, response_id: 17, question_id: 11, answer_text: 'በጣም ጥሩ' },
+      { id: 52, response_id: 17, question_id: 12, rating_value: 4 },
+      { id: 53, response_id: 17, question_id: 13, answer_text: 'የመንገድ ግንባታው በወቅቱ እንዲጠናቀቅ ክትትል ቢደረግ::' },
 
-      { id: 47, response_id: 18, question_id: 8, rating_value: 5 },
-      { id: 48, response_id: 18, question_id: 9, answer_text: 'ሙሉ በሙሉ እደግፋለሁ' },
+      { id: 54, response_id: 18, question_id: 11, answer_text: 'አጥጋቢ' },
+      { id: 55, response_id: 18, question_id: 12, rating_value: 5 },
 
-      { id: 49, response_id: 19, question_id: 8, rating_value: 3 },
-      { id: 50, response_id: 19, question_id: 9, answer_text: 'በከፊል እደግፋለሁ' },
+      { id: 56, response_id: 19, question_id: 11, answer_text: 'ችግር አለበት' },
+      { id: 57, response_id: 19, question_id: 12, rating_value: 3 },
 
-      { id: 51, response_id: 20, question_id: 8, rating_value: 4 },
-      { id: 52, response_id: 20, question_id: 9, answer_text: 'ሙሉ በሙሉ እደግፋለሁ' },
+      { id: 58, response_id: 20, question_id: 11, answer_text: 'በጣም ጥሩ' },
+      { id: 59, response_id: 20, question_id: 12, rating_value: 4 },
 
-      { id: 53, response_id: 21, question_id: 8, rating_value: 4 },
-      { id: 54, response_id: 21, question_id: 9, answer_text: 'በከፊል እደግፋለሁ' },
+      { id: 60, response_id: 21, question_id: 11, answer_text: 'አጥጋቢ' },
+      { id: 61, response_id: 21, question_id: 12, rating_value: 4 },
 
-      // Answers for Survey 4
-      { id: 55, response_id: 22, question_id: 10, rating_value: 5 },
-      { id: 56, response_id: 22, question_id: 11, answer_text: 'በጣም ከፍተኛ' },
+      // Answers for Survey 4 (Health & Education)
+      { id: 62, response_id: 22, question_id: 14, rating_value: 5 },
+      { id: 63, response_id: 22, question_id: 15, answer_text: 'ሙሉ በሙሉ እደግፋለሁ' },
 
-      { id: 57, response_id: 23, question_id: 10, rating_value: 4 },
-      { id: 58, response_id: 23, question_id: 11, answer_text: 'ከፍተኛ' },
+      { id: 64, response_id: 23, question_id: 14, rating_value: 4 },
+      { id: 65, response_id: 23, question_id: 15, answer_text: 'ሙሉ በሙሉ እደግፋለሁ' },
 
-      { id: 59, response_id: 24, question_id: 10, rating_value: 5 },
-      { id: 60, response_id: 24, question_id: 11, answer_text: 'ከፍተኛ' },
+      { id: 66, response_id: 24, question_id: 14, rating_value: 5 },
+      { id: 67, response_id: 24, question_id: 15, answer_text: 'በከፊል እደግፋለሁ' },
 
-      { id: 61, response_id: 25, question_id: 10, rating_value: 4 },
-      { id: 62, response_id: 25, question_id: 11, answer_text: 'መካከለኛ' },
+      { id: 68, response_id: 25, question_id: 14, rating_value: 4 },
+      { id: 69, response_id: 25, question_id: 15, answer_text: 'ሙሉ በሙሉ እደግፋለሁ' },
 
-      { id: 63, response_id: 26, question_id: 10, rating_value: 5 },
-      { id: 64, response_id: 26, question_id: 11, answer_text: 'በጣም ከፍተኛ' },
+      { id: 70, response_id: 26, question_id: 14, rating_value: 5 },
+      { id: 71, response_id: 26, question_id: 15, answer_text: 'ሙሉ በሙሉ እደግፋለሁ' },
     ],
     tickets: [
       {
@@ -2076,7 +2071,7 @@ export const db = {
 
   // System Settings Storage
   async getSetting(key: string, defaultValue = ''): Promise<string> {
-    const effectiveDefault = (key === 'global_2fa_enabled' && isProduction) ? 'true' : defaultValue;
+    const effectiveDefault = defaultValue;
     if (pgPool) {
       try {
         const res = await pgPool.query('SELECT setting_value FROM system_settings WHERE setting_key = $1', [key]);
