@@ -4,9 +4,6 @@ import crypto from 'crypto';
 import { Request, Response, NextFunction } from 'express';
 import { db } from './db';
 
-// Ambient declaration fallback for process
-declare const process: any;
-
 // Secure JWT Secret handling with resilient fallback
 function getJwtSecret(): string {
   if (process.env.JWT_SECRET && process.env.JWT_SECRET.trim().length >= 16) {
@@ -39,10 +36,6 @@ export interface AdminPayload {
 export interface AuthenticatedRequest extends Request {
   adminUser?: AdminPayload;
   token?: string;
-  headers: any;
-  baseUrl?: string;
-  path: string;
-  ip?: string;
 }
 
 export function hashPassword(password: string): string {

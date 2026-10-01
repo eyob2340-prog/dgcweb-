@@ -1,8 +1,5 @@
 // Ambient declarations to ensure clean IDE resolution and 0 problems
-declare const process: {
-  env: Record<string, string | undefined>;
-  [key: string]: any;
-};
+declare var process: any;
 
 declare module 'crypto' {
   const crypto: any;
@@ -15,10 +12,10 @@ declare module 'crypto' {
 
 declare module 'express' {
   export interface Request {
-    headers: Record<string, any>;
-    baseUrl: string;
-    path: string;
-    ip?: string;
+    headers?: any;
+    baseUrl?: any;
+    path?: any;
+    ip?: any;
     body?: any;
     params?: any;
     query?: any;
