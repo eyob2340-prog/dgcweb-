@@ -1,3 +1,4 @@
+/// <reference path="../globals.d.ts" />
 import { SurveyAnalytics, AiReportResponse } from '../src/types';
 import { toEthiopianDate } from '../src/lib/ethiopianDate';
 import { generateExecutive24hPdf } from './pdfGenerator';

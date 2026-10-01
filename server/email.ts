@@ -1,3 +1,4 @@
+/// <reference path="../globals.d.ts" />
 let transporter: any = null;
 
 async function getMailTransporter(): Promise<any> {

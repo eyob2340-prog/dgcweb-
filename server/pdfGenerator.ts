@@ -1,3 +1,4 @@
+/// <reference path="../globals.d.ts" />
 import jsPDF from 'jspdf';
 
 interface SurveyDataForPdf {

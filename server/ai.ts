@@ -1,3 +1,4 @@
+/// <reference path="../globals.d.ts" />
 import { GoogleGenAI } from '@google/genai';
 import { SurveyAnalytics, AiReportResponse } from '../src/types';
 

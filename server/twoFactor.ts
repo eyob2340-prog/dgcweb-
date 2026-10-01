@@ -1,3 +1,4 @@
+/// <reference path="../globals.d.ts" />
 import { generateSecret, generateURI, verifySync } from 'otplib';
 import QRCode from 'qrcode';
 

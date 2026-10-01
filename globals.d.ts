@@ -3,17 +3,27 @@ declare var process: any;
 declare var Buffer: any;
 declare var __dirname: string;
 declare var __filename: string;
+declare var setTimeout: any;
+declare var clearTimeout: any;
+declare var setInterval: any;
+declare var clearInterval: any;
 
 declare module 'crypto' {
+  export function randomBytes(size: number, callback?: any): any;
+  export function createHash(algorithm: string, options?: any): any;
+  export function randomUUID(): string;
+  export function timingSafeEqual(a: any, b: any): boolean;
   const crypto: any;
   export default crypto;
-  export = crypto;
 }
 
 declare module 'node:crypto' {
+  export function randomBytes(size: number, callback?: any): any;
+  export function createHash(algorithm: string, options?: any): any;
+  export function randomUUID(): string;
+  export function timingSafeEqual(a: any, b: any): boolean;
   const crypto: any;
   export default crypto;
-  export = crypto;
 }
 
 declare module 'express' {
@@ -36,6 +46,7 @@ declare module 'express' {
     cookie(name: string, val: string, options?: any): this;
     clearCookie(name: string, options?: any): this;
     setHeader(name: string, value: any): this;
+    sendFile(path: string): this;
   }
   export type NextFunction = (err?: any) => void;
   const express: any;
