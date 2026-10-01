@@ -10,7 +10,7 @@ import rateLimit from 'express-rate-limit';
 import { createServer as createViteServer } from 'vite';
 
 import { db } from './server/db';
-import { comparePassword, generateToken, verifyToken, authMiddleware, requireRole, revokeToken, AuthenticatedRequest } from './server/auth';
+import { comparePassword, generateToken, verifyToken, authMiddleware, requireRole, revokeToken, isTokenRevoked, extractToken, AuthenticatedRequest } from './server/auth';
 import { sendTelegramReport, sendDaily24hTelegramReport, DEFAULT_TELEGRAM_BOT_TOKEN, DEFAULT_TELEGRAM_CHAT_ID, formatTelegramChatId, escapeMarkdown } from './server/telegram';
 import { generateSurveyAiReport, translateTextWithAi, translateSurveyWithAi, translateSurveyAllLanguagesWithAi, chatWithOfficeWorker } from './server/ai';
 import { sendTicketRecoveryOtp } from './server/email';
@@ -38,7 +38,7 @@ async function loadPersistentSettings() {
 }
 
 const app = express();
-const PORT = 3000;
+const PORT = parseInt(process.env.PORT || '3000', 10);
 const HOST = '0.0.0.0';
 
 // Enable trust proxy for reverse proxies (Render.com / Nginx)
@@ -54,14 +54,16 @@ app.use(
         defaultSrc: ["'self'"],
 
         // Scripts: allow self + inline scripts (React hydration) + Google Gemini API + Google Translate
+        // No inline <script> blocks remain (bootstrap code lives in /boot-guard.js and /gt-init.js),
+        // so 'unsafe-inline' is intentionally NOT allowed for scripts.
         scriptSrc: [
           "'self'",
-          "'unsafe-inline'",    // Required: React/Vite inline bootstrap script
-          "'unsafe-eval'",      // Required: Framer Motion / React animation internals (HIGH-3: Technical debt, cannot be removed without breaking animations)
-          'https://fonts.googleapis.com',
+          "'unsafe-eval'",      // Kept only for the Google Translate widget scripts
           'https://translate.google.com',
           'https://translate.googleapis.com',
+          'https://www.gstatic.com',
         ],
+        scriptSrcAttr: ["'none'"],
 
         // Styles: allow self + inline styles (Tailwind utilities) + Google Fonts + Google Translate
         styleSrc: [
@@ -69,6 +71,7 @@ app.use(
           "'unsafe-inline'",    // Required: Tailwind CSS generates inline style attributes
           'https://fonts.googleapis.com',
           'https://translate.googleapis.com',
+          'https://www.gstatic.com',
         ],
 
         // Fonts: Google Fonts CDN only
@@ -302,7 +305,16 @@ const publicChatLimiter = rateLimit({
 const activeTranslationPromises = new Map<string, Promise<any>>();
 
 // Dynamic cryptographic salt for citizen anonymity
-const ANONYMOUS_SALT = process.env.ANONYMOUS_SALT || process.env.IP_SALT || crypto.randomBytes(32).toString('hex');
+// Stable across restarts: explicit env salt, else derived from JWT_SECRET, else random (warned).
+const ANONYMOUS_SALT: string = (() => {
+  const explicit = process.env.ANONYMOUS_SALT || process.env.IP_SALT;
+  if (explicit && explicit.length >= 16) return explicit;
+  if (process.env.JWT_SECRET && process.env.JWT_SECRET.length >= 16) {
+    return crypto.createHash('sha256').update(`dgc-anonymous-salt-v1|${process.env.JWT_SECRET}`).digest('hex');
+  }
+  console.warn('⚠️ [SECURITY] ANONYMOUS_SALT and JWT_SECRET are not set: using a random salt. The "one response per citizen" check will reset on every restart. Set ANONYMOUS_SALT in the environment.');
+  return crypto.randomBytes(32).toString('hex');
+})();
 
 // Active in-memory 2FA Single-Use OTP Store (Expires in 5 minutes, single-use, max 5 attempts)
 const active2FaOtpStore = new Map<string, { otp: string; expiresAt: number; attempts: number }>();
@@ -312,6 +324,58 @@ const ticketRecoveryOtpStore = new Map<string, { otp: string; expiresAt: number;
 
 // In-memory failed login tracking for anomaly detection
 const failedLoginTracker = new Map<string, { count: number; lastAttempt: number }>();
+
+// ── Account lockout (per account + client IP) ────────────────────────────────
+const LOCKOUT_MAX_FAILURES = 5;
+const LOCKOUT_WINDOW_MS = 15 * 60 * 1000;
+const lockoutKey = (account: string, ip: string | undefined) => `${account}|${ip || 'unknown'}`;
+
+function isLockedOut(key: string): boolean {
+  const e = failedLoginTracker.get(key);
+  if (!e) return false;
+  if (Date.now() - e.lastAttempt > LOCKOUT_WINDOW_MS) {
+    failedLoginTracker.delete(key);
+    return false;
+  }
+  return e.count >= LOCKOUT_MAX_FAILURES;
+}
+
+function registerLoginFailure(key: string): number {
+  const e = failedLoginTracker.get(key);
+  const fresh = !e || Date.now() - e.lastAttempt > LOCKOUT_WINDOW_MS;
+  const next = { count: fresh ? 1 : e!.count + 1, lastAttempt: Date.now() };
+  failedLoginTracker.set(key, next);
+  return next.count;
+}
+
+// Periodic cleanup so the map cannot grow without bound
+const cleanupTimer: any = setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of failedLoginTracker) {
+    if (now - v.lastAttempt > LOCKOUT_WINDOW_MS) failedLoginTracker.delete(k);
+  }
+  const hour = 60 * 60 * 1000;
+  for (const [k, v] of ipSubmissionTracker) {
+    if (now - v.windowStart > 24 * hour) ipSubmissionTracker.delete(k);
+  }
+}, 5 * 60 * 1000);
+if (cleanupTimer && typeof cleanupTimer.unref === 'function') cleanupTimer.unref();
+
+// ── Per-IP submission cap per survey (defence against X-Client-Id rotation) ──
+const IP_SUBMISSIONS_PER_SURVEY_PER_DAY = parseInt(process.env.MAX_SUBMISSIONS_PER_IP_PER_SURVEY || '40', 10);
+const ipSubmissionTracker = new Map<string, { count: number; windowStart: number }>();
+function ipSubmissionAllowed(ip: string, surveyId: number): boolean {
+  const key = `${surveyId}|${crypto.createHash('sha256').update(`${ip}|${ANONYMOUS_SALT}`).digest('hex')}`;
+  const now = Date.now();
+  const e = ipSubmissionTracker.get(key);
+  if (!e || now - e.windowStart > 24 * 60 * 60 * 1000) {
+    ipSubmissionTracker.set(key, { count: 1, windowStart: now });
+    return true;
+  }
+  if (e.count >= IP_SUBMISSIONS_PER_SURVEY_PER_DAY) return false;
+  e.count += 1;
+  return true;
+}
 
 // Helper to escape HTML characters in Telegram messages
 function escapeHtml(str: string | null | undefined): string {
@@ -403,7 +467,9 @@ async function sendTelegramSecurityAlert(title: string, details: string, ip?: st
 function generateIpHash(req: Request, surveyId: number): string {
   // Safe validated IP from Express trust-proxy configuration
   const validatedIp = req.ip || req.socket?.remoteAddress || '127.0.0.1';
-  const clientId = (req.headers['x-client-id'] as string) || (req.query?.clientId as string) || '';
+  const rawClientId = (req.headers['x-client-id'] as string) || (req.query?.clientId as string) || '';
+  // Only accept well-formed, bounded identifiers
+  const clientId = typeof rawClientId === 'string' && /^[A-Za-z0-9_\-]{8,64}$/.test(rawClientId) ? rawClientId : '';
   const userAgent = (req.headers['user-agent'] as string) || 'browser';
   const clientIdentifier = clientId ? `cid_${clientId}` : `ua_${userAgent}`;
 
@@ -659,6 +725,10 @@ app.post('/api/surveys/:id/responses', citizenMaintenanceMiddleware, submissionL
       ? language.trim().toLowerCase()
       : 'am';
 
+    if (!ipSubmissionAllowed(req.ip || req.socket?.remoteAddress || 'unknown', surveyId)) {
+      return res.status(429).json({ error: 'ከዚህ የኢንተርኔት መስመር በጣም ብዙ መልሶች ተልከዋል:: እባክዎ ቆይተው ይሞክሩ:: (Too many submissions from this network)' });
+    }
+
     const responseId = await db.submitResponse(surveyId, ipHash, validatedAnswers, sanitizedDemographics, sanitizedLanguage);
 
     await db.addAuditLog(
@@ -744,8 +814,18 @@ app.get('/api/tickets/track/:code', ticketTrackLimiter, async (req: Request, res
     }
 
     // Check if an authenticated admin is making this request
-    const authHeader = req.headers.authorization;
-    const isAuthorizedAdmin = authHeader && authHeader.startsWith('Bearer ') && verifyToken(authHeader.substring(7).trim()) !== null;
+    let isAuthorizedAdmin = false;
+    const maybeToken = extractToken(req);
+    if (maybeToken) {
+      const decodedAdmin = verifyToken(maybeToken);
+      if (decodedAdmin && decodedAdmin.scope !== '2fa-setup' && !decodedAdmin.mustChangePassword) {
+        try {
+          isAuthorizedAdmin = !(await isTokenRevoked(maybeToken));
+        } catch {
+          isAuthorizedAdmin = false;
+        }
+      }
+    }
 
     if (isAuthorizedAdmin) {
       return res.json({ ticket });
@@ -902,12 +982,16 @@ app.post('/api/admin/login', loginLimiter, async (req: Request, res: Response) =
       return res.status(400).json({ error: 'የተሳሳተ የተጠቃሚ ስም ወይም ፓስወርድ!' });
     }
 
+    const loginKey = lockoutKey(cleanInput, req.ip);
+    if (isLockedOut(loginKey)) {
+      return res.status(429).json({
+        error: 'አካውንቱ ለ15 ደቂቃ ተቆልፏል (ብዙ ያልተሳኩ ሙከራዎች)። እባክዎ ቆይተው ይሞክሩ:: (Account temporarily locked)',
+      });
+    }
+
     const admin = await db.getAdminByEmail(cleanInput);
     if (!admin) {
-      const entry = failedLoginTracker.get(cleanInput) || { count: 0, lastAttempt: 0 };
-      entry.count += 1;
-      entry.lastAttempt = Date.now();
-      failedLoginTracker.set(cleanInput, entry);
+      registerLoginFailure(loginKey);
 
       await db.addAuditLog(cleanInput, 'FAILED_LOGIN', `ያልተሳካ የመግባት ሙከራ (ኢሜይል/ዩዘርኔም አልተገኘም)::`, req.ip);
       return res.status(401).json({ error: 'የተሳሳተ የተጠቃሚ ስም/ኢሜይል ወይም ፓስወርድ!' });
@@ -920,17 +1004,14 @@ app.post('/api/admin/login', loginLimiter, async (req: Request, res: Response) =
     }
 
     if (!isMatch) {
-      const entry = failedLoginTracker.get(cleanInput) || { count: 0, lastAttempt: 0 };
-      entry.count += 1;
-      entry.lastAttempt = Date.now();
-      failedLoginTracker.set(cleanInput, entry);
+      const failCount = registerLoginFailure(loginKey);
 
-      await db.addAuditLog(admin.email, 'FAILED_LOGIN', `ያልተሳካ የመግባት ሙከራ (የተሳሳተ ፓስወርድ [Attempt #${entry.count}])::`, req.ip);
+      await db.addAuditLog(admin.email, 'FAILED_LOGIN', `ያልተሳካ የመግባት ሙከራ (የተሳሳተ ፓስወርድ [Attempt #${failCount}])::`, req.ip);
 
-      if (entry.count >= 3) {
+      if (failCount >= 3) {
         sendTelegramSecurityAlert(
           'ተደጋጋሚ ያልተሳካ የመግባት ሙከራ (Multiple Failed Logins)',
-          `የአድሚን አካውንት [${admin.email}] ${entry.count} ጊዜ የተሳሳተ ፓስወርድ ገብቶበታል::`,
+          `የአድሚን አካውንት [${admin.email}] ${failCount} ጊዜ የተሳሳተ ፓስወርድ ገብቶበታል:: ${failCount >= LOCKOUT_MAX_FAILURES ? '(ለ15 ደቂቃ ተቆልፏል)' : ''}`,
           req.ip
         );
       }
@@ -945,8 +1026,19 @@ app.post('/api/admin/login', loginLimiter, async (req: Request, res: Response) =
 
     if (is2FaRequired) {
       if (!admin.two_factor_secret) {
+        // Password was correct but 2FA is mandatory and not enrolled yet:
+        // hand out a 10-minute token that works ONLY for the 2FA enrolment endpoints.
+        const setupToken = generateToken({
+          id: admin.id,
+          email: admin.email,
+          username: admin.username || admin.email.split('@')[0],
+          role: admin.role || 'admin',
+          mustChangePassword: Boolean(admin.must_change_password),
+          scope: '2fa-setup',
+        });
         return res.status(200).json({
           require2FASetup: true,
+          setupToken,
           email: admin.email,
           message: 'በሲስተሙ የ2FA ደህንነት ግዴታ ተደርጓል፤ እባክዎ መጀመሪያ ባለ 2-ደረጃ ማረጋገጫ (2FA) ያዋቅሩ::',
         });
@@ -965,13 +1057,21 @@ app.post('/api/admin/login', loginLimiter, async (req: Request, res: Response) =
       const isValidTotp = verifyTwoFactorToken(cleanOtp, admin.two_factor_secret || '');
 
       if (!isValidTotp) {
+        const otpFails = registerLoginFailure(loginKey);
+        if (otpFails >= 3) {
+          sendTelegramSecurityAlert(
+            'ተደጋጋሚ የተሳሳተ 2FA ኮድ (Multiple Failed 2FA codes)',
+            `የአድሚን አካውንት [${admin.email}] ${otpFails} ጊዜ የተሳሳተ 2FA ኮድ ገብቶበታል::`,
+            req.ip
+          );
+        }
         await db.addAuditLog(admin.email, 'FAILED_2FA', 'የተሳሳተ የ Google Authenticator 2FA ኮድ ሙከራ ተደርጓል::', req.ip);
         return res.status(401).json({ error: 'የተሳሳተ የ Google Authenticator 2FA ማረጋገጫ ኮድ!' });
       }
     }
 
     // Clear failed login tracker on successful credentials validation
-    failedLoginTracker.delete(cleanInput);
+    failedLoginTracker.delete(loginKey);
 
     const userRole = admin.role || 'admin';
     const mustChangePassword = Boolean(admin.must_change_password);
@@ -1124,6 +1224,42 @@ app.post('/api/admin/2fa/verify-setup', authMiddleware, async (req: Authenticate
       req.ip
     );
 
+    // If this call was made with the limited '2fa-setup' token, the user has now proven
+    // BOTH the password and possession of the authenticator -> upgrade to a normal session.
+    if (req.adminUser?.scope === '2fa-setup') {
+      if (req.token) await revokeToken(req.token, admin.id);
+      const mustChangePassword = Boolean(admin.must_change_password);
+      const sessionToken = generateToken({
+        id: admin.id,
+        email: admin.email,
+        username: admin.username || admin.email.split('@')[0],
+        role: admin.role || 'admin',
+        mustChangePassword,
+        scope: 'full',
+      });
+      res.cookie('dgc_admin_token', sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 30 * 60 * 1000,
+        path: '/',
+      });
+      await db.addAuditLog(admin.email, 'ADMIN_LOGIN', `ተጠቃሚ [${admin.email}] 2FA ካዘጋጀ በኋላ ወደ ሲስተሙ ገብቷል::`, req.ip);
+      return res.json({
+        success: true,
+        two_factor_enabled: true,
+        mustChangePassword,
+        twoFactorEnabled: true,
+        admin: {
+          id: admin.id,
+          email: admin.email,
+          username: admin.username || admin.email.split('@')[0],
+          role: admin.role || 'admin',
+        },
+        message: 'Google Authenticator ባለ 2-ደረጃ ማረጋገጫ (2FA) በስኬት ተገናኝቷል!',
+      });
+    }
+
     res.json({
       success: true,
       two_factor_enabled: true,
@@ -1151,10 +1287,11 @@ app.post('/api/admin/2fa/disable', authMiddleware, async (req: AuthenticatedRequ
       return res.status(400).json({ error: 'የተሳሳተ የአሁን ፓስወርድ!' });
     }
 
-    if (admin.two_factor_secret && token) {
-      const isValid = verifyTwoFactorToken(token, admin.two_factor_secret);
-      if (!isValid) {
-        return res.status(400).json({ error: 'የተሳሳተ የ Google Authenticator ኮድ!' });
+    if (admin.two_factor_secret) {
+      // The authenticator code is mandatory to switch 2FA off (password alone is not enough)
+      if (!token || !verifyTwoFactorToken(String(token), admin.two_factor_secret)) {
+        await db.addAuditLog(admin.email, 'FAILED_2FA_DISABLE', '2FA ለማጥፋት የተሳሳተ ወይም ያልገባ የ Authenticator ኮድ::', req.ip);
+        return res.status(400).json({ error: 'የተሳሳተ ወይም ያልገባ የ Google Authenticator ኮድ!' });
       }
     }
 
@@ -1185,6 +1322,9 @@ app.post('/api/admin/2fa/toggle', authMiddleware, async (req: AuthenticatedReque
     if (!admin) return res.status(404).json({ error: 'ተጠቃሚው አልተገኘም' });
 
     const isEnable = Boolean(enabled);
+    if (isEnable && !admin.two_factor_secret) {
+      return res.status(400).json({ error: 'መጀመሪያ Google Authenticator በ QR ኮድ ያዋቅሩ (use the 2FA setup flow)::' });
+    }
     if (!isEnable) {
       if (!currentPassword) {
         return res.status(400).json({ error: 'ባለ 2-ደረጃ ማረጋገጫን ለማጥፋት የአሁኑን ፓስወርድዎን ያስገቡ::' });
@@ -1192,6 +1332,9 @@ app.post('/api/admin/2fa/toggle', authMiddleware, async (req: AuthenticatedReque
       const isPwMatch = await comparePassword(currentPassword, admin.password_hash);
       if (!isPwMatch) {
         return res.status(400).json({ error: 'የተሳሳተ የአሁን ፓስወርድ!' });
+      }
+      if (admin.two_factor_secret && (!otp || !verifyTwoFactorToken(String(otp), admin.two_factor_secret))) {
+        return res.status(400).json({ error: 'የተሳሳተ ወይም ያልገባ የ Google Authenticator ኮድ!' });
       }
     }
 
@@ -2604,6 +2747,18 @@ async function startServer() {
         index: false, // Let the catch-all serve index.html with correct headers
       })
     );
+
+    // Unknown API routes and missing asset files must be real 404s. Returning index.html here
+    // makes the browser receive HTML for a JS/CSS file => blank white page after a redeploy.
+    app.use('/api', (_req, res) => {
+      res.status(404).json({ error: 'Not found' });
+    });
+    app.use('/assets', (_req, res) => {
+      res.status(404).type('text/plain').send('Asset not found');
+    });
+    app.get(/\.[a-zA-Z0-9]{1,6}$/, (_req, res) => {
+      res.status(404).type('text/plain').send('Not found');
+    });
 
     // SPA catch-all: serve index.html for all non-API, non-asset routes
     app.get('*', (_req, res) => {

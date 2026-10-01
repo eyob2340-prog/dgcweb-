@@ -20,7 +20,7 @@ export default defineConfig(() => {
     },
     build: {
       minify: 'esbuild' as const,
-      target: 'es2015',
+      target: 'es2020',
       cssCodeSplit: true,
       // Chunk splitting to enable lazy loading & smaller initial bundles
       rollupOptions: {

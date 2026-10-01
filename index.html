@@ -14,10 +14,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
+      id="gfonts"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
       media="print"
-      onload="this.media='all'"
     />
     <noscript>
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -33,9 +33,11 @@
       .goog-te-banner-frame {
         display: none !important;
       }
+      html, body { background-color: #020617; }
       body {
         top: 0 !important;
         position: static !important;
+        margin: 0;
       }
       /* Remove Google logo / attribution text */
       .goog-logo-link,
@@ -79,46 +81,21 @@
       }
     </style>
 
-    <!-- Google Translate Initialization -->
-    <script type="text/javascript">
-      function googleTranslateElementInit() {
-        new google.translate.TranslateElement(
-          {
-            pageLanguage: 'am',
-            includedLanguages: 'am,en,om,ti,so',
-            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-            autoDisplay: false,
-          },
-          'gt-mount-point'
-        );
-      }
-    </script>
+    <!-- Boot guard: background, translate-safe DOM, crash fallback (must run before the app) -->
+    <script src="/boot-guard.js"></script>
+    <!-- Google Translate Initialization (external file; inline scripts are blocked by CSP) -->
+    <script src="/gt-init.js"></script>
     <script
       type="text/javascript"
-      src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+      src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
       async
     ></script>
-    <script>
-      // Prevent white flash on load by applying initial theme
-      (function() {
-        try {
-          var saved = localStorage.getItem('dgc_theme');
-          var isDark = saved ? saved === 'dark' : true;
-          if (isDark) {
-            document.documentElement.style.backgroundColor = '#020617'; // bg-slate-950
-            document.documentElement.style.color = '#f1f5f9'; // text-slate-100
-          } else {
-            document.documentElement.style.backgroundColor = '#f8fafc'; // bg-slate-50
-            document.documentElement.style.color = '#0f172a'; // text-slate-900
-          }
-        } catch (e) {}
-      })();
-    </script>
   </head>
   <body>
     <!-- Google Translate widget renders here (shown inside Header via CSS positioning) -->
     <div id="gt-mount-point" style="position:fixed;top:12px;right:160px;z-index:9999;"></div>
     <div id="root"></div>
+    <noscript><p style="color:#f1f5f9;padding:24px;font-family:sans-serif">ይህን ድረ-ገጽ ለመጠቀም JavaScript ማብራት ያስፈልጋል። (JavaScript is required.)</p></noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -13,7 +13,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
   onClose,
   onLoginSuccess,
 }) => {
-  const [step, setStep] = useState<'login' | '2fa' | 'force_password_change'>('login');
+  const [step, setStep] = useState<'login' | '2fa' | 'setup_2fa' | 'force_password_change'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
@@ -24,6 +24,10 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [setupToken, setSetupToken] = useState<string>('');
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+  const [setupSecret, setSetupSecret] = useState<string>('');
+  const [setupCode, setSetupCode] = useState<string>('');
 
   useEffect(() => {
     if (isOpen) {
@@ -37,10 +41,67 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
       setTempAuthData(null);
       setError(null);
       setSuccessMsg(null);
+      setSetupToken('');
+      setQrCodeUrl('');
+      setSetupSecret('');
+      setSetupCode('');
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const startTwoFactorSetup = async (token: string) => {
+    setSetupToken(token);
+    const res = await fetch('/api/admin/2fa/setup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      credentials: 'include',
+    });
+    const data = await res.json();
+    if (!res.ok || !data.qrCodeUrl) {
+      setError(data.error || '2FA ማዘጋጀት አልተቻለም');
+      return;
+    }
+    setQrCodeUrl(data.qrCodeUrl);
+    setSetupSecret(data.secret || '');
+    setSetupCode('');
+    setError(null);
+    setSuccessMsg(null);
+    setStep('setup_2fa');
+  };
+
+  const handleVerifySetup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/2fa/verify-setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${setupToken}` },
+        credentials: 'include',
+        body: JSON.stringify({ secret: setupSecret, token: setupCode }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.admin) {
+        setError(data.error || 'ማረጋገጥ አልተቻለም');
+        return;
+      }
+      setSetupToken('');
+      setQrCodeUrl('');
+      setSetupSecret('');
+      if (data.mustChangePassword) {
+        setTempAuthData(data);
+        setStep('force_password_change');
+      } else {
+        onLoginSuccess(data);
+        onClose();
+      }
+    } catch {
+      setError('የኔትወርክ ስህተት ተከስቷል::');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,10 +120,13 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
 
       if (!res.ok) {
         setError(data.error || 'የመግባት ሂደት አልተሳካም');
+      } else if (data.require2FASetup && data.setupToken) {
+        // 2FA is mandatory but not enrolled yet: show QR code enrolment step
+        await startTwoFactorSetup(data.setupToken);
       } else if (data.require2FA) {
         setStep('2fa');
         setError(null);
-        setSuccessMsg('የ2FA ማረጋገጫ ኮድ (OTP) ወደ ተመዘገበው መረጃ ተልኳል::');
+        setSuccessMsg('እባክዎ በ Google Authenticator አፕ ላይ የሚታየውን ባለ 6-አሃዝ ኮድ ያስገቡ::');
       } else {
         sessionStorage.removeItem('admin_token');
         localStorage.removeItem('admin_token'); // Clean up any stale legacy token storage
@@ -153,7 +217,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           <div className="w-14 h-14 bg-red-600/20 border-2 border-red-500/50 rounded-2xl flex items-center justify-center text-red-400 mb-3 shadow-inner">
             {step === 'force_password_change' ? (
               <Lock className="w-8 h-8 text-amber-400 animate-bounce" />
-            ) : step === '2fa' ? (
+            ) : step === '2fa' || step === 'setup_2fa' ? (
               <ShieldCheck className="w-8 h-8 text-emerald-400 animate-pulse" />
             ) : (
               <ShieldAlert className="w-8 h-8 text-red-500 animate-pulse" />
@@ -163,6 +227,8 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           <h2 className="text-xl font-black text-red-400">
             {step === 'force_password_change'
               ? 'ቀዳሚ ፓስወርድ መቀየሪያ (Mandatory Password Setup)'
+              : step === 'setup_2fa'
+              ? 'Google Authenticator ማዘጋጀት (2FA Setup)'
               : step === '2fa'
               ? 'ባለ 2-ደረጃ ማረጋገጫ (Two-Factor OTP)'
               : 'የተፈቀደላቸው ባለሙያዎች ብቻ (Admin Login)'}
@@ -170,6 +236,8 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           <p className="text-xs text-red-200/90 mt-1.5 leading-relaxed">
             {step === 'force_password_change'
               ? 'ለደህንነት ጥበቃ ሲባል በመጀመሪያው መግቢያ ጊዜ ጊዜያዊ ፓስወርድዎን መቀየር ግዴታ ነው::'
+              : step === 'setup_2fa'
+              ? 'ለደህንነት ሲባል ባለ 2-ደረጃ ማረጋገጫ ግዴታ ነው:: QR ኮዱን በ Authenticator አፕ ስካን ያድርጉ::'
               : step === '2fa'
               ? 'እባክዎ ባለ 6-አሃዝ የደህንነት ማረጋገጫ ኮድ (OTP) ያስገቡ::'
               : 'ይህ ገፅ ለድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ የተፈቀደላቸው ባለሙያዎች ብቻ የተዘጋጀ ነው::'}
@@ -202,7 +270,44 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
             </div>
           )}
 
-          {step === 'force_password_change' ? (
+          {step === 'setup_2fa' ? (
+            <form onSubmit={handleVerifySetup} className="space-y-4" autoComplete="off">
+              <div className="bg-slate-950 p-3.5 rounded-2xl border border-emerald-500/30 text-xs text-slate-300 space-y-3">
+                <span className="font-bold text-emerald-400 block">📱 ደረጃ 1፦ QR ኮዱን ስካን ያድርጉ</span>
+                {qrCodeUrl && (
+                  <img src={qrCodeUrl} alt="2FA QR code" className="mx-auto w-48 h-48 rounded-xl bg-white p-2" />
+                )}
+                <p>
+                  በስልክዎ <strong>Google Authenticator</strong> ወይም <strong>Microsoft Authenticator</strong> ይክፈቱ፣ "+" ይጫኑ እና ኮዱን ስካን ያድርጉ::
+                </p>
+                {setupSecret && (
+                  <p className="break-all">
+                    ስካን ማድረግ ካልተቻለ ይህን ቁልፍ በእጅ ያስገቡ፦ <code className="text-emerald-300 font-mono">{setupSecret}</code>
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">ደረጃ 2፦ አፑ የሚያሳየውን ባለ 6-አሃዝ ኮድ ያስገቡ</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  required
+                  maxLength={6}
+                  placeholder="••••••"
+                  value={setupCode}
+                  onChange={(e) => setSetupCode(e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-4 py-3 bg-slate-950 border border-emerald-500/60 rounded-xl text-lg font-mono font-black tracking-widest text-center text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading || setupCode.length < 6}
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-lg shadow-emerald-950 disabled:opacity-50"
+              >
+                {loading ? 'በማረጋገጥ ላይ...' : 'አረጋግጥና ግባ (Verify & Login)'}
+              </button>
+            </form>
+          ) : step === 'force_password_change' ? (
             <form onSubmit={handleForcePasswordChange} className="space-y-4" autoComplete="off">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">አዲስ ጠንካራ ፓስወርድ (New Password)</label>

@@ -196,6 +196,8 @@ export interface AdminUser {
 
 export interface AuthResponse {
   token?: string;
+  require2FASetup?: boolean;
+  setupToken?: string;
   mustChangePassword?: boolean;
   twoFactorEnabled?: boolean;
   admin: AdminUser;

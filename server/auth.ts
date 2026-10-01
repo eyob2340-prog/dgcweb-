@@ -30,6 +30,8 @@ export interface AdminPayload {
   role?: 'developer' | 'owner' | 'admin';
   mustChangePassword?: boolean;
   jti?: string;
+  /** 'full' (default) = normal session. '2fa-setup' = short-lived token usable ONLY for enrolling Google Authenticator. */
+  scope?: 'full' | '2fa-setup';
   exp?: number;
   iat?: number;
 }
@@ -62,9 +64,11 @@ export async function comparePassword(password: string, hash: string): Promise<b
   return await bcrypt.compare(password, hash);
 }
 
-// Generate standard 30-minute Access Token with unique JTI and mandatory password reset flag
+// Generate standard 30-minute Access Token with unique JTI and mandatory password reset flag.
+// A '2fa-setup' scoped token lives only 10 minutes and is accepted by the 2FA enrolment endpoints only.
 export function generateToken(payload: AdminPayload): string {
   const jti = payload.jti || crypto.randomUUID();
+  const scope = payload.scope === '2fa-setup' ? '2fa-setup' : 'full';
   return jwt.sign(
     {
       id: payload.id,
@@ -72,10 +76,11 @@ export function generateToken(payload: AdminPayload): string {
       username: payload.username,
       role: payload.role,
       mustChangePassword: Boolean(payload.mustChangePassword),
+      scope,
       jti,
     },
     JWT_SECRET,
-    { expiresIn: '30m' }
+    { expiresIn: scope === '2fa-setup' ? '10m' : '30m' }
   );
 }
 
@@ -166,6 +171,20 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
   req.adminUser = decoded;
   req.token = token;
 
+  // A '2fa-setup' token (issued after a correct password when 2FA is mandatory but not yet enrolled)
+  // may ONLY reach the two enrolment endpoints. Everything else is refused.
+  if (decoded.scope === '2fa-setup') {
+    const setupPath = req.baseUrl ? req.baseUrl + req.path : req.path;
+    const isSetupEndpoint =
+      setupPath === '/api/admin/2fa/setup' || setupPath === '/api/admin/2fa/verify-setup';
+    if (!isSetupEndpoint) {
+      return res.status(403).json({
+        error: 'TWO_FACTOR_SETUP_REQUIRED',
+        message: 'መጀመሪያ Google Authenticator (2FA) ማዘጋጀት አለብዎት:: (Complete 2FA enrolment first)',
+      });
+    }
+  }
+
   // STRICT SERVER-SIDE ENFORCEMENT:
   // If the admin user has mustChangePassword flag, prohibit all endpoints EXCEPT change-password, me, and logout
   if (decoded.mustChangePassword) {
@@ -204,3 +223,14 @@ export function requireRole(...allowedRoles: ('developer' | 'owner' | 'admin')[]
   };
 }
 
+
+// Resolve a token from cookie or Bearer header (no verification)
+export function extractToken(req: Request | any): string | undefined {
+  const cookies = parseCookies(req);
+  if (cookies['dgc_admin_token']) return cookies['dgc_admin_token'];
+  const authHeader = req?.headers?.authorization;
+  if (authHeader && typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+    return authHeader.substring(7).trim();
+  }
+  return undefined;
+}

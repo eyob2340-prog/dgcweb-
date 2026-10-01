@@ -38,7 +38,11 @@ if (DATABASE_URL) {
       connectionString: DATABASE_URL,
       ssl: DATABASE_URL.includes('localhost')
         ? false
-        : { rejectUnauthorized: process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true' },
+        : {
+            rejectUnauthorized: process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true',
+            // Optional: paste the provider's CA certificate (PEM) to enable full certificate verification safely
+            ...(process.env.PG_SSL_CA ? { ca: process.env.PG_SSL_CA.replace(/\\n/g, '\n') } : {}),
+          },
       max: poolMax, // Supports 100+ concurrent users without starvation
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
@@ -209,8 +213,12 @@ async function initPgDatabase() {
       if (initialDevPass && initialAdminPass) {
       const usersToSeed: { email: string; username: string; pass: string; role: 'developer' | 'owner' | 'admin'; mustChange: boolean }[] = [
         { email: 'opa@dgc.gov.et', username: 'opa', pass: initialDevPass, role: 'developer', mustChange: false },
-        { email: 'eyobjegreta@gmail.com', username: 'eyobjegreta', pass: initialAdminPass, role: 'developer', mustChange: false },
       ];
+      // Optional extra developer account, supplied ONLY through the environment (no personal e-mail in source code)
+      const extraDevEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+      if (extraDevEmail && !usersToSeed.some((u) => u.email === extraDevEmail)) {
+        usersToSeed.push({ email: extraDevEmail, username: extraDevEmail.split('@')[0], pass: initialAdminPass, role: 'developer', mustChange: true });
+      }
 
       for (const u of usersToSeed) {
         const uHash = hashPassword(u.pass);
