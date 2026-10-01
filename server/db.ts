@@ -3,7 +3,11 @@ import path from 'path';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 dotenv.config();
-import { hashPassword } from './auth';
+import bcrypt from 'bcryptjs';
+
+export function hashPassword(password: string): string {
+  return bcrypt.hashSync(password, 12);
+}
 import {
   Survey,
   Question,

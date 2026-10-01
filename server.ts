@@ -6,7 +6,6 @@ import crypto from 'crypto';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import cookieParser from 'cookie-parser';
 import { createServer as createViteServer } from 'vite';
 
 import { db } from './server/db';
@@ -209,7 +208,22 @@ app.use(
   })
 );
 app.use(express.json({ limit: '10mb' }));
-app.use(cookieParser());
+// Zero-dependency cookie parser middleware (populates req.cookies)
+app.use((req: any, _res, next) => {
+  const list: Record<string, string> = {};
+  const cookieHeader = req.headers?.cookie;
+  if (cookieHeader) {
+    cookieHeader.split(';').forEach((cookie: string) => {
+      const parts = cookie.split('=');
+      const name = parts[0]?.trim();
+      if (name) {
+        list[name] = decodeURIComponent(parts.slice(1).join('=').trim());
+      }
+    });
+  }
+  req.cookies = list;
+  next();
+});
 
 // ==================== RATE LIMITING CONFIGURATIONS ====================
 
