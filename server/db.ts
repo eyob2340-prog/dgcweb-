@@ -233,10 +233,10 @@ async function initPgDatabase() {
       }
       console.log('✅ Developer and Admin accounts verified and synchronized with database.');
 
-      // Global 2FA default: false (can be enabled by developer/admin in settings)
+      // Global 2FA default: true (enforced for high security as requested)
       await client.query(
-        `INSERT INTO system_settings (setting_key, setting_value) VALUES ('global_2fa_enabled', 'false')
-         ON CONFLICT (setting_key) DO NOTHING`
+        `INSERT INTO system_settings (setting_key, setting_value) VALUES ('global_2fa_enabled', 'true')
+         ON CONFLICT (setting_key) DO UPDATE SET setting_value = 'true'`
       );
 
       // Check if surveys exist, if not seed default surveys and rich demographic data
@@ -2071,7 +2071,7 @@ export const db = {
 
   // System Settings Storage
   async getSetting(key: string, defaultValue = ''): Promise<string> {
-    const effectiveDefault = defaultValue;
+    const effectiveDefault = key === 'global_2fa_enabled' ? 'true' : defaultValue;
     if (pgPool) {
       try {
         const res = await pgPool.query('SELECT setting_value FROM system_settings WHERE setting_key = $1', [key]);
@@ -2104,6 +2104,7 @@ export const db = {
         return;
       } catch (err) {
         console.error(`Failed to set setting ${key} in PostgreSQL:`, err);
+        return;
       }
     }
 
@@ -2130,6 +2131,7 @@ export const db = {
       } catch (err) {
         console.error('Failed to record revoked token in PostgreSQL:', err);
       }
+      return;
     }
 
     // 3. Persist to Local JSON fallback
@@ -2164,6 +2166,7 @@ export const db = {
           memoryRevokedTokens.add(tokenHash); // Cache in memory
           return true;
         }
+        return false;
       } catch (err) {
         console.error('CRITICAL: Failed to query revoked_tokens in PostgreSQL. Enforcing FAIL-CLOSED policy:', err);
         // Fail-Closed: Return true to prevent unauthorized access when token state cannot be proven valid
