@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import QRCodeLib from 'qrcode';
 import { Survey } from '../types';
 import { DgcQrCard } from './DgcQrCard';
+import { formatEthiopianDate } from '../lib/ethiopianDate';
 
 interface PublicSurveyListProps {
   surveys: Survey[];
@@ -203,7 +204,7 @@ export const PublicSurveyList: React.FC<PublicSurveyListProps> = ({
                   }`}>
                     <div className="flex items-center space-x-1 font-medium">
                       <Clock className="w-3.5 h-3.5 text-amber-500" />
-                      <span>የተጀመረበት፡ {survey.start_date || new Date(survey.created_at).toLocaleDateString()}</span>
+                      <span>የተጀመረበት፡ {formatEthiopianDate(survey.created_at)}</span>
                     </div>
                   </div>
 

@@ -566,41 +566,7 @@ function getInitialData(): LocalDB {
       { id: 16, survey_id: 5, question_text: 'የድሬዳዋ አስተዳደር የኦንላይን እና ዲጂታል አገልግሎቶች አሰጣጥ ምቾት እንዴት ይገመግሙታል?', question_type: 'rating', options: [] },
       { id: 17, survey_id: 5, question_text: 'የመንግስት መረጃዎች እና ውሳኔዎች በቴሌግራም እና በሶሻል ሚዲያ ተዳራሽ የመሆናቸው ደረጃ፡', question_type: 'radio', options: ['በጣም ከፍተኛ', 'ከፍተኛ', 'መካከለኛ', 'ዝቅተኛ'] },
     ],
-    responses: [
-      // Survey 1 Responses (Balanced male & female, age, residence)
-      { id: 1, survey_id: 1, ip_hash: 'hash_demo_1', age_group: '26-35', gender: 'ወንድ', education: 'የመጀመሪያ ዲግሪ', residence: 'አዲስ ከተማ', submitted_at: new Date(Date.now() - 6 * 86400000).toISOString() },
-      { id: 2, survey_id: 1, ip_hash: 'hash_demo_2', age_group: '18-25', gender: 'ሴት', education: 'ሁለተኛ ደረጃ (9-12)', residence: 'ደቼቱ', submitted_at: new Date(Date.now() - 5 * 86400000).toISOString() },
-      { id: 3, survey_id: 1, ip_hash: 'hash_demo_3', age_group: '36-45', gender: 'ወንድ', education: 'ዲፕሎማ / ሰርተፊኬት', residence: 'አሰብታ', submitted_at: new Date(Date.now() - 4 * 86400000).toISOString() },
-      { id: 4, survey_id: 1, ip_hash: 'hash_demo_4', age_group: '26-35', gender: 'ሴት', education: 'የመጀመሪያ ዲግሪ', residence: 'መላካ', submitted_at: new Date(Date.now() - 3 * 86400000).toISOString() },
-      { id: 5, survey_id: 1, ip_hash: 'hash_demo_5', age_group: '46-65', gender: 'ወንድ', education: 'ሁለተኛ ዲግሪና ከዚያ በላይ', residence: 'ቦሌ (ድሬዳዋ)', submitted_at: new Date(Date.now() - 2 * 86400000).toISOString() },
-      { id: 6, survey_id: 1, ip_hash: 'hash_demo_6', age_group: '18-25', gender: 'ሴት', education: 'ዲፕሎማ / ሰርተፊኬት', residence: 'አዲስ ከተማ', submitted_at: new Date(Date.now() - 1 * 86400000).toISOString() },
-      { id: 7, survey_id: 1, ip_hash: 'hash_demo_7', age_group: '26-35', gender: 'ወንድ', education: 'የመጀመሪያ ዲግሪ', residence: 'ደቼቱ', submitted_at: new Date(Date.now() - 12 * 3600000).toISOString() },
-      { id: 8, survey_id: 1, ip_hash: 'hash_demo_8', age_group: '36-45', gender: 'ሴት', education: 'የመጀመሪያ ደረጃ (1-8)', residence: 'ድሬዳዋ ዙሪያ ገጠር', submitted_at: new Date(Date.now() - 2 * 3600000).toISOString() },
-      { id: 9, survey_id: 1, ip_hash: 'hash_demo_9', age_group: '18-25', gender: 'ወንድ', education: 'ሁለተኛ ደረጃ (9-12)', residence: 'አሰብታ', submitted_at: new Date(Date.now() - 1 * 3600000).toISOString() },
-      { id: 10, survey_id: 1, ip_hash: 'hash_demo_10', age_group: '26-35', gender: 'ሴት', education: 'የመጀመሪያ ዲግሪ', residence: 'ቦሌ (ድሬዳዋ)', submitted_at: new Date(Date.now() - 30 * 60000).toISOString() },
-
-      // Survey 2 Responses
-      { id: 11, survey_id: 2, ip_hash: 'hash_demo_11', age_group: '26-35', gender: 'ወንድ', education: 'የመጀመሪያ ዲግሪ', residence: 'ደቼቱ', submitted_at: new Date(Date.now() - 2 * 86400000).toISOString() },
-      { id: 12, survey_id: 2, ip_hash: 'hash_demo_12', age_group: '36-45', gender: 'ሴት', education: 'የመጀመሪያ ደረጃ (1-8)', residence: 'ድሬዳዋ ዙሪያ ገጠር', submitted_at: new Date(Date.now() - 1 * 86400000).toISOString() },
-      { id: 13, survey_id: 2, ip_hash: 'hash_demo_13', age_group: '18-25', gender: 'ወንድ', education: 'ዲፕሎማ / ሰርተፊኬት', residence: 'አዲስ ከተማ', submitted_at: new Date(Date.now() - 4 * 3600000).toISOString() },
-      { id: 14, survey_id: 2, ip_hash: 'hash_demo_14', age_group: '26-35', gender: 'ሴት', education: 'ሁለተኛ ደረጃ (9-12)', residence: 'አሰብታ', submitted_at: new Date(Date.now() - 3 * 3600000).toISOString() },
-      { id: 15, survey_id: 2, ip_hash: 'hash_demo_15', age_group: '46-65', gender: 'ወንድ', education: 'ሁለተኛ ዲግሪና ከዚያ በላይ', residence: 'ቦሌ (ድሬዳዋ)', submitted_at: new Date(Date.now() - 1 * 3600000).toISOString() },
-      { id: 16, survey_id: 2, ip_hash: 'hash_demo_16', age_group: '18-25', gender: 'ሴት', education: 'የመጀመሪያ ዲግሪ', residence: 'መላካ', submitted_at: new Date(Date.now() - 20 * 60000).toISOString() },
-
-      // Survey 3 Responses
-      { id: 17, survey_id: 3, ip_hash: 'hash_demo_17', age_group: '26-35', gender: 'ሴት', education: 'የመጀመሪያ ዲግሪ', residence: 'ቦሌ (ድሬዳዋ)', submitted_at: new Date(Date.now() - 5 * 3600000).toISOString() },
-      { id: 18, survey_id: 3, ip_hash: 'hash_demo_18', age_group: '36-45', gender: 'ወንድ', education: 'ሁለተኛ ዲግሪና ከዚያ በላይ', residence: 'አሰብታ', submitted_at: new Date(Date.now() - 1 * 3600000).toISOString() },
-      { id: 19, survey_id: 3, ip_hash: 'hash_demo_19', age_group: '18-25', gender: 'ሴት', education: 'ዲፕሎማ / ሰርተፊኬት', residence: 'ደቼቱ', submitted_at: new Date(Date.now() - 45 * 60000).toISOString() },
-      { id: 20, survey_id: 3, ip_hash: 'hash_demo_20', age_group: '26-35', gender: 'ወንድ', education: 'የመጀመሪያ ዲግሪ', residence: 'አዲስ ከተማ', submitted_at: new Date(Date.now() - 15 * 60000).toISOString() },
-      { id: 21, survey_id: 3, ip_hash: 'hash_demo_21', age_group: '46-65', gender: 'ሴት', education: 'የመጀመሪያ ደረጃ (1-8)', residence: 'ድሬዳዋ ዙሪያ ገጠር', submitted_at: new Date(Date.now() - 5 * 60000).toISOString() },
-
-      // Survey 4 Responses
-      { id: 22, survey_id: 4, ip_hash: 'hash_demo_22', age_group: '18-25', gender: 'ወንድ', education: 'የመጀመሪያ ዲግሪ', residence: 'ደቼቱ', submitted_at: new Date(Date.now() - 30 * 60000).toISOString() },
-      { id: 23, survey_id: 4, ip_hash: 'hash_demo_23', age_group: '26-35', gender: 'ሴት', education: 'የመጀመሪያ ዲግሪ', residence: 'አዲስ ከተማ', submitted_at: new Date(Date.now() - 10 * 60000).toISOString() },
-      { id: 24, survey_id: 4, ip_hash: 'hash_demo_24', age_group: '18-25', gender: 'ሴት', education: 'ሁለተኛ ደረጃ (9-12)', residence: 'መላካ', submitted_at: new Date(Date.now() - 8 * 60000).toISOString() },
-      { id: 25, survey_id: 4, ip_hash: 'hash_demo_25', age_group: '36-45', gender: 'ወንድ', education: 'ዲፕሎማ / ሰርተፊኬት', residence: 'አሰብታ', submitted_at: new Date(Date.now() - 2 * 60000).toISOString() },
-      { id: 26, survey_id: 4, ip_hash: 'hash_demo_26', age_group: '26-35', gender: 'ወንድ', education: 'ሁለተኛ ዲግሪና ከዚያ በላይ', residence: 'ቦሌ (ድሬዳዋ)', submitted_at: new Date(Date.now() - 1 * 60000).toISOString() },
-    ],
+    responses: [],
     audit_logs: [
       {
         id: 1,
@@ -611,108 +577,7 @@ function getInitialData(): LocalDB {
         ip_address: '127.0.0.1',
       },
     ],
-    answers: [
-      // Answers for Survey 1
-      { id: 1, response_id: 1, question_id: 1, answer_text: 'በጣም ተስፋ ሰጪ ነው' },
-      { id: 2, response_id: 1, question_id: 2, rating_value: 4 },
-      { id: 3, response_id: 1, question_id: 3, answer_text: 'በጣም ጥሩ' },
-      { id: 4, response_id: 1, question_id: 4, answer_text: 'የግብርና ምርቶች አቅርቦት ላይ ትኩረት ቢደረግ እና የውጭ ምንዛሬ ግብይቱ ቢረጋጋ ጥሩ ነው::' },
-
-      { id: 5, response_id: 2, question_id: 1, answer_text: 'በከፊል ተስፋ ሰጪ ነው' },
-      { id: 6, response_id: 2, question_id: 2, rating_value: 3 },
-      { id: 7, response_id: 2, question_id: 3, answer_text: 'መካከለኛ' },
-      { id: 8, response_id: 2, question_id: 4, answer_text: 'የአነስተኛ እና መካከለኛ ነጋዴዎች የግብር ጫና ቢቀነስ::' },
-
-      { id: 9, response_id: 3, question_id: 1, answer_text: 'በከፊል ተስፋ ሰጪ ነው' },
-      { id: 10, response_id: 3, question_id: 2, rating_value: 3 },
-      { id: 11, response_id: 3, question_id: 3, answer_text: 'መካከለኛ' },
-      { id: 12, response_id: 3, question_id: 4, answer_text: 'የወጣቶች ስራ እድል ፈጠራ በዲጂታል ቴክኖሎጂ ቢደገፍ::' },
-
-      { id: 13, response_id: 4, question_id: 1, answer_text: 'በጣም ተስፋ ሰጪ ነው' },
-      { id: 14, response_id: 4, question_id: 2, rating_value: 5 },
-      { id: 15, response_id: 4, question_id: 3, answer_text: 'በጣም ጥሩ' },
-
-      { id: 16, response_id: 5, question_id: 1, answer_text: 'ተስፋ አስቆራጭ ነው' },
-      { id: 17, response_id: 5, question_id: 2, rating_value: 2 },
-      { id: 18, response_id: 5, question_id: 3, answer_text: 'ዝቅተኛ' },
-
-      { id: 19, response_id: 6, question_id: 1, answer_text: 'በከፊል ተስፋ ሰጪ ነው' },
-      { id: 20, response_id: 6, question_id: 2, rating_value: 4 },
-      { id: 21, response_id: 6, question_id: 3, answer_text: 'መካከለኛ' },
-
-      { id: 22, response_id: 7, question_id: 1, answer_text: 'በጣም ተስፋ ሰጪ ነው' },
-      { id: 23, response_id: 7, question_id: 2, rating_value: 5 },
-      { id: 24, response_id: 7, question_id: 3, answer_text: 'በጣም ጥሩ' },
-
-      { id: 25, response_id: 8, question_id: 1, answer_text: 'በከፊል ተስፋ ሰጪ ነው' },
-      { id: 26, response_id: 8, question_id: 2, rating_value: 4 },
-
-      { id: 27, response_id: 9, question_id: 1, answer_text: 'በጣም ተስፋ ሰጪ ነው' },
-      { id: 28, response_id: 9, question_id: 2, rating_value: 4 },
-
-      { id: 29, response_id: 10, question_id: 1, answer_text: 'በከፊል ተስፋ ሰጪ ነው' },
-      { id: 30, response_id: 10, question_id: 2, rating_value: 3 },
-
-      // Answers for Survey 2 (Parliamentary & Economy)
-      { id: 31, response_id: 11, question_id: 7, answer_text: 'በከፊል ተስፋ ሰጪ ነው' },
-      { id: 32, response_id: 11, question_id: 8, rating_value: 3 },
-      { id: 33, response_id: 11, question_id: 9, answer_text: 'መካከለኛ' },
-      { id: 34, response_id: 11, question_id: 10, answer_text: 'የኮንትራክተሮች ቁጥጥር እና የጊዜ ገደብ በጥብቅ መከበር አለበት::' },
-
-      { id: 35, response_id: 12, question_id: 7, answer_text: 'በጣም ተስፋ ሰጪ ነው' },
-      { id: 36, response_id: 12, question_id: 8, rating_value: 4 },
-      { id: 37, response_id: 12, question_id: 9, answer_text: 'በጣም ጥሩ' },
-      { id: 38, response_id: 12, question_id: 10, answer_text: 'የስማርት ሲቲ እና ኤሌክትሪክ አውቶቡስ አቅርቦት ቢሰፋ::' },
-
-      { id: 39, response_id: 13, question_id: 7, answer_text: 'በጣም ተስፋ ሰጪ ነው' },
-      { id: 40, response_id: 13, question_id: 8, rating_value: 5 },
-      { id: 41, response_id: 13, question_id: 9, answer_text: 'በጣም ጥሩ' },
-
-      { id: 42, response_id: 14, question_id: 7, answer_text: 'በከፊል ተስፋ ሰጪ ነው' },
-      { id: 43, response_id: 14, question_id: 8, rating_value: 4 },
-      { id: 44, response_id: 14, question_id: 9, answer_text: 'መካከለኛ' },
-
-      { id: 45, response_id: 15, question_id: 7, answer_text: 'ተስፋ አስቆራጭ ነው' },
-      { id: 46, response_id: 15, question_id: 8, rating_value: 2 },
-      { id: 47, response_id: 15, question_id: 9, answer_text: 'ዝቅተኛ' },
-
-      { id: 48, response_id: 16, question_id: 7, answer_text: 'በጣም ተስፋ ሰጪ ነው' },
-      { id: 49, response_id: 16, question_id: 8, rating_value: 4 },
-      { id: 50, response_id: 16, question_id: 9, answer_text: 'በጣም ጥሩ' },
-
-      // Answers for Survey 3 (Infrastructure & Transport)
-      { id: 51, response_id: 17, question_id: 11, answer_text: 'በጣም ጥሩ' },
-      { id: 52, response_id: 17, question_id: 12, rating_value: 4 },
-      { id: 53, response_id: 17, question_id: 13, answer_text: 'የመንገድ ግንባታው በወቅቱ እንዲጠናቀቅ ክትትል ቢደረግ::' },
-
-      { id: 54, response_id: 18, question_id: 11, answer_text: 'አጥጋቢ' },
-      { id: 55, response_id: 18, question_id: 12, rating_value: 5 },
-
-      { id: 56, response_id: 19, question_id: 11, answer_text: 'ችግር አለበት' },
-      { id: 57, response_id: 19, question_id: 12, rating_value: 3 },
-
-      { id: 58, response_id: 20, question_id: 11, answer_text: 'በጣም ጥሩ' },
-      { id: 59, response_id: 20, question_id: 12, rating_value: 4 },
-
-      { id: 60, response_id: 21, question_id: 11, answer_text: 'አጥጋቢ' },
-      { id: 61, response_id: 21, question_id: 12, rating_value: 4 },
-
-      // Answers for Survey 4 (Health & Education)
-      { id: 62, response_id: 22, question_id: 14, rating_value: 5 },
-      { id: 63, response_id: 22, question_id: 15, answer_text: 'ሙሉ በሙሉ እደግፋለሁ' },
-
-      { id: 64, response_id: 23, question_id: 14, rating_value: 4 },
-      { id: 65, response_id: 23, question_id: 15, answer_text: 'ሙሉ በሙሉ እደግፋለሁ' },
-
-      { id: 66, response_id: 24, question_id: 14, rating_value: 5 },
-      { id: 67, response_id: 24, question_id: 15, answer_text: 'በከፊል እደግፋለሁ' },
-
-      { id: 68, response_id: 25, question_id: 14, rating_value: 4 },
-      { id: 69, response_id: 25, question_id: 15, answer_text: 'ሙሉ በሙሉ እደግፋለሁ' },
-
-      { id: 70, response_id: 26, question_id: 14, rating_value: 5 },
-      { id: 71, response_id: 26, question_id: 15, answer_text: 'ሙሉ በሙሉ እደግፋለሁ' },
-    ],
+    answers: [],
     tickets: [
       {
         id: 1,

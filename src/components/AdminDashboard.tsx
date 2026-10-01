@@ -658,7 +658,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                     <th className="p-4">ID</th>
                     <th className="p-4">የመጠይቅ ርዕስ (Title)</th>
                     <th className="p-4">መደብ (Category)</th>
-                    <th className="p-4 text-center">ቋንቋዎች (DB Translations)</th>
+                    <th className="p-4 text-center">የተፈጠረበት ቀን</th>
                     <th className="p-4 text-center">ተሳታፊዎች</th>
                     <th className="p-4 text-center">ሁኔታ (Status)</th>
                     <th className="p-4 text-right">ድርጊቶች (Actions)</th>
@@ -666,8 +666,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 text-xs sm:text-sm">
                   {filteredSurveys.map((s) => {
-                    const transKeys = s.translations ? Object.keys(s.translations) : [];
-                    const isFullyTranslated = transKeys.length >= 5;
                     return (
                       <tr key={s.id} className="hover:bg-slate-800/40 transition-colors">
                         <td className="p-4 font-mono font-bold text-slate-500">#{s.id}</td>
@@ -677,19 +675,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                             {s.category}
                           </span>
                         </td>
-                        <td className="p-4 text-center">
-                          <div className="inline-flex items-center gap-1.5 bg-slate-950 px-2.5 py-1 rounded-xl border border-slate-800">
-                            <span title="አማርኛ (ኦሪጅናል)" className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">AM ✓</span>
-                            <span title="Afaan Oromoo (Oromo)" className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${transKeys.includes('om') ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-500 bg-slate-900 opacity-60'}`}>
-                              OM {transKeys.includes('om') ? '✓' : '—'}
-                            </span>
-                            <span title="Soomaali (Somali)" className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${transKeys.includes('so') ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-500 bg-slate-900 opacity-60'}`}>
-                              SO {transKeys.includes('so') ? '✓' : '—'}
-                            </span>
-                            {transKeys.includes('en') && (
-                              <span title="English" className="text-[11px] font-bold text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded">EN ✓</span>
-                            )}
-                          </div>
+                        <td className="p-4 text-center font-medium text-slate-300 whitespace-nowrap text-xs">
+                          {formatEthiopianDate(s.created_at)}
                         </td>
                         <td className="p-4 text-center font-black text-amber-300">{s.total_responses || 0}</td>
                         <td className="p-4 text-center">
@@ -715,28 +702,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                           </button>
                         </td>
                         <td className="p-4 text-right space-x-2 whitespace-nowrap">
-                          {/* 1-Click Batch Pre-Translate Button */}
-                          {!isFullyTranslated && (
-                            <button
-                              onClick={async () => {
-                                try {
-                                  const res = await fetch(`/api/admin/surveys/${s.id}/pre-translate`, {
-                                    method: 'POST',
-                                    headers: { Authorization: `Bearer ${adminToken}` },
-                                  });
-                                  if (res.ok) fetchSurveys();
-                                } catch (e) {
-                                  console.error(e);
-                                }
-                              }}
-                              className="px-2.5 py-1.5 bg-indigo-600/15 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 cursor-pointer"
-                              title="ወደ 5ቱም ቋንቋዎች ተርጉም እና በዳታቤዝ አስቀምጥ (Translate All & Save)"
-                            >
-                              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                              <span>ተርጉም (5 Lng)</span>
-                            </button>
-                          )}
-
                           {/* Edit Survey Button */}
                           <button
                             onClick={() => {
@@ -760,12 +725,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                             አናሊቲክስ
                           </button>
 
+                          {/* Delete Survey Button */}
                           <button
                             onClick={() => setSurveyToDelete(s)}
-                            className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl transition-all cursor-pointer"
-                            title="መጠይቁን ሰርዝ (Delete Survey)"
+                            className="px-2.5 py-1.5 bg-red-600/15 hover:bg-red-600/30 text-red-400 hover:text-red-300 border border-red-500/30 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
+                            title="መጠይቁን ሰርዝ / አጥፋ (Delete Survey)"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                            <span>መደለቻ</span>
                           </button>
                         </td>
                       </tr>
