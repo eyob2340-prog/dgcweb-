@@ -1257,6 +1257,89 @@ export const db = {
     return local.answers || [];
   },
 
+  async getSurveyDetailedResponses(surveyId: number): Promise<Array<{
+    id: number;
+    survey_id: number;
+    age_group: string;
+    gender: string;
+    education: string;
+    residence: string;
+    language: string;
+    submitted_at: string;
+    answers: Array<{
+      question_id: number;
+      question_text: string;
+      question_type: string;
+      answer_text?: string;
+      rating_value?: number;
+    }>;
+  }>> {
+    if (pgPool) {
+      try {
+        const respRes = await pgPool.query(
+          'SELECT * FROM responses WHERE survey_id = $1 ORDER BY id ASC',
+          [surveyId]
+        );
+        const responses = respRes.rows;
+        if (responses.length === 0) return [];
+
+        const respIds = responses.map((r: any) => r.id);
+        const ansRes = await pgPool.query(
+          `SELECT a.id, a.response_id, a.question_id, a.answer_text, a.rating_value,
+                  q.question_text, q.question_type
+           FROM answers a
+           JOIN questions q ON a.question_id = q.id
+           WHERE a.response_id = ANY($1::int[])
+           ORDER BY a.response_id ASC, q.id ASC`,
+          [respIds]
+        );
+
+        const answersByRespId: Record<number, any[]> = {};
+        for (const a of ansRes.rows) {
+          if (!answersByRespId[a.response_id]) answersByRespId[a.response_id] = [];
+          answersByRespId[a.response_id].push({
+            question_id: a.question_id,
+            question_text: a.question_text,
+            question_type: a.question_type,
+            answer_text: a.answer_text,
+            rating_value: a.rating_value,
+          });
+        }
+
+        return responses.map((r: any) => ({
+          ...r,
+          answers: answersByRespId[r.id] || [],
+        }));
+      } catch (err) {
+        console.error('Failed to getSurveyDetailedResponses from pgPool:', err);
+      }
+    }
+
+    const local = readLocalDB();
+    const responses = (local.responses || []).filter((r: any) => r.survey_id === surveyId);
+    const questions = (local.questions || []).filter((q: any) => q.survey_id === surveyId);
+    const qMap = new Map(questions.map((q: any) => [q.id, q]));
+
+    return responses.map((r: any) => {
+      const answers = (local.answers || [])
+        .filter((a: any) => a.response_id === r.id)
+        .map((a: any) => {
+          const q = qMap.get(a.question_id);
+          return {
+            question_id: a.question_id,
+            question_text: q?.question_text || `ጥያቄ ${a.question_id}`,
+            question_type: q?.question_type || 'text',
+            answer_text: a.answer_text,
+            rating_value: a.rating_value,
+          };
+        });
+      return {
+        ...r,
+        answers,
+      };
+    });
+  },
+
   async createSurvey(data: {
     title: string;
     description: string;

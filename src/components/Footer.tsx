@@ -78,6 +78,22 @@ export const Footer: React.FC<FooterProps> = ({ onOpenPrivacy, onOpenTerms, isDa
               </button>
             </div>
 
+            {/* Developer Credit Link */}
+            <a
+              href="https://t.me/eyobreta"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Developed by Developer Opa (Telegram: @eyobreta)"
+              className={`border px-3 py-1.5 rounded-full text-[11px] font-black transition-all flex items-center space-x-1.5 shadow-sm hover:scale-105 cursor-pointer ${
+                isDarkMode
+                  ? 'bg-slate-900 hover:bg-slate-800 border-cyan-500/30 hover:border-cyan-400 text-cyan-400'
+                  : 'bg-cyan-50 hover:bg-cyan-100 border-cyan-300 text-cyan-900'
+              }`}
+            >
+              <Send className="w-3 h-3 text-cyan-400" />
+              <span>Devloper opa • <span className="font-mono text-cyan-300">@eyobreta</span></span>
+            </a>
+
             <a
               href="https://www.diredawacommunication.org"
               target="_blank"

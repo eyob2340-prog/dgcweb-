@@ -106,35 +106,52 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
   const [setup2FaError, setSetup2FaError] = useState<string | null>(null);
 
   const handleToggle2FA = async () => {
-    // If currently enabled, open disable confirmation modal
-    if (twoFactorEnabled) {
-      setDisable2FaPassword('');
-      setDisable2FaOtp('');
-      setDisable2FaRequiresOtp(false);
-      setDisable2FaError(null);
-      setIsDisable2FaModalOpen(true);
-      return;
-    }
-
-    // Enabling 2FA: Fetch QR code from server
     setToggling2FA(true);
-    setSetup2FaError(null);
+    setMessage(null);
     try {
-      const res = await fetch('/api/admin/2fa/setup', {
+      const nextState = !twoFactorEnabled;
+      const res = await fetch('/api/admin/2fa/toggle', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${adminToken}`,
         },
+        body: JSON.stringify({ enabled: nextState }),
       });
       const data = await res.json();
-      if (res.ok && data.qrCodeUrl) {
-        setSetupQrUrl(data.qrCodeUrl);
-        setSetupSecret(data.secret);
-        setSetupVerifyToken('');
-        setIsSetup2FaModalOpen(true);
+      if (res.ok && data.success) {
+        setTwoFactorEnabled(data.two_factor_enabled);
+        if (data.two_factor_enabled && data.qrCodeUrl) {
+          setSetupQrUrl(data.qrCodeUrl);
+          setSetupSecret(data.secret || '');
+          setSetupVerifyToken('');
+          setIsSetup2FaModalOpen(true);
+        }
+        setMessage({
+          type: 'success',
+          text: data.message || `2FA በስኬት ${data.two_factor_enabled ? 'በርቷል (ON)' : 'ጠፍቷል (OFF)'}!`,
+        });
+        fetchUsers();
+      } else if (data.needsSetup) {
+        // Needs initial QR setup: fetch setup details
+        const setupRes = await fetch('/api/admin/2fa/setup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${adminToken}`,
+          },
+        });
+        const setupData = await setupRes.json();
+        if (setupRes.ok && setupData.qrCodeUrl) {
+          setSetupQrUrl(setupData.qrCodeUrl);
+          setSetupSecret(setupData.secret);
+          setSetupVerifyToken('');
+          setIsSetup2FaModalOpen(true);
+        } else {
+          setMessage({ type: 'error', text: setupData.error || 'የ 2FA QR ኮድ ማዘጋጀት አልተቻለም' });
+        }
       } else {
-        setMessage({ type: 'error', text: data.error || 'የ 2FA QR ኮድ ማዘጋጀት አልተቻለም' });
+        setMessage({ type: 'error', text: data.error || 'የ 2FA ሁኔታ መቀየር አልተቻለም' });
       }
     } catch (err: any) {
       setMessage({ type: 'error', text: 'የኔትወርክ ስህተት አጋጥሟል' });
