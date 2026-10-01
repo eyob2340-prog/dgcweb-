@@ -1,5 +1,5 @@
 import React from 'react';
-import { Globe, Facebook, Youtube, Send, Twitter, Code2 } from 'lucide-react';
+import { Facebook, Youtube, Send, Twitter } from 'lucide-react';
 
 interface FooterProps {
   onOpenPrivacy: () => void;
@@ -9,7 +9,6 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onOpenPrivacy, onOpenTerms, isDarkMode = true }) => {
   const socialLinks = [
-    { name: 'ድረ ገጽ (Website)', url: 'https://www.diredawacommunication.org', icon: Globe, iconColor: 'text-blue-500 hover:text-blue-400' },
     { name: 'ፌስቡክ (Facebook)', url: 'https://facebook.com/DGCOMU', icon: Facebook, iconColor: 'text-blue-600 hover:text-blue-500' },
     { name: 'ዩትዩብ (YouTube)', url: 'https://www.youtube.com/@DireDawaComm', icon: Youtube, iconColor: 'text-amber-500 hover:text-amber-400' },
     { name: 'ቴሌግራም (Telegram)', url: 'https://t.me/DDGCAB', icon: Send, iconColor: 'text-blue-400 hover:text-blue-300' },
@@ -83,29 +82,15 @@ export const Footer: React.FC<FooterProps> = ({ onOpenPrivacy, onOpenTerms, isDa
               href="https://t.me/eyobreta"
               target="_blank"
               rel="noopener noreferrer"
-              title="Developed by Developer Opa (Telegram: @eyobreta)"
-              className={`border px-3 py-1.5 rounded-full text-[11px] font-black transition-all flex items-center space-x-1.5 shadow-sm hover:scale-105 cursor-pointer ${
+              title="Developed by Devloper opa (@eyobreta)"
+              className={`border px-3.5 py-1.5 rounded-full text-[11px] font-black transition-all flex items-center space-x-1.5 shadow-sm hover:scale-105 cursor-pointer ${
                 isDarkMode
-                  ? 'bg-slate-900 hover:bg-slate-800 border-cyan-500/30 hover:border-cyan-400 text-cyan-400'
+                  ? 'bg-slate-900 hover:bg-slate-800 border-cyan-500/40 hover:border-cyan-400 text-cyan-400'
                   : 'bg-cyan-50 hover:bg-cyan-100 border-cyan-300 text-cyan-900'
               }`}
             >
-              <Send className="w-3 h-3 text-cyan-400" />
-              <span>Devloper opa • <span className="font-mono text-cyan-300">@eyobreta</span></span>
-            </a>
-
-            <a
-              href="https://www.diredawacommunication.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`border text-amber-500 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer ${
-                isDarkMode
-                  ? 'bg-slate-900 hover:bg-slate-800 border-amber-500/30 hover:border-amber-400 text-amber-400'
-                  : 'bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-900'
-              }`}
-            >
-              <Globe className="w-3.5 h-3.5 text-amber-500" />
-              <span>ድሬዳዋ አስተዳደር • <span className="font-mono">Official Portal</span></span>
+              <Send className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Devloper opa</span>
             </a>
           </div>
 

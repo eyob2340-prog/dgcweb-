@@ -52,6 +52,10 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
   const [cleaningTestTickets, setCleaningTestTickets] = useState<boolean>(false);
   const [clearingCache, setClearingCache] = useState<boolean>(false);
 
+  // Global 2FA State
+  const [global2Fa, setGlobal2Fa] = useState<boolean>(false);
+  const [toggling2Fa, setToggling2Fa] = useState<boolean>(false);
+
   // Telegram Settings State
   const [telegramConfig, setTelegramConfig] = useState<TelegramConfig>({ botToken: '', chatId: '' });
   const [savingTelegram, setSavingTelegram] = useState<boolean>(false);
@@ -270,6 +274,53 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
     }
   };
 
+  const fetchGlobal2FaStatus = async () => {
+    try {
+      const res = await fetch('/api/admin/developer/2fa-global', {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setGlobal2Fa(Boolean(data.global2Fa));
+      }
+    } catch (err) {
+      console.error('Error fetching global 2FA status:', err);
+    }
+  };
+
+  const handleToggleGlobal2Fa = async () => {
+    setToggling2Fa(true);
+    setActionMessage(null);
+    const nextState = !global2Fa;
+    try {
+      const res = await fetch('/api/admin/developer/2fa-global', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({ enabled: nextState }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setGlobal2Fa(nextState);
+        setActionMessage({
+          type: 'success',
+          text: nextState
+            ? '🔐 Global 2FA ስገዳጅ ሆኗል! ሁሉም አድሚኖች Google Authenticator ማዋቀር ይጠበቅባቸዋል::'
+            : '🔓 Global 2FA ጠፍቷል! አድሚኖች ያለ Authenticator ኮድ ሊገቡ ይችላሉ::',
+        });
+        fetchAuditLogs();
+      } else {
+        setActionMessage({ type: 'error', text: data.error || 'Global 2FA ማብሪያ/ማጥፊያ አልተቻለም' });
+      }
+    } catch (err: any) {
+      setActionMessage({ type: 'error', text: err.message || 'የኔትወርክ ስህተት' });
+    } finally {
+      setToggling2Fa(false);
+    }
+  };
+
   useEffect(() => {
     fetchDbStats();
     fetchTelegramConfig();
@@ -277,6 +328,7 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
     fetchAuditLogs();
     fetchErrorLogs();
     fetchSecurityMetrics();
+    fetchGlobal2FaStatus();
   }, []);
 
   useEffect(() => {
@@ -877,6 +929,86 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
                 <span>Cache Cleaner</span>
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* 5. 🔐 Global 2FA Toggle */}
+        <div className="bg-slate-900/80 backdrop-blur-md rounded-3xl p-6 border border-emerald-500/30 shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center space-x-3">
+              <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-2xl border border-emerald-500/20">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-sm font-black text-white">5. 🔐 ስገዳጅ የ2FA ማረጋገጫ (Global 2FA Enforcement)</h2>
+                <p className="text-[11px] text-slate-400">ሁሉም አድሚኖች Google Authenticator ኮድ ግዴታ ማድረጊያ/ማሰናከያ</p>
+              </div>
+            </div>
+            <span className={`px-2.5 py-1 text-[10px] font-mono font-black rounded-full border ${
+              global2Fa
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 animate-pulse'
+                : 'bg-slate-800 text-slate-400 border-slate-700'
+            }`}>
+              {global2Fa ? '🔒 GLOBAL 2FA ON' : '🔓 GLOBAL 2FA OFF'}
+            </span>
+          </div>
+
+          <div className="space-y-3 pt-1">
+            {/* Status display */}
+            <div className={`p-4 rounded-2xl border ${
+              global2Fa
+                ? 'bg-emerald-500/10 border-emerald-500/30'
+                : 'bg-slate-950 border-slate-800'
+            }`}>
+              <div className="flex items-start gap-3">
+                <div className={`p-2 rounded-xl mt-0.5 ${
+                  global2Fa ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-500'
+                }`}>
+                  <Lock className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <span className={`text-xs font-black block ${
+                    global2Fa ? 'text-emerald-300' : 'text-slate-300'
+                  }`}>
+                    Google Authenticator (2FA) {global2Fa ? '✅ ስገዳጅ (ENFORCED)' : '⚪ ጠፍቷል (OFF / Disabled)'}
+                  </span>
+                  <span className="text-[11px] text-slate-400 block mt-0.5">
+                    {global2Fa
+                      ? 'ሁሉም አድሚኖች (opa፣ owner፣ admin) ሲገቡ Google Authenticator ባለ 6-አሃዝ ኮድ ማቅረብ ይጠበቅባቸዋል::'
+                      : 'Global 2FA ጠፍቷል - አድሚኖች ያለ Authenticator ኮድ ሊገቡ ይችላሉ:: (ለምርመራ/ዳግም ማዋቀር ጊዜ ጠቃሚ)'
+                    }
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Toggle button */}
+            <button
+              onClick={handleToggleGlobal2Fa}
+              disabled={toggling2Fa}
+              className={`w-full py-3 rounded-2xl text-sm font-black transition-all shadow-lg flex items-center justify-center gap-2 ${
+                global2Fa
+                  ? 'bg-red-600/80 hover:bg-red-600 text-white border border-red-500/50 shadow-red-950/30'
+                  : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border border-emerald-400/30 shadow-emerald-950/30'
+              } disabled:opacity-60 disabled:cursor-not-allowed`}
+            >
+              {toggling2Fa ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : global2Fa ? (
+                <Lock className="w-4 h-4" />
+              ) : (
+                <ShieldCheck className="w-4 h-4" />
+              )}
+              {toggling2Fa
+                ? 'በማስቀየር ላይ...'
+                : global2Fa
+                ? 'Global 2FA አጥፋ (Turn OFF)'
+                : 'Global 2FA ብርታ (Turn ON) - ስገዳጅ አድርግ'}
+            </button>
+
+            <p className="text-[10px] text-slate-500 text-center">
+              ⚠️ Global 2FA ሲበራ - ቀደም ሲል ያለ 2FA የሚጠቀሙ አድሚኖች ሲቀጥሉ QR ኮድ ማዋቀር ይጠይቃቸዋል
+            </p>
           </div>
         </div>
       </div>
