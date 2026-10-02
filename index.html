@@ -13,20 +13,27 @@
     <!-- Preconnect for Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Preload critical font weights for faster render -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" />
     <link
       id="gfonts"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
       rel="stylesheet"
       media="print"
+      onload="this.media='all'"
     />
     <noscript>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
     </noscript>
 
-    <!-- ═══════════════════════════════════════════════════════
-         Google Translate Widget — DGC Custom Styling
-         Supports: አማርኛ | English | Afaan Oromoo | ትግርኛ | Af-Soomaali
-         ═══════════════════════════════════════════════════════ -->
+    <!-- Google Translate Widget — deferred to avoid blocking initial render -->
+    <script src="/boot-guard.js"></script>
+    <script src="/gt-init.js" defer></script>
+    <script
+      type="text/javascript"
+      src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+      defer
+    ></script>
     <style>
       /* Remove Google's top-of-page banner bar */
       .goog-te-banner-frame.skiptranslate,
@@ -84,14 +91,12 @@
       }
     </style>
 
-    <!-- Boot guard: background, translate-safe DOM, crash fallback (must run before the app) -->
-    <script src="/boot-guard.js"></script>
-    <!-- Google Translate Initialization (external file; inline scripts are blocked by CSP) -->
-    <script src="/gt-init.js"></script>
+    <!-- Google Translate Initialization — deferred -->
+    <script src="/gt-init.js" defer></script>
     <script
       type="text/javascript"
       src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
-      async
+      defer
     ></script>
   </head>
   <body>
