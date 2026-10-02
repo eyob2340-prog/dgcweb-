@@ -566,7 +566,19 @@ function getInitialData(): LocalDB {
       { id: 16, survey_id: 5, question_text: 'የድሬዳዋ አስተዳደር የኦንላይን እና ዲጂታል አገልግሎቶች አሰጣጥ ምቾት እንዴት ይገመግሙታል?', question_type: 'rating', options: [] },
       { id: 17, survey_id: 5, question_text: 'የመንግስት መረጃዎች እና ውሳኔዎች በቴሌግራም እና በሶሻል ሚዲያ ተዳራሽ የመሆናቸው ደረጃ፡', question_type: 'radio', options: ['በጣም ከፍተኛ', 'ከፍተኛ', 'መካከለኛ', 'ዝቅተኛ'] },
     ],
-    responses: [],
+    responses: [
+      // ── 10 realistic seed responses ALL on Survey 1 (Official Government Formation Survey) ──
+      { id: 1,  survey_id: 1, ip_hash: 'a3f8c2d1e4b7f6a9c2d5e8f1a4b7c0d3e6f9a2b5c8d1e4f7a0b3c6d9e2f5a8b1', age_group: '26-35', gender: 'ወንድ',  education: 'ዲግሪ',        residence: 'ሳቢ',          submitted_at: '2026-09-28T09:15:00.000Z' },
+      { id: 2,  survey_id: 1, ip_hash: 'b5e9d4f6a1c8b2d7e3f0a6b1c4d9e2f5a8b3c6d1e4f7a2b5c8d3e6f9a0b4c7d2', age_group: '36-45', gender: 'ሴት',   education: 'ማስተርስ',      residence: 'ካቶ ሜሳ',      submitted_at: '2026-09-28T11:30:00.000Z' },
+      { id: 3,  survey_id: 1, ip_hash: 'c6f0e5a2d9b3c7e1f4a8b2d6e0f3a7b1c5d9f2a6b0c4d8e1f5a9b3c7d2e6f0a4', age_group: '18-25', gender: 'ወንድ',  education: 'ዲፕሎማ',      residence: 'ሜጋላ',        submitted_at: '2026-09-28T14:45:00.000Z' },
+      { id: 4,  survey_id: 1, ip_hash: 'd7a1f6b2e0c5d9f3a4b8e2c6d0f4a9b3c7e1f5a2b6d0e4f8a1b5c9d3e7f0a2b6', age_group: '46-55', gender: 'ሴት',   education: 'ዲግሪ',        residence: 'ገንዴ ቆሬ',     submitted_at: '2026-09-29T08:00:00.000Z' },
+      { id: 5,  survey_id: 1, ip_hash: 'e8b2a7c3f1d6e0a4b9c2d5f8a3b7e1c4d8f2a6b0c5d9e3f7a1b4c8d2e6f0a5b9', age_group: '26-35', gender: 'ወንድ',  education: 'ሁለተኛ ደረጃ', residence: 'ቡሌ',          submitted_at: '2026-09-29T10:20:00.000Z' },
+      { id: 6,  survey_id: 1, ip_hash: 'f9c3b8d4a2e7f1b5c0d3e6a9f2b6c1d5e8a3b7d0f4a8c2e5b9d3f6a0b4c7e1f5', age_group: '18-25', gender: 'ሴት',   education: 'ዲፕሎማ',      residence: 'ለጌሃሬ',       submitted_at: '2026-09-29T13:10:00.000Z' },
+      { id: 7,  survey_id: 1, ip_hash: 'a0d4c9e5b3f8a2c6d1e4f7b2a5c9d3e7f1b5a8c2d6e0f4b9a3c7d2e5f8a1b6c0', age_group: '36-45', gender: 'ወንድ',  education: 'ዲግሪ',        residence: 'ድሬ ዳዋ ማዕከል', submitted_at: '2026-09-30T07:40:00.000Z' },
+      { id: 8,  survey_id: 1, ip_hash: 'b1e5d0f6c4a9b2d7e1f3a6c0d4e8f2b7a1c5d9e3f6a0b4c8d2e7f1a5b9c3d6e0', age_group: '26-35', gender: 'ሴት',   education: 'ማስተርስ',      residence: 'አዲስ ቀጠና',    submitted_at: '2026-09-30T09:55:00.000Z' },
+      { id: 9,  survey_id: 1, ip_hash: 'c2f6e1a7d5b0c3e8f2a4b8d1e5f9a2b6c0d4e7f1a5b9c3d6e0f4a8b1c5d9e2f7', age_group: '18-25', gender: 'ወንድ',  education: 'ዲፕሎማ',      residence: 'መልካ ጀብዱ',    submitted_at: '2026-10-01T10:05:00.000Z' },
+      { id: 10, survey_id: 1, ip_hash: 'd3a8f2b7e4c1d9f3a5b0e6c2d7f1a4b8e0c5d9f2a6b1c4e8f3a7b2c6d0e5f9a3', age_group: '46-55', gender: 'ሴት',   education: 'ዲግሪ',        residence: 'ገንዴ ቆሬ',     submitted_at: '2026-10-01T14:30:00.000Z' },
+    ],
     audit_logs: [
       {
         id: 1,
@@ -577,7 +589,92 @@ function getInitialData(): LocalDB {
         ip_address: '127.0.0.1',
       },
     ],
-    answers: [],
+    answers: [
+      // ── Participant 1 — Survey 1 — ወንድ 26-35 — ሳቢ — አማርኛ ──
+      { id: 1,  response_id: 1, question_id: 1, answer_text: 'አዲሱ መንግስት ኢኮኖሚ ማሻሻያ፣ ሰላምና ፀጥታ ማጠናከሪያ እና ዴሞክራሲያዊ ሂደቱን ቀጣይነት ባለው መልኩ ማስቀጠል ላይ ትኩረት ሊሰጥ ይገባል። ሁሉም ዜጎች እኩል ዕድል የሚያገኙበት ፖሊሲ ቢዘረጋ ትልቅ ለውጥ ያስከትላል።', rating_value: null },
+      { id: 2,  response_id: 1, question_id: 2, answer_text: 'ህዝቡ ምርጫን ከድምጽ ሰጪነት አልፎ በፖሊሲ አዘገጃጀትና ትግበራ ላይ ቀጥተኛ ተሳትፎ ሊኖረው ይገባል። በቀበሌ ደረጃ ታዳሚ ስብሰባዎች ቢበዙ ህዝቡ ፍቃደኛ ይሆናል።', rating_value: null },
+      { id: 3,  response_id: 1, question_id: 3, answer_text: 'አዲሶቹ አመራሮች ልምድና ብቃት ያላቸው ናቸው ብዬ አምናለሁ። ሆኖም ውጤቱ ከጊዜ ሂደት ጋር ሊታይ ይገባዋል። ለወጣቱ ትውልድ ዕድሎችን ቢፈጥሩ ወሳኝ ነው።', rating_value: null },
+      { id: 4,  response_id: 1, question_id: 4, answer_text: 'ወጣቶችን ማሳተፍ፣ ሙስናን ወደ ዜሮ ዝቅ ማድረግ እና ኢንቨስትመንትን ለመሳብ ምቹ ሁኔታ መፍጠር ቅድሚያ ሊሰጣቸው ይገባሉ።', rating_value: null },
+      { id: 5,  response_id: 1, question_id: 5, answer_text: 'ዜጎች ግብር ሰጥተው ህጉን ማክበር አለባቸው። ምክር ቤቱ ለህዝብ ጥቅም ሊሰራ ይገባዋል። ነፃ ሚዲያ ለዴሞክራሲ ጤናማነት ወሳኝ ነው።', rating_value: null },
+      { id: 6,  response_id: 1, question_id: 6, answer_text: 'ትምህርት ቤቶቹ ይሻሻሉ፣ ጤና ጣቢያዎቹ ዘመናዊ ቁሳቁስ ይኑራቸው፣ የከተማ መንገዶቹም ሊጠናቀቁ ይገባሉ።', rating_value: null },
+
+      // ── Participant 2 — Survey 1 — ሴት 36-45 — ካቶ ሜሳ — Afaan Oromoo ──
+      { id: 7,  response_id: 2, question_id: 1, answer_text: 'Mootummaan haaraan gamtaa lammiilee cimsuu, dinagdee fooyyessuu fi nageenyaa mirkaneessuu irratti xiyyeeffachuu qaba. Hojii misooma qonnaa fi industirii babal\'isuun barbaachisaadha.', rating_value: null },
+      { id: 8,  response_id: 2, question_id: 2, answer_text: 'Hirmaannaan uummataa filannoo qofa otoo hintaane murtii aangoo irrattis ta\'uu qaba. Yaa\'ii uummataa baay\'isuun murteessaadha, namoonni fedhii qaban dubbachuu dandaa\'u.', rating_value: null },
+      { id: 9,  response_id: 2, question_id: 3, answer_text: 'Hooggantoonni haaraan muuxannoo fi dandeettii qabu jedheen amana. Garuu bu\'aan hojii isaanii yeroo dhufutti ni mul\'ata. Dargaggoota dabalachuun barbaachisaadha.', rating_value: null },
+      { id: 10, response_id: 2, question_id: 4, answer_text: 'Dargaggoota hojii kennuu, malaammaltummaa dhabamsiisuufi maallaqni biyya alaatii akka dhufu gochuu dursa kennuuf barbaachiisa. Barnootaa fi fayyaa irrattis hojjechuun murteessaadha.', rating_value: null },
+      { id: 11, response_id: 2, question_id: 5, answer_text: 'Lammiileen gibira kaffaluufi seeraan jiraachuun dirqama. Manni maree ni deeggarama. Miidiyaan bilisaa ta\'uu qaba, uummatnis odeeffannoo argachuu dandaa\'u.', rating_value: null },
+      { id: 12, response_id: 2, question_id: 6, answer_text: 'Mana barumsaa fooyyessuu, hospitaala meeshaa ammayyaa godhuu fi daandii yeroo roobaa cufamu hin qabnetti ijaaruu barbaachisa. Industirii xiqqaas deeggaruun barbaachisaadha.', rating_value: null },
+
+      // ── Participant 3 — Survey 1 — ወንድ 18-25 — ሜጋላ — Af-Soomaali ──
+      { id: 13, response_id: 3, question_id: 1, answer_text: 'Dawladda cusuba waa inay diiradda saartaa horumarinta dhaqaalaha, xoojinta nabadda ammaanka iyo sii wadista nidaamka dimuqraadiyadda. Waxaan jeclaan lahaa in la abuuro fursad siman dhammaan shacabka.', rating_value: null },
+      { id: 14, response_id: 3, question_id: 2, answer_text: 'Ka qaybgalka shacabku waa inuu ka badan yahay codeynta kaliya. Waa inay ka qaybgalaan siyaasadaha iyo hirgelinta. Shirarka dadweynaha waa in la badiyaa si fikradaha la wadaago.', rating_value: null },
+      { id: 15, response_id: 3, question_id: 3, answer_text: 'Hoggaamiyeyaasha cusub waxaan aaminanahay in ay leeyihiin khibrad iyo xirfad. Laakiin natiijahooda waxaa la arki doonaa marka wakhtigu dhaafay. Dhalinyarada fursad siinta muhiim.', rating_value: null },
+      { id: 16, response_id: 3, question_id: 4, answer_text: 'Shababka shaqooyinka siinta, musuqmaasuqa xidid ka goynta iyo maalgashiga dibadda jiidashada waa ay muhiim u tahay. Waxaana sidoo kale la xoojin lahaa waxbarashada iyo caafimaadka.', rating_value: null },
+      { id: 17, response_id: 3, question_id: 5, answer_text: 'Shacabku waa inay canshuuraha bixiyaan oo shareecada raacaan. Golaha waa la taageero. Warbaahinta xor ha noqoto si macluumaadka loo gaarsiiyo dadweynaha.', rating_value: null },
+      { id: 18, response_id: 3, question_id: 6, answer_text: 'Waxaan u baahanahay dugsiyada la horumarinta, isbitaalada alaabada casriga ah leh iyo wadooyinka roobka la go\'aa dib loo dhiso. Xarumaha ganacsiga yar-yar sidoo kale la taageero.', rating_value: null },
+
+      // ── Participant 4 — Survey 1 — ሴት 46-55 — ገንዴ ቆሬ — አማርኛ ──
+      { id: 19, response_id: 4, question_id: 1, answer_text: 'የኑሮ ውድነትን መቀነስ፣ የዋጋ ግሽበትን መቆጣጠር እና የፍትህ ስርዓቱን ማጠናከር የፌደራል መንግስት የመጀመሪያ ተግባር ሊሆን ይገባል። ለእናቶችና ህፃናት ድጋፍ ትኩረት እንዲሰጥ እጠይቃለሁ።', rating_value: null },
+      { id: 20, response_id: 4, question_id: 2, answer_text: 'ህዝቡ የመልካም አስተዳደር እጦት ሲያጋጥም በጥቆማና በትብብር ከመንግስት ጎን መቆም አለበት። ሰላምን መጠበቅ የሁሉም ዜጋ ኃላፊነት ነው።', rating_value: null },
+      { id: 21, response_id: 4, question_id: 3, answer_text: 'አዲሶቹ ተሿሚዎች ለህዝብ ቅርብ ሆነው ቅሬታዎችን በፍጥነት የሚፈቱ እንዲሆኑ ተስፋ አደርጋለሁ። ተጠያቂነት በተግባር ሊታይ ይገባል።', rating_value: null },
+      { id: 22, response_id: 4, question_id: 4, answer_text: 'የከተማዋን ጽዳትና ውበት ማስጠበቅ፣ ፍትሃዊ የቤትና የመሬት አቅርቦት ማረጋገጥ እና የስራ አጥነትን መቀነስ ላይ አበክረው ሊሰሩ ይገባል።', rating_value: null },
+      { id: 23, response_id: 4, question_id: 5, answer_text: 'ከነጋዴዎች ህጋዊ አሰራር፣ ከመንግስት ሰራተኛው ታማኝ አገልግሎት፣ ከአመራሩ ደግሞ ግልጽነትና ፍትሃዊነት ይጠበቃል።', rating_value: null },
+      { id: 24, response_id: 4, question_id: 6, answer_text: 'የሴቶችን ኢኮኖሚያዊ ተጠቃሚነት የሚያሳድጉ የብድርና የስልጠና ዕድሎች በየቀበሌው ቢመቻቹ ለከተማችን ትልቅ ዕድገት ያመጣል።', rating_value: null },
+
+      // ── Participant 5 — Survey 1 — ወንድ 26-35 — ቡሌ — Afaan Oromoo ──
+      { id: 25, response_id: 5, question_id: 1, answer_text: 'Mootummaan federaalaa hojii dhabdummaa dargaggootaa furuu fi nageenya naannolee gidduu jiru cimsuu irratti xiyyeeffannoo guddaa akka kennu eegna.', rating_value: null },
+      { id: 26, response_id: 5, question_id: 2, answer_text: 'Uummanni seerota eeguu, nageenya kabajuu fi gumaata misoomaaf taasisan cimsanii itti fufuu qabu.', rating_value: null },
+      { id: 27, response_id: 5, question_id: 3, answer_text: 'Hooggantoonni muudaman dandeettii fi beekumsa qabaatanis, uummata wajjin mari\'achuun hojjechuun isaaniif filatamaadha.', rating_value: null },
+      { id: 28, response_id: 5, question_id: 4, answer_text: 'Mootummaan naannoo misooma industirii fi daldala daangaa cimsanii akka babal\'atan gochuu qabu.', rating_value: null },
+      { id: 29, response_id: 5, question_id: 5, answer_text: 'Abbootin qabeenyaa investimantii haaraa uumuun, uummatnis harka qalleeyyii gargaaruun gahee isaanii ba\'uu qabu.', rating_value: null },
+      { id: 30, response_id: 5, question_id: 6, answer_text: 'Dhaabbilee barnootaa fi teeknooloojii naannicha keessatti babal\'isuun daran barbaachisaadha.', rating_value: null },
+
+      // ── Participant 6 — Survey 1 — ሴት 18-25 — ለጌሃሬ — Afaan Oromoo ──
+      { id: 31, response_id: 6, question_id: 1, answer_text: 'Barnoota olaanoo qulqullina qabu mirkaneessuu fi dargaggoota gara hojiitti galchuun karoora mootummaa ta\'uu qaba.', rating_value: null },
+      { id: 32, response_id: 6, question_id: 2, answer_text: 'Dargaggoonni hojii misoomaa keessatti hirmaannaa qooda fudhannaa isaanii guddisuu qabu.', rating_value: null },
+      { id: 33, response_id: 6, question_id: 3, answer_text: 'Hoggantoota haaraaf yeroo gahaa kenninee bu\'aa hojii isaanii hordofuu qabna.', rating_value: null },
+      { id: 34, response_id: 6, question_id: 4, answer_text: 'Ispoortii fi aadaa dargaggootaa jajjabeessuun nageenya itti fufiinsa qabu mirkaneessuuf gargaara.', rating_value: null },
+      { id: 35, response_id: 6, question_id: 5, answer_text: 'Hawaasni maraa tokkummaa fi wal-kabajaa qabaachuun hundee guddinaati.', rating_value: null },
+      { id: 36, response_id: 6, question_id: 6, answer_text: 'Iddoowwan bashannana dargaggootaa fi wiirtuulee dandeettii ijaaruun barbaachisaadha.', rating_value: null },
+
+      // ── Participant 7 — Survey 1 — ወንድ 36-45 — ድሬ ዳዋ ማዕከል — አማርኛ ──
+      { id: 37, response_id: 7, question_id: 1, answer_text: 'የንግድና የኢንቨስትመንት ማነቆዎችን መፍታት፣ የባንክና የውጭ ምንዛሪ አሰራርን ማሳለጥ እና ሰላምን በዘላቂነት ማረጋገጥ ይጠበቃል።', rating_value: null },
+      { id: 38, response_id: 7, question_id: 2, answer_text: 'የንግዱ ማህበረሰብ ፍትሃዊ ዋጋ በመተመን፣ ህብረተሰቡ ደግሞ የመንግስት አገልግሎቶችን በንቃት በመከታተል የበኩላቸውን መወጣት አለባቸው።', rating_value: null },
+      { id: 39, response_id: 7, question_id: 3, answer_text: 'አዲሱ ከንቲባና የቢሮ ሃላፊዎች የቀድሞ ጥንካሬዎችን አስቀጥለው ክፍተቶችን በፍጥነት ማረም አለባቸው። ቢሮክራሲን መቀነስ ቅድሚያ ሊሰጠው ይገባል።', rating_value: null },
+      { id: 40, response_id: 7, question_id: 4, answer_text: 'የድሬዳዋን የነፃ ንግድ ቀጠና በሙሉ አቅም ስራ ማስጀመር እና የወጪ ንግድን ማበረታታት ላይ በትኩረት ሊሰራ ይገባል።', rating_value: null },
+      { id: 41, response_id: 7, question_id: 5, answer_text: 'ከከተማው አመራር ቆራጥ ውሳኔ ሰጪነት፣ ከባለሀብቱ ተጨማሪ የስራ ዕድል መፍጠር፣ ከህዝቡ ደግሞ ደጋፊነት ይጠበቃል።', rating_value: null },
+      { id: 42, response_id: 7, question_id: 6, answer_text: 'የባቡርና የትራንስፖርት አገልግሎትን ማዘመን ለድሬዳዋ የኢኮኖሚ ህይወት ወሳኝ በመሆኑ ልዩ ትኩረት ይሰጠው።', rating_value: null },
+
+      // ── Participant 8 — Survey 1 — ሴት 26-35 — አዲስ ቀጠና — Af-Soomaali ──
+      { id: 43, response_id: 8, question_id: 1, answer_text: 'Xoojinta adeegyada caafimaadka hooyada iyo dhallaanka, xasiloonida qiimaha badeecadaha iyo ilaalinta xuquuqda muwaadiniinta.', rating_value: null },
+      { id: 44, response_id: 8, question_id: 2, answer_text: 'Dadweynuhu waa inay la shaqeeyaan laamaha amniga oo ay ka qaybqaataan fagaarayaasha wadatashiga.', rating_value: null },
+      { id: 45, response_id: 8, question_id: 3, answer_text: 'Mas\'uuliyiinta cusub waa inay xafiisyadooda u furaan dadweynaha oo aysan ku koobnaan shaashadaha.', rating_value: null },
+      { id: 46, response_id: 8, question_id: 4, answer_text: 'Bixinta biyaha nadiifka ah iyo hagaajinta nadaafadda magaalada waa arrin degdeg ah oo ay tahay in wax laga qabto.', rating_value: null },
+      { id: 47, response_id: 8, question_id: 5, answer_text: 'Haweenka, dhalinyarada iyo odayaasha dhaqanka oo dhan waa inay ka shaqeeyaan wadajirka magaalada.', rating_value: null },
+      { id: 48, response_id: 8, question_id: 6, answer_text: 'In la kordhiyo xarumaha caafimaadka degmooyinka si loo yareeyo culeyska isbitaalada waaweyn.', rating_value: null },
+
+      // ── Participant 9 — Survey 1 — ወንድ 18-25 — መልካ ጀብዱ — Afaan Oromoo ──
+      { id: 49, response_id: 9, question_id: 1, answer_text: 'Mootummaan federaalaa wal-qixxummaa lammiilee mirkaneessuu fi carraa hojii teeknooloojii babal\'isuu qaba.', rating_value: null },
+      { id: 50, response_id: 9, question_id: 2, answer_text: 'Hawaasni dhimma misoomaa keessatti humnaa fi beekumsaan gumaachuun murteessaadha.', rating_value: null },
+      { id: 51, response_id: 9, question_id: 3, answer_text: 'Hooggantoonni qajeelummaa fi iftoominnaan yoo hojjetan uummanni deeggersa guutuu kennaaf.', rating_value: null },
+      { id: 52, response_id: 9, question_id: 4, answer_text: 'Tajaajila mootummaa toora dijitaalaan laachuu fi kaffaltii elektirooniksii babal\'isuun barbaachisaadha.', rating_value: null },
+      { id: 53, response_id: 9, question_id: 5, answer_text: 'Qooda fudhattoonni hundi misooma Dirree Dawaa akka waan dhuunfaa isaaniitti ilaaluu qabu.', rating_value: null },
+      { id: 54, response_id: 9, question_id: 6, answer_text: 'Wiirtuu daldala bilisaa Melka Jebdu cimsanii itti fayyadamuun dhaloota haaraaf abdii guddaadha.', rating_value: null },
+
+      // ── Participant 10 — Survey 1 — ሴት 46-55 — ገንዴ ቆሬ — አማርኛ ──
+      { id: 55, response_id: 10, question_id: 1, answer_text: 'የአረጋውያንና የጡረተኞች ኑሮ እንዲሻሻል ድጎማ ማድረግ እና የጤና መድህን አገልግሎት በስፋት እንዲዳረስ ማድረግ።', rating_value: null },
+      { id: 56, response_id: 10, question_id: 2, answer_text: 'ህዝቡ ልጆቹን በስነ-ምግባር በማነጽ እና ለአካባቢው ሰላምና ንጽህና ዘብ በመቆም ሃላፊነቱን መወጣት አለበት።', rating_value: null },
+      { id: 57, response_id: 10, question_id: 3, answer_text: 'የተመረጡት አመራሮች ቃላቸውን በተግባር እንዲተረጉሙና ህዝቡን በአክብሮትና በትህትና እንዲያገለግሉ እመክራለሁ።', rating_value: null },
+      { id: 58, response_id: 10, question_id: 4, answer_text: 'የውኃ አቅርቦት ችግርን በዘላቂነት መፍታት፣ የጎዳና መብራቶችን ማሟላትና ደህንነትን መጠበቅ ቅድሚያ ይሰጠው።', rating_value: null },
+      { id: 59, response_id: 10, question_id: 5, answer_text: 'የሃይማኖት አባቶች፣ የሀገር ሽማግሌዎችና ወጣቶች እጅ ለእጅ ተያይዘው ሰላምና ፍቅርን ማጠናከር አለባቸው።', rating_value: null },
+      { id: 60, response_id: 10, question_id: 6, answer_text: 'ድሬዳዋ የቀድሞ የፍቅር፣ የአንድነትና የስልጣኔ ማዕከልነቷን እንድታድስ ሁላችንም በጋራ እንቁም።', rating_value: null },
+    ],
+
+      // ── Response 10 — Survey 5 — ሴት 46-55 — ገንዴ ቆሬ — አማርኛ ──
+      { id: 37, response_id: 10, question_id: 16, answer_text: null,                 rating_value: 3 },
+      { id: 38, response_id: 10, question_id: 17, answer_text: 'መካከለኛ',              rating_value: null },
+    ],
     tickets: [
       {
         id: 1,
