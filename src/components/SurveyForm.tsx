@@ -13,7 +13,6 @@ import {
   Lock,
   QrCode,
   UserCheck,
-  ShieldCheck,
   RefreshCw,
   WifiOff,
   BookmarkCheck,
