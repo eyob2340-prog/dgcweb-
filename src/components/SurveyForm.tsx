@@ -302,28 +302,9 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
   }).length;
   const progressPercent = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
 
-  // Anti-bot Captcha Math challenge
-  const [numA, setNumA] = useState(5);
-  const [numB, setNumB] = useState(3);
-  const [captchaInput, setCaptchaInput] = useState('');
-  const [captchaError, setCaptchaError] = useState(false);
-
   // QR Code & Share modal state
   const [showQrModal, setShowQrModal] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
-
-  const generateCaptcha = () => {
-    const a = Math.floor(Math.random() * 9) + 1;
-    const b = Math.floor(Math.random() * 9) + 1;
-    setNumA(a);
-    setNumB(b);
-    setCaptchaInput('');
-    setCaptchaError(false);
-  };
-
-  useEffect(() => {
-    generateCaptcha();
-  }, []);
 
   useEffect(() => {
     if (showQrModal) {
@@ -380,15 +361,6 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
-    setCaptchaError(false);
-
-    // Validate Captcha Math Challenge
-    const expectedAnswer = numA + numB;
-    if (parseInt(captchaInput, 10) !== expectedAnswer) {
-      setCaptchaError(true);
-      setErrorMessage(currentTexts.errCaptcha(numA, numB));
-      return;
-    }
 
     // Validate Demographic selections
     if (!demographics.age_group || !demographics.gender || !demographics.education || !demographics.residence) {
@@ -1004,45 +976,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
           );
         })}
 
-        {/* Anti-bot Captcha Math Challenge */}
-        <div className={`p-5 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-4 transition-all duration-300 ${
-          isDarkMode
-            ? 'bg-slate-900/80 border-slate-800'
-            : 'bg-white/95 border-slate-200 shadow-slate-200/60'
-        }`}>
-          <div className={`flex items-center space-x-3 text-xs ${
-            isDarkMode ? 'text-slate-300' : 'text-slate-700'
-          }`}>
-            <ShieldCheck className="w-5 h-5 text-amber-500 shrink-0" />
-            <div>
-              <p className={`font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-900'}`}>{currentTexts.antiBotTitle}</p>
-              <p className={`text-[11px] ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{currentTexts.antiBotSubtitle}</p>
-            </div>
-          </div>
 
-          <div className="flex items-center space-x-2">
-            <span className={`font-mono text-sm font-black px-3 py-1.5 rounded-xl border ${
-              isDarkMode
-                ? 'text-amber-400 bg-slate-950 border-slate-800'
-                : 'text-amber-600 bg-slate-100 border-slate-200'
-            }`}>
-              {numA} + {numB} =
-            </span>
-            <input
-              type="number"
-              value={captchaInput}
-              onChange={(e) => setCaptchaInput(e.target.value)}
-              placeholder={currentTexts.captchaAnswerPlaceholder}
-              className={`w-20 p-2 text-center border rounded-xl text-sm font-bold focus:outline-none ${
-                captchaError
-                  ? 'border-amber-500 ring-2 ring-amber-500/30'
-                  : isDarkMode
-                  ? 'bg-slate-950 border-slate-800 text-white focus:ring-2 focus:ring-blue-500'
-                  : 'bg-white border-slate-200 text-slate-900 focus:ring-2 focus:ring-blue-500'
-              }`}
-            />
-          </div>
-        </div>
 
         <div className="pt-2 flex items-center justify-between">
           <button
