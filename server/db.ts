@@ -18,6 +18,7 @@ import {
   RatingBreakdown,
 } from '../src/types';
 import { FEATURED_SURVEY } from './featuredSurvey';
+import { buildFeaturedTranslations } from './featuredSurveyTranslations';
 
 // Check for DATABASE_URL & Production Environment
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -268,6 +269,23 @@ async function initPgDatabase() {
         } catch (e) {
           await client.query('ROLLBACK');
           throw e;
+        }
+      }
+
+      // Attach Afaan Oromoo / Soomaali translations to the featured survey if missing
+      const fs2 = await client.query('SELECT id, translations FROM surveys WHERE title = $1 LIMIT 1', [FEATURED_SURVEY.title]);
+      if (fs2.rows.length > 0) {
+        const fid = fs2.rows[0].id;
+        let existing: any = fs2.rows[0].translations || {};
+        if (typeof existing === 'string') {
+          try { existing = JSON.parse(existing); } catch { existing = {}; }
+        }
+        if (!existing.om || !existing.so) {
+          const qRes = await client.query('SELECT id FROM questions WHERE survey_id = $1 ORDER BY id ASC', [fid]);
+          const built = buildFeaturedTranslations(qRes.rows.map((r: any) => r.id));
+          const merged = { ...built, ...existing };
+          await client.query('UPDATE surveys SET translations = $1 WHERE id = $2', [JSON.stringify(merged), fid]);
+          console.log(`🌍 Oromo/Somali translations attached to featured survey (id ${fid}).`);
         }
       }
     } finally {
@@ -827,7 +845,16 @@ function writeLocalDB(dbData: LocalDB): void {
 
 function ensureLocalFeaturedSurvey(): void {
   const local = readLocalDB();
-  if (local.surveys.some((sv: any) => sv.title === FEATURED_SURVEY.title)) return;
+  const existingFeatured: any = local.surveys.find((sv: any) => sv.title === FEATURED_SURVEY.title);
+  if (existingFeatured) {
+    const tr = existingFeatured.translations || {};
+    if (!tr.om || !tr.so) {
+      const qIds = (local.questions as any[]).filter((q) => q.survey_id === existingFeatured.id).map((q) => q.id).sort((a, b) => a - b);
+      existingFeatured.translations = { ...buildFeaturedTranslations(qIds), ...tr };
+      writeLocalDB(local);
+    }
+    return;
+  }
   const surveyId = local.surveys.length > 0 ? Math.max(...local.surveys.map((sv: any) => sv.id)) + 1 : 1;
   local.surveys.unshift({
     id: surveyId,
@@ -841,6 +868,8 @@ function ensureLocalFeaturedSurvey(): void {
   for (const q of FEATURED_SURVEY.questions) {
     local.questions.push({ id: nextQId++, survey_id: surveyId, question_text: q.question_text, question_type: q.question_type, options: q.options } as any);
   }
+  const newQIds = (local.questions as any[]).filter((q) => q.survey_id === surveyId).map((q) => q.id);
+  (local.surveys[0] as any).translations = buildFeaturedTranslations(newQIds);
   writeLocalDB(local);
   console.log(`⭐ Featured survey created in local store (id ${surveyId}).`);
 }
