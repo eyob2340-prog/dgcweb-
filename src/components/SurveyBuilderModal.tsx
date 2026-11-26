@@ -360,27 +360,27 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
   const activeTranslation = translations[activeLangTab];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+    <div className="fixed inset-0 z-[100] flex items-center-safe justify-center p-4 bg-slate-900/40 backdrop-blur-md overflow-y-auto">
       <div className={`rounded-3xl max-w-3xl w-full shadow-2xl border overflow-hidden my-6 transition-all duration-300 ${
-        isDarkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+        isDarkMode ? 'bg-white border-slate-200 text-slate-900' : 'bg-white border-slate-200 text-slate-900'
       }`}>
         {/* Header */}
-        <div className="bg-slate-950 text-white p-6 border-b border-slate-800 relative">
+        <div className="bg-slate-50 text-slate-900 p-6 border-b border-slate-200 relative">
           <button
             onClick={onClose}
-            className="absolute top-5 right-5 p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+            className="absolute top-5 right-5 p-2 text-slate-500 hover:text-slate-900 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
           <div className="flex items-center space-x-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
-              {isEditing ? <Edit3 className="w-5 h-5" /> : <ListPlus className="w-5 h-5 text-emerald-400" />}
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center border border-amber-500/20">
+              {isEditing ? <Edit3 className="w-5 h-5" /> : <ListPlus className="w-5 h-5 text-emerald-600" />}
             </div>
             <div>
               <h2 className="text-lg font-black tracking-tight">
                 {isEditing ? `የጥናት መጠይቅ አርትዖት (Edit Survey #${surveyToEdit?.id})` : 'አዲስ የሕዝብ መጠይቅ መፍጠሪያ (Survey Builder)'}
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 በአማርኛ ያስገቡ፤ ወደ 5ቱ ቋንቋዎች በ 1-Click ተተርጉሞ በቀጥታ በዳታቤዝ ይቀመጣል
               </p>
             </div>
@@ -400,7 +400,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                     isActive
                       ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/20'
                       : isDarkMode
-                      ? 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800'
+                      ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                       : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                   }`}
                 >
@@ -423,29 +423,29 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
               {isTranslating ? (
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-700 animate-pulse" />
               )}
               <span>{isTranslating ? 'እየተተረጎመ ነው...' : '🌐 ሁሉንም ተርጉም (Translate All)'}</span>
             </button>
           </div>
 
           {/* Translation Completeness Indicators */}
-          <div className="flex flex-wrap items-center gap-2 px-6 py-2.5 bg-slate-950/40 border-b border-slate-800 text-[11px] font-bold">
-            <span className="text-slate-400">የትርጉም ሁኔታ (Completeness):</span>
-            <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <div className="flex flex-wrap items-center gap-2 px-6 py-2.5 bg-slate-50/40 border-b border-slate-200 text-[11px] font-bold">
+            <span className="text-slate-500">የትርጉም ሁኔታ (Completeness):</span>
+            <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
               አማርኛ ✓ Complete
             </span>
             <span className={`px-2.5 py-0.5 rounded-lg border ${
               Boolean(translations.om?.title?.trim())
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
             }`}>
               Afaan Oromoo {Boolean(translations.om?.title?.trim()) ? '✓ Complete' : '⚠️ Missing'}
             </span>
             <span className={`px-2.5 py-0.5 rounded-lg border ${
               Boolean(translations.so?.title?.trim())
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
             }`}>
               Somali {Boolean(translations.so?.title?.trim()) ? '✓ Complete' : '⚠️ Missing'}
             </span>
@@ -454,15 +454,15 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
 
         {/* Feedback Alerts */}
         {error && (
-          <div className="m-6 mb-0 p-3.5 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold flex items-center gap-2">
+          <div className="m-6 mb-0 p-3.5 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-600 text-xs font-bold flex items-center gap-2">
             <X className="w-4 h-4 text-red-500 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {translateSuccessMsg && (
-          <div className="m-6 mb-0 p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+          <div className="m-6 mb-0 p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 text-xs font-bold flex items-center gap-2">
+            <Check className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{translateSuccessMsg}</span>
           </div>
         )}
@@ -472,8 +472,8 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
           {/* Active Translation Indicator Banner */}
           <div className={`p-3 rounded-2xl border text-xs font-bold flex items-center justify-between ${
             activeLangTab === 'am'
-              ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
-              : 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+              ? 'bg-amber-500/10 border-amber-500/20 text-amber-600'
+              : 'bg-blue-500/10 border-blue-500/20 text-blue-600'
           }`}>
             <span>
               አሁን እያረሙ ያሉት፦ <strong>{
@@ -504,7 +504,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                   onChange={(e) => setTitle(e.target.value)}
                   className={`w-full px-4 py-3 rounded-2xl border text-sm font-medium focus:outline-none transition-all ${
                     isDarkMode
-                      ? 'bg-slate-950 border-slate-800 focus:border-amber-400 text-white'
+                      ? 'bg-slate-50 border-slate-200 focus:border-amber-400 text-slate-900'
                       : 'bg-slate-50 border-slate-200 focus:border-blue-500 text-slate-900'
                   }`}
                 />
@@ -522,7 +522,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                   onChange={(e) => setDescription(e.target.value)}
                   className={`w-full px-4 py-3 rounded-2xl border text-sm font-medium focus:outline-none transition-all ${
                     isDarkMode
-                      ? 'bg-slate-950 border-slate-800 focus:border-amber-400 text-white'
+                      ? 'bg-slate-50 border-slate-200 focus:border-amber-400 text-slate-900'
                       : 'bg-slate-50 border-slate-200 focus:border-blue-500 text-slate-900'
                   }`}
                 />
@@ -537,7 +537,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                     onChange={(e) => setCategory(e.target.value)}
                     className={`w-full px-4 py-3 rounded-2xl border text-sm font-medium focus:outline-none transition-all ${
                       isDarkMode
-                        ? 'bg-slate-950 border-slate-800 focus:border-amber-400 text-white'
+                        ? 'bg-slate-50 border-slate-200 focus:border-amber-400 text-slate-900'
                         : 'bg-slate-50 border-slate-200 focus:border-blue-500 text-slate-900'
                     }`}
                   >
@@ -555,7 +555,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                     onChange={(e) => setTheme(e.target.value as any)}
                     className={`w-full px-4 py-3 rounded-2xl border text-sm font-medium focus:outline-none transition-all ${
                       isDarkMode
-                        ? 'bg-slate-950 border-slate-800 focus:border-amber-400 text-white'
+                        ? 'bg-slate-50 border-slate-200 focus:border-amber-400 text-slate-900'
                         : 'bg-slate-50 border-slate-200 focus:border-blue-500 text-slate-900'
                     }`}
                   >
@@ -568,7 +568,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
               </div>
 
               {/* Questions Builder */}
-              <div className="space-y-4 pt-3 border-t border-slate-800/60">
+              <div className="space-y-4 pt-3 border-t border-slate-200/60">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-black flex items-center gap-1.5">
                     <span>የጥያቄዎች ዝርዝር</span>
@@ -577,7 +577,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                   <button
                     type="button"
                     onClick={handleAddQuestion}
-                    className="px-3 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                    className="px-3 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 border border-blue-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>ጥያቄ ጨምር</span>
@@ -589,11 +589,11 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                     <div
                       key={qIndex}
                       className={`p-4 rounded-2xl border transition-all ${
-                        isDarkMode ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-50 border-slate-200'
+                        isDarkMode ? 'bg-slate-50/60 border-slate-200' : 'bg-slate-50 border-slate-200'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3 mb-3">
-                        <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-400 font-mono text-xs font-bold">
+                        <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-600 font-mono text-xs font-bold">
                           #{qIndex + 1}
                         </span>
                         <div className="flex-1">
@@ -605,7 +605,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                             onChange={(e) => handleQuestionChange(qIndex, 'question_text', e.target.value)}
                             className={`w-full px-3.5 py-2 rounded-xl border text-sm font-medium focus:outline-none ${
                               isDarkMode
-                                ? 'bg-slate-900 border-slate-700 focus:border-amber-400 text-white'
+                                ? 'bg-white border-slate-300 focus:border-amber-400 text-slate-900'
                                 : 'bg-white border-slate-300 focus:border-blue-500 text-slate-900'
                             }`}
                           />
@@ -615,7 +615,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                           onChange={(e) => handleQuestionChange(qIndex, 'question_type', e.target.value)}
                           className={`px-3 py-2 rounded-xl border text-xs font-bold focus:outline-none ${
                             isDarkMode
-                              ? 'bg-slate-900 border-slate-700 text-slate-200'
+                              ? 'bg-white border-slate-300 text-slate-800'
                               : 'bg-white border-slate-300 text-slate-800'
                           }`}
                         >
@@ -627,7 +627,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                           <button
                             type="button"
                             onClick={() => handleRemoveQuestion(qIndex)}
-                            className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all cursor-pointer"
+                            className="p-2 text-red-600 hover:text-red-700 hover:bg-red-500/10 rounded-xl transition-all cursor-pointer"
                             title="ጥያቄውን ሰርዝ"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -637,7 +637,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
 
                       {/* Options for Radio Type */}
                       {q.question_type === 'radio' && (
-                        <div className="pl-6 space-y-2 pt-2 border-t border-slate-800/40">
+                        <div className="pl-6 space-y-2 pt-2 border-t border-slate-200/40">
                           <span className="text-[11px] font-bold opacity-70 block">የምርጫ አማራጮች፡</span>
                           {q.options.map((opt, optIndex) => (
                             <div key={optIndex} className="flex items-center gap-2">
@@ -648,7 +648,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                                 onChange={(e) => handleOptionChange(qIndex, optIndex, e.target.value)}
                                 className={`flex-1 px-3 py-1.5 rounded-lg border text-xs font-medium focus:outline-none ${
                                   isDarkMode
-                                    ? 'bg-slate-900 border-slate-800 text-white'
+                                    ? 'bg-white border-slate-200 text-slate-900'
                                     : 'bg-white border-slate-200 text-slate-900'
                                 }`}
                               />
@@ -656,7 +656,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveOption(qIndex, optIndex)}
-                                  className="p-1 text-slate-500 hover:text-red-400 rounded transition-colors"
+                                  className="p-1 text-slate-500 hover:text-red-600 rounded transition-colors"
                                 >
                                   <X className="w-3.5 h-3.5" />
                                 </button>
@@ -666,7 +666,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                           <button
                             type="button"
                             onClick={() => handleAddOption(qIndex)}
-                            className="text-xs font-bold text-amber-400 hover:underline pt-1 flex items-center gap-1 cursor-pointer"
+                            className="text-xs font-bold text-amber-600 hover:underline pt-1 flex items-center gap-1 cursor-pointer"
                           >
                             <Plus className="w-3 h-3" /> አማራጭ ጨምር
                           </button>
@@ -680,14 +680,14 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
           ) : (
             /* ================= Multilingual Translation Preview & Edit ================= */
             <div className="space-y-5">
-              <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-700 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Languages className="w-4 h-4 text-blue-400" />
+                  <Languages className="w-4 h-4 text-blue-600" />
                   <span>
                     <strong>{SUPPORTED_LANGUAGES.find((l) => l.code === activeLangTab)?.name}</strong> ትርጉም በዳታቤዝ ውስጥ የሚቀመጥ
                   </span>
                 </div>
-                <span className="text-[10px] bg-blue-500/20 text-blue-300 font-bold px-2 py-0.5 rounded-full">
+                <span className="text-[10px] bg-blue-500/20 text-blue-700 font-bold px-2 py-0.5 rounded-full">
                   DB Pre-Stored
                 </span>
               </div>
@@ -704,7 +704,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                       onChange={(e) => handleTranslationTextChange(activeLangTab, 'title', e.target.value)}
                       className={`w-full px-4 py-3 rounded-2xl border text-sm font-medium focus:outline-none ${
                         isDarkMode
-                          ? 'bg-slate-950 border-slate-800 text-white focus:border-amber-400'
+                          ? 'bg-slate-50 border-slate-200 text-slate-900 focus:border-amber-400'
                           : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-blue-500'
                       }`}
                     />
@@ -720,7 +720,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                       onChange={(e) => handleTranslationTextChange(activeLangTab, 'description', e.target.value)}
                       className={`w-full px-4 py-3 rounded-2xl border text-sm font-medium focus:outline-none ${
                         isDarkMode
-                          ? 'bg-slate-950 border-slate-800 text-white focus:border-amber-400'
+                          ? 'bg-slate-50 border-slate-200 text-slate-900 focus:border-amber-400'
                           : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-blue-500'
                       }`}
                     />
@@ -735,7 +735,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                         <div
                           key={qIdx}
                           className={`p-3.5 rounded-xl border text-xs ${
-                            isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+                            isDarkMode ? 'bg-slate-50 border-slate-200' : 'bg-slate-50 border-slate-200'
                           }`}
                         >
                           <div className="text-[10px] text-slate-500 mb-1">
@@ -748,7 +748,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                             onChange={(e) => handleTranslatedQuestionChange(activeLangTab, qIdx, e.target.value)}
                             className={`w-full px-3 py-2 rounded-lg border text-xs font-bold focus:outline-none ${
                               isDarkMode
-                                ? 'bg-slate-900 border-slate-700 text-white focus:border-amber-400'
+                                ? 'bg-white border-slate-300 text-slate-900 focus:border-amber-400'
                                 : 'bg-white border-slate-300 text-slate-900 focus:border-blue-500'
                             }`}
                           />
@@ -760,7 +760,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
               ) : (
                 <div className="text-center py-12 space-y-3">
                   <Languages className="w-10 h-10 text-slate-600 mx-auto" />
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-500">
                     ለዚህ ቋንቋ ገና ትርጉም አልተፈጠረም::
                   </p>
                   <button
@@ -769,7 +769,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
                     disabled={isTranslating}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow cursor-pointer inline-flex items-center gap-1.5"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                    <Sparkles className="w-3.5 h-3.5 text-amber-700" />
                     <span>አሁን ተርጉም (Translate Now)</span>
                   </button>
                 </div>
@@ -778,12 +778,12 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
           )}
 
           {/* Form Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-800/80">
+          <div className="flex items-center justify-between pt-4 border-t border-slate-200/80">
             <button
               type="button"
               onClick={onClose}
               className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                isDarkMode ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
               }`}
             >
               ይቅር (Cancel)

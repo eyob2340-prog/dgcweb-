@@ -275,32 +275,32 @@ export default function App() {
 
   if (isMaintenanceActive && currentTab !== 'admin') {
     return (
-      <div className={`min-h-screen ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} flex flex-col items-center justify-center p-6 text-center relative overflow-hidden font-sans`}>
+      <div className={`min-h-screen ${isDarkMode ? 'bg-slate-50 text-slate-900' : 'bg-slate-50 text-slate-900'} flex flex-col items-center justify-center p-6 text-center relative overflow-hidden font-sans`}>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         
-        <div className="relative z-10 max-w-xl bg-slate-900/95 backdrop-blur-xl border border-amber-500/40 p-8 sm:p-12 rounded-3xl shadow-2xl space-y-6">
-          <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/40 rounded-2xl flex items-center justify-center mx-auto text-amber-400 shadow-inner">
-            <Wrench className="w-8 h-8 animate-bounce text-amber-400" />
+        <div className="relative z-10 max-w-xl bg-white/95 backdrop-blur-xl border border-amber-500/40 p-8 sm:p-12 rounded-3xl shadow-2xl space-y-6">
+          <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/40 rounded-2xl flex items-center justify-center mx-auto text-amber-600 shadow-inner">
+            <Wrench className="w-8 h-8 animate-bounce text-amber-600" />
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               ለተወሰኑ ሰዓታት በጥገና ላይ ነን
             </h1>
-            <p className="text-xs sm:text-sm text-amber-400 font-bold">
+            <p className="text-xs sm:text-sm text-amber-600 font-bold">
               (System Under Maintenance)
             </p>
-            <p className="text-xs text-slate-400 font-medium">
+            <p className="text-xs text-slate-500 font-medium">
                የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ
             </p>
           </div>
 
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed bg-slate-950/80 p-4 rounded-2xl border border-slate-800">
+          <p className="text-xs sm:text-sm text-slate-700 leading-relaxed bg-slate-50/80 p-4 rounded-2xl border border-slate-200">
             የአስተዳደሩ የመረጃ፣ የአቤቱታ እና የሕዝብ አስተያየት ፖርታል በአሁኑ ወቅት የተሻለ የአሰራር ዝመና እና የቴክኒክ ጥገና እየተደረገበት ይገኛል:: እባክዎ ከጥቂት ደቂቃዎች በኋላ ተመልሰው ይሞክሩ::
           </p>
 
           {/* DGC Logo */}
-          <div className="pt-4 border-t border-slate-800/80 flex flex-col items-center space-y-2">
+          <div className="pt-4 border-t border-slate-200/80 flex flex-col items-center space-y-2">
             <DgcLogo
               onLongPress={handleOpenLogin}
               className="opacity-95 hover:opacity-100 transition-opacity cursor-pointer active:scale-95 transition-transform"
@@ -325,8 +325,8 @@ export default function App() {
     <div
       className={`min-h-screen font-sans flex flex-col transition-colors duration-300 relative overflow-x-clip ${
         isDarkMode
-          ? 'bg-slate-950 text-slate-100 selection:bg-blue-600 selection:text-white'
-          : 'bg-slate-50 text-slate-900 selection:bg-blue-500 selection:text-white'
+          ? 'bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-slate-900'
+          : 'bg-slate-50 text-slate-900 selection:bg-blue-500 selection:text-slate-900'
       }`}
     >
       {/* Sticky Admin Warning Banner when Maintenance Mode is ON and Admin is inside Admin Dashboard */}
@@ -426,10 +426,10 @@ export default function App() {
                     <Sparkles className="h-3.5 w-3.5" />
                     {t.heroBadge}
                   </span>
-                  <h1 className={`mt-2 text-2xl font-black tracking-tight sm:text-3xl ${isDarkMode ? 'text-white' : 'text-slate-950'}`}>
+                  <h1 className={`mt-2 text-2xl font-black tracking-tight sm:text-3xl ${isDarkMode ? 'text-slate-900' : 'text-slate-950'}`}>
                     {t.heroTitle}
                   </h1>
-                  <p className={`max-w-3xl text-sm leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>{t.heroSubtitle}</p>
+                  <p className={`max-w-3xl text-sm leading-relaxed ${isDarkMode ? 'text-slate-500' : 'text-slate-600'}`}>{t.heroSubtitle}</p>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -442,7 +442,7 @@ export default function App() {
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-base font-black sm:text-lg">{t.submitComplaintBtn}</span>
-                      <span className="block text-xs font-bold text-white/85">{t.submitComplaintSub}</span>
+                      <span className="block text-xs font-bold text-slate-900/85">{t.submitComplaintSub}</span>
                     </span>
                     <ArrowRight className="h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1" />
                   </button>
@@ -450,7 +450,7 @@ export default function App() {
                   <button
                     onClick={() => setIsTrackerModalOpen(true)}
                     className={`group flex min-h-[96px] items-center gap-4 rounded-3xl border p-5 text-left shadow-lg transition-transform hover:-translate-y-0.5 cursor-pointer ${
-                      isDarkMode ? 'border-slate-800 bg-slate-900 text-white shadow-black/20' : 'border-slate-200 bg-white text-slate-900 shadow-slate-200/70'
+                      isDarkMode ? 'border-slate-200 bg-white text-slate-900 shadow-black/20' : 'border-slate-200 bg-white text-slate-900 shadow-slate-200/70'
                     }`}
                   >
                     <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-500/15 text-blue-500">
@@ -460,17 +460,17 @@ export default function App() {
                       <span className="block text-base font-black sm:text-lg">{t.trackTicketBtn}</span>
                       <span className="block text-xs font-bold text-blue-600">{t.trackTicketSub}</span>
                     </span>
-                    <ArrowRight className={`h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`} />
+                    <ArrowRight className={`h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`} />
                   </button>
                 </div>
 
-                <div className={`grid grid-cols-3 divide-x rounded-2xl border text-center ${isDarkMode ? 'divide-slate-800 border-slate-800 bg-slate-900/60' : 'divide-slate-200 border-slate-200 bg-white'}`}>
+                <div className={`grid grid-cols-3 divide-x rounded-2xl border text-center ${isDarkMode ? 'divide-slate-200 border-slate-200 bg-white/60' : 'divide-slate-200 border-slate-200 bg-white'}`}>
                   {[
                     { icon: <Lock className="h-4 w-4" />, label: 'ስም አይጠየቅም' },
                     { icon: <Globe className="h-4 w-4" />, label: 'አማ · Oromoo · Soomaali' },
                     { icon: <Zap className="h-4 w-4" />, label: '~5 ደቂቃ' },
                   ].map((item) => (
-                    <div key={item.label} className={`flex flex-col items-center justify-center gap-1 px-2 py-3 text-[11px] font-bold sm:flex-row sm:gap-2 sm:text-xs ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                    <div key={item.label} className={`flex flex-col items-center justify-center gap-1 px-2 py-3 text-[11px] font-bold sm:flex-row sm:gap-2 sm:text-xs ${isDarkMode ? 'text-slate-700' : 'text-slate-600'}`}>
                       <span className="text-emerald-500">{item.icon}</span>
                       {item.label}
                     </div>
@@ -482,13 +482,13 @@ export default function App() {
               <div className="space-y-4">
                 <div className="flex items-end justify-between gap-3 px-1">
                   <div>
-                    <h2 className={`text-xl font-black tracking-tight sm:text-2xl ${isDarkMode ? 'text-white' : 'text-slate-950'}`}>
+                    <h2 className={`text-xl font-black tracking-tight sm:text-2xl ${isDarkMode ? 'text-slate-900' : 'text-slate-950'}`}>
                       {t.allSurveys}
                     </h2>
-                    <p className={`mt-1 text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>{t.surveySubtitle}</p>
+                    <p className={`mt-1 text-sm ${isDarkMode ? 'text-slate-500' : 'text-slate-600'}`}>{t.surveySubtitle}</p>
                   </div>
                   <span className={`hidden shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold sm:inline-flex ${
-                    isDarkMode ? 'border-blue-500/30 bg-blue-500/10 text-blue-300' : 'border-blue-200 bg-blue-50 text-blue-700'
+                    isDarkMode ? 'border-blue-500/30 bg-blue-500/10 text-blue-700' : 'border-blue-200 bg-blue-50 text-blue-700'
                   }`}>
                     <FileText className="h-3.5 w-3.5" /> {t.officialSurveys}
                   </span>
@@ -508,11 +508,11 @@ export default function App() {
         ) : (
           <div className={`p-12 rounded-3xl text-center border space-y-4 max-w-lg mx-auto my-12 shadow-2xl transition-all ${
             isDarkMode
-              ? 'bg-slate-900/80 backdrop-blur-md border-slate-800 text-white'
+              ? 'bg-white/80 backdrop-blur-md border-slate-200 text-slate-900'
               : 'bg-white/95 backdrop-blur-md border-slate-200 text-slate-900'
           }`}>
             <h3 className="text-lg font-bold">የተፈቀደላቸው የስራ ኃላፊዎች መግቢያ</h3>
-            <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+            <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-600'}`}>
               የአድሚን ዳሽቦርድን፣ የትንታኔ ቻርቶችን እና የፖሊሲ ሪፖርቶችን ለማስተዳደር እባክዎ የመግቢያ ፈቃድዎን ይጠቀሙ::
             </p>
             {/* Red button exclusively for Admin Entrance */}

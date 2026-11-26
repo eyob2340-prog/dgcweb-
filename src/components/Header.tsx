@@ -54,8 +54,8 @@ export const Header: React.FC<HeaderProps> = ({
         className={`rounded-2xl sm:rounded-3xl border transition-all duration-300 px-3 sm:px-6 py-2.5 sm:py-3.5 backdrop-blur-xl shadow-xl flex items-center justify-between gap-2 sm:gap-4 ${
           isDarkMode
             ? scrolled
-              ? 'bg-slate-900/95 border-blue-500/30 shadow-blue-950/40'
-              : 'bg-slate-900/80 border-slate-800/80 shadow-slate-950/30'
+              ? 'bg-white/95 border-blue-500/30 shadow-blue-950/40'
+              : 'bg-white/80 border-slate-200/80 shadow-slate-950/30'
             : scrolled
             ? 'bg-white/95 border-blue-200 shadow-blue-100/60'
             : 'bg-white/80 border-slate-200 shadow-slate-200/50'
@@ -73,11 +73,11 @@ export const Header: React.FC<HeaderProps> = ({
           <div
             className={`hidden md:flex items-center space-x-2 px-4 py-1.5 rounded-full border shadow-inner transition-all ${
               isDarkMode
-                ? 'bg-gradient-to-r from-blue-950/80 to-slate-900/80 border-amber-500/40 text-amber-300'
+                ? 'bg-gradient-to-r from-blue-50/80 to-white/80 border-amber-500/40 text-amber-700'
                 : 'bg-gradient-to-r from-blue-50 to-amber-50/50 border-amber-300 text-amber-900'
             }`}
           >
-            <ShieldCheck className="w-4 h-4 text-amber-500 shrink-0 animate-pulse" />
+            <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0 animate-pulse" />
             <span className="text-xs font-black tracking-wide">
               {t.privacyBadge}
             </span>
@@ -94,7 +94,7 @@ export const Header: React.FC<HeaderProps> = ({
                 title={isDarkMode ? 'ወደ ላይት ሞድ ቀይር (Light Mode)' : 'ወደ ዳርክ ሞድ ቀይር (Dark Mode)'}
                 className={`p-2.5 sm:p-3 rounded-2xl transition-all duration-300 border flex items-center justify-center shadow-md cursor-pointer ${
                   isDarkMode
-                    ? 'bg-slate-900/90 text-amber-300 border-amber-500/40 hover:border-amber-400 hover:shadow-amber-500/20'
+                    ? 'bg-white/90 text-amber-700 border-amber-500/40 hover:border-amber-400 hover:shadow-amber-500/20'
                     : 'bg-white text-blue-600 border-blue-200 hover:border-blue-400 hover:shadow-blue-200/50'
                 }`}
               >
@@ -107,7 +107,7 @@ export const Header: React.FC<HeaderProps> = ({
                       exit={{ rotate: 90, scale: 0 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <Sun className="w-4 h-4 text-amber-400" />
+                      <Sun className="w-4 h-4 text-amber-600" />
                     </motion.div>
                   ) : (
                     <motion.div
@@ -126,11 +126,11 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Offline Queue Badge & Sync Button */}
             {(!isOnline || offlineCount > 0) && (
-              <div className="flex items-center space-x-2 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1.5 rounded-2xl text-xs font-bold text-amber-500 animate-pulse">
+              <div className="flex items-center space-x-2 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1.5 rounded-2xl text-xs font-bold text-amber-700 animate-pulse">
                 {!isOnline ? (
-                  <WifiOff className="w-3.5 h-3.5 text-amber-500" />
+                  <WifiOff className="w-3.5 h-3.5 text-amber-700" />
                 ) : (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-700" />
                 )}
                 <span className="hidden sm:inline">
                   {!isOnline ? 'ኦፍላይን ሞድ' : `${offlineCount} በኦፍላይን የተቀመጠ`}
@@ -153,7 +153,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={onLogout}
                 title="ውጣ (Logout)"
-                className="px-3.5 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-500 hover:text-red-400 border border-red-500/30 rounded-2xl transition-all flex items-center space-x-1.5 text-xs font-bold shadow-sm cursor-pointer"
+                className="px-3.5 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-500 hover:text-red-600 border border-red-500/30 rounded-2xl transition-all flex items-center space-x-1.5 text-xs font-bold shadow-sm cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">ውጣ</span>

@@ -521,17 +521,17 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
 
   // ----- theme helpers -----
   const card = isDarkMode
-    ? 'bg-slate-900/75 backdrop-blur-md border-slate-800'
+    ? 'bg-white/75 backdrop-blur-md border-slate-200'
     : 'bg-white border-slate-200 shadow-slate-200/70';
-  const textMain = isDarkMode ? 'text-slate-100' : 'text-slate-900';
-  const textSub = isDarkMode ? 'text-slate-400' : 'text-slate-500';
-  const subtleBox = isDarkMode ? 'bg-slate-950/40' : 'bg-slate-50';
+  const textMain = isDarkMode ? 'text-slate-900' : 'text-slate-900';
+  const textSub = isDarkMode ? 'text-slate-500' : 'text-slate-500';
+  const subtleBox = isDarkMode ? 'bg-slate-50/40' : 'bg-slate-50';
   const chip = (active: boolean, invalid: boolean) =>
     `min-h-[44px] px-4 py-2.5 rounded-xl text-sm font-bold transition-all border cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
       active
         ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-600/20'
-        : `${isDarkMode ? 'bg-slate-950/70 text-slate-200 hover:border-slate-500' : 'bg-white text-slate-800 hover:border-slate-400'} ${
-            invalid ? 'border-red-500/70' : isDarkMode ? 'border-slate-700' : 'border-slate-300'
+        : `${isDarkMode ? 'bg-slate-50/70 text-slate-800 hover:border-slate-500' : 'bg-white text-slate-800 hover:border-slate-400'} ${
+            invalid ? 'border-red-500/70' : isDarkMode ? 'border-slate-300' : 'border-slate-300'
           }`
     }`;
   const fieldBox = (key: string) =>
@@ -541,7 +541,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
     <div className="flex items-center gap-2.5">
       <span
         className={`w-6 h-6 rounded-full text-[11px] font-black flex items-center justify-center ${
-          done ? 'bg-emerald-500 text-white' : isDarkMode ? 'bg-slate-700 text-slate-200' : 'bg-slate-200 text-slate-700'
+          done ? 'bg-emerald-500 text-white' : isDarkMode ? 'bg-slate-200 text-slate-200' : 'bg-slate-200 text-slate-700'
         }`}
       >
         {done ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : n}
@@ -557,7 +557,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
+          className="fixed inset-0 overflow-y-auto z-[100] bg-slate-900/40 backdrop-blur-md flex items-center-safe justify-center p-4"
           onClick={() => setShowQrModal(false)}
         >
           <motion.div
@@ -594,14 +594,14 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
           </motion.div>
           <div className="space-y-3">
             <h2 className={`text-2xl sm:text-3xl font-black ${textMain}`}>{submittedTicket ? ui.thanksTitle : ui.alreadyTitle}</h2>
-            <p className={`text-sm sm:text-base max-w-md mx-auto leading-relaxed ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+            <p className={`text-sm sm:text-base max-w-md mx-auto leading-relaxed ${isDarkMode ? 'text-slate-700' : 'text-slate-600'}`}>
               {submittedTicket ? ui.thanksBody : ui.alreadyBody}
             </p>
           </div>
           {submittedTicket && (
           <div
             className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs ${
-              isDarkMode ? 'bg-slate-950/80 border-slate-800 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'
+              isDarkMode ? 'bg-slate-50/80 border-slate-200 text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-600'
             }`}
           >
             <Lock className="w-4 h-4 text-emerald-500" />
@@ -620,7 +620,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
             <button
               onClick={() => setShowQrModal(true)}
               className={`px-6 py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 border cursor-pointer ${
-                isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-blue-300 border-slate-700' : 'bg-white hover:bg-slate-50 text-blue-700 border-slate-300'
+                isDarkMode ? 'bg-slate-100 hover:bg-slate-200 text-blue-700 border-slate-300' : 'bg-white hover:bg-slate-50 text-blue-700 border-slate-300'
               }`}
             >
               <QrCode className="w-4 h-4" />
@@ -629,7 +629,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
             <button
               onClick={onBack}
               className={`px-6 py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 border cursor-pointer ${
-                isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700' : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
+                isDarkMode ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300' : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
               }`}
             >
               <ArrowLeft className="w-4 h-4" />
@@ -647,20 +647,20 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
   const locations: readonly string[] =
     category === 'ወረዳ' ? URBAN_WOREDAS : category === 'የገጠር ወረዳዎች' ? RURAL_WOREDAS : SECTOR_INSTITUTIONS;
   const topBtn = `min-h-[44px] px-4 py-2 text-sm font-bold rounded-2xl border flex items-center gap-2 cursor-pointer ${
-    isDarkMode ? 'bg-slate-900/80 hover:bg-slate-800 text-slate-200 border-slate-800' : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200'
+    isDarkMode ? 'bg-white/80 hover:bg-slate-100 text-slate-800 border-slate-200' : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200'
   }`;
 
   const progressBox = (extra: string) => (
-    <div className={`${extra} rounded-2xl border px-4 py-3 shadow-lg ${isDarkMode ? 'bg-slate-900/95 border-slate-800' : 'bg-white/95 border-slate-200'}`}>
+    <div className={`${extra} rounded-2xl border px-4 py-3 shadow-lg ${isDarkMode ? 'bg-white/95 border-slate-200' : 'bg-white/95 border-slate-200'}`}>
       <div className="flex items-center justify-between text-xs sm:text-sm font-bold">
-        <span className={isDarkMode ? 'text-slate-200' : 'text-slate-700'}>
-          {ui.filled}: <span className={isDarkMode ? 'text-blue-400' : 'text-blue-600'}>{doneSteps}</span> / {totalSteps}
+        <span className={isDarkMode ? 'text-slate-800' : 'text-slate-700'}>
+          {ui.filled}: <span className={isDarkMode ? 'text-blue-600' : 'text-blue-600'}>{doneSteps}</span> / {totalSteps}
         </span>
         <span className={progressPercent === 100 ? 'text-emerald-600' : textSub}>
           {progressPercent === 100 ? ui.ready : `${progressPercent}%`}
         </span>
       </div>
-      <div className={`mt-2 h-2 w-full overflow-hidden rounded-full ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
+      <div className={`mt-2 h-2 w-full overflow-hidden rounded-full ${isDarkMode ? 'bg-slate-100' : 'bg-slate-200'}`}>
         <motion.div
           className="h-full rounded-full bg-gradient-to-r from-blue-600 to-emerald-500"
           animate={{ width: `${progressPercent}%` }}
@@ -707,14 +707,14 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
             </div>
             <span
               className={`inline-block rounded-full border px-3 py-1 text-[11px] font-bold ${
-                isDarkMode ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300' : 'border-blue-100 bg-white text-blue-700'
+                isDarkMode ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-700' : 'border-blue-100 bg-white text-blue-700'
               }`}
             >
               {currentCategory}
             </span>
-            <h1 className={`mt-3 text-xl sm:text-2xl font-black leading-snug ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{currentTitle}</h1>
-            <p className={`mt-3 text-sm leading-relaxed whitespace-pre-line ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>{currentDescription}</p>
-            <div className={`mt-5 flex flex-wrap gap-2 text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+            <h1 className={`mt-3 text-xl sm:text-2xl font-black leading-snug ${isDarkMode ? 'text-slate-900' : 'text-slate-900'}`}>{currentTitle}</h1>
+            <p className={`mt-3 text-sm leading-relaxed whitespace-pre-line ${isDarkMode ? 'text-slate-700' : 'text-slate-600'}`}>{currentDescription}</p>
+            <div className={`mt-5 flex flex-wrap gap-2 text-xs font-semibold ${isDarkMode ? 'text-slate-700' : 'text-slate-600'}`}>
               {[
                 { icon: <ListChecks className="w-4 h-4" />, text: ui.questionsCount(questionsList.length) },
                 { icon: <Clock className="w-4 h-4" />, text: ui.minutes },
@@ -723,10 +723,10 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
                 <span
                   key={chipItem.text}
                   className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 ${
-                    isDarkMode ? 'bg-slate-950/50 border-white/10' : 'bg-white border-slate-200'
+                    isDarkMode ? 'bg-slate-50/50 border-white/10' : 'bg-white border-slate-200'
                   }`}
                 >
-                  <span className={isDarkMode ? 'text-emerald-300' : 'text-blue-600'}>{chipItem.icon}</span>
+                  <span className={isDarkMode ? 'text-emerald-700' : 'text-blue-600'}>{chipItem.icon}</span>
                   {chipItem.text}
                 </span>
               ))}
@@ -739,12 +739,12 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
               <div className="w-7 h-7 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
                 <Globe className="w-4 h-4" />
               </div>
-              <span className={`text-xs font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{tx.langLabel}</span>
+              <span className={`text-xs font-bold ${isDarkMode ? 'text-slate-800' : 'text-slate-800'}`}>{tx.langLabel}</span>
             </div>
             <div
               role="tablist"
               aria-label="Survey Language Selection"
-              className={`grid grid-cols-3 items-center p-1 rounded-xl border ${isDarkMode ? 'bg-slate-950/90 border-slate-800' : 'bg-slate-100 border-slate-200'}`}
+              className={`grid grid-cols-3 items-center p-1 rounded-xl border ${isDarkMode ? 'bg-slate-50/90 border-slate-200' : 'bg-slate-100 border-slate-200'}`}
             >
               {SURVEY_LANG_OPTIONS.map((l) => {
                 const sel = surveyLang === l.code;
@@ -760,7 +760,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
                       sel
                         ? 'bg-blue-600 text-white shadow-md'
                         : isDarkMode
-                        ? 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                        ? 'text-slate-700 hover:text-slate-900 hover:bg-slate-100/60'
                         : 'text-slate-600 hover:text-slate-900 hover:bg-white'
                     }`}
                   >
@@ -843,7 +843,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
                     category === cat.value
                       ? 'bg-blue-600 text-white border-blue-400'
                       : isDarkMode
-                      ? 'bg-slate-950/70 text-slate-300 border-slate-700 hover:border-slate-500'
+                      ? 'bg-slate-50/70 text-slate-700 border-slate-300 hover:border-slate-500'
                       : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400'
                   }`}
                 >
@@ -856,8 +856,8 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
               onChange={(e) => setDemo('residence', e.target.value)}
               aria-label={ui.residence}
               className={`w-full min-h-[48px] px-4 border rounded-xl text-base font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 ${
-                isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-900'
-              } ${missing.has('residence') ? 'border-red-500/70' : isDarkMode ? 'border-slate-700' : 'border-slate-300'}`}
+                isDarkMode ? 'bg-slate-50 text-slate-900' : 'bg-white text-slate-900'
+              } ${missing.has('residence') ? 'border-red-500/70' : isDarkMode ? 'border-slate-300' : 'border-slate-300'}`}
             >
               <option value="" disabled>
                 {ui.choosePlace}
@@ -921,8 +921,8 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
                         placeholder={tx.textPlaceholder}
                         aria-label={ui.questionOf(idx + 1, questionsList.length)}
                         className={`w-full resize-y rounded-2xl border p-4 text-base leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-500 ${
-                          isDarkMode ? 'bg-slate-950/80 text-slate-100 placeholder-slate-500' : 'bg-slate-50 text-slate-900 placeholder-slate-400'
-                        } ${invalid ? 'border-red-500/70' : isDarkMode ? 'border-slate-700' : 'border-slate-300'}`}
+                          isDarkMode ? 'bg-slate-50/80 text-slate-900 placeholder-slate-500' : 'bg-slate-50 text-slate-900 placeholder-slate-400'
+                        } ${invalid ? 'border-red-500/70' : isDarkMode ? 'border-slate-300' : 'border-slate-300'}`}
                       />
                       <div className={`mt-1.5 flex justify-between text-xs ${textSub}`}>
                         <span>
@@ -950,16 +950,16 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
                             onClick={() => setAnswer(q.id, { text: opt })}
                             className={`min-h-[48px] flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left text-sm sm:text-base font-semibold transition-all cursor-pointer ${
                               selected
-                                ? 'border-blue-500 bg-blue-500/10 ' + (isDarkMode ? 'text-blue-200' : 'text-blue-800')
-                                : `${isDarkMode ? 'bg-slate-950/70 text-slate-200 hover:border-slate-500' : 'bg-white text-slate-800 hover:border-slate-400'} ${
-                                    invalid ? 'border-red-500/60' : isDarkMode ? 'border-slate-700' : 'border-slate-300'
+                                ? 'border-blue-500 bg-blue-500/10 ' + (isDarkMode ? 'text-blue-700' : 'text-blue-800')
+                                : `${isDarkMode ? 'bg-slate-50/70 text-slate-800 hover:border-slate-500' : 'bg-white text-slate-800 hover:border-slate-400'} ${
+                                    invalid ? 'border-red-500/60' : isDarkMode ? 'border-slate-300' : 'border-slate-300'
                                   }`
                             }`}
                           >
                             <span>{opt}</span>
                             <span
                               className={`w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center ${
-                                selected ? 'border-blue-600 bg-blue-600 text-white' : isDarkMode ? 'border-slate-600' : 'border-slate-300'
+                                selected ? 'border-blue-600 bg-blue-600 text-white' : isDarkMode ? 'border-slate-300' : 'border-slate-300'
                               }`}
                             >
                               {selected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -983,10 +983,10 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
                               aria-label={`${star}`}
                               className={`flex-1 max-w-[64px] aspect-square rounded-xl border flex flex-col items-center justify-center transition-all cursor-pointer ${
                                 filled
-                                  ? 'border-amber-400 bg-amber-400/15 text-amber-500'
+                                  ? 'border-amber-400 bg-amber-400/15 text-amber-700'
                                   : isDarkMode
-                                  ? 'border-slate-700 bg-slate-950/70 text-slate-500'
-                                  : 'border-slate-300 bg-white text-slate-400'
+                                  ? 'border-slate-300 bg-slate-50/70 text-slate-500'
+                                  : 'border-slate-300 bg-white text-slate-500'
                               }`}
                             >
                               <Star className={`w-6 h-6 ${filled ? 'fill-amber-400' : ''}`} />
@@ -1008,16 +1008,16 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
         </section>
 
         {errorMessage && (
-          <div role="alert" className="flex items-start gap-3 rounded-2xl border border-red-500/50 bg-red-500/10 p-4 text-sm font-semibold text-red-600 dark:text-red-300">
+          <div role="alert" className="flex items-start gap-3 rounded-2xl border border-red-500/50 bg-red-500/10 p-4 text-sm font-semibold text-red-600 dark:text-red-700">
             <AlertTriangle className="w-5 h-5 shrink-0 text-red-500" />
-            <span className={isDarkMode ? 'text-red-200' : 'text-red-700'}>{errorMessage}</span>
+            <span className={isDarkMode ? 'text-red-700' : 'text-red-700'}>{errorMessage}</span>
           </div>
         )}
 
         {/* Submit — sticky at the bottom on phones */}
         <div
           className={`fixed inset-x-0 bottom-0 z-40 border-t p-3 backdrop-blur-md sm:static sm:border-0 sm:bg-transparent sm:p-0 ${
-            isDarkMode ? 'border-slate-800 bg-slate-950/95' : 'border-slate-200 bg-white/95'
+            isDarkMode ? 'border-slate-200 bg-slate-50/95' : 'border-slate-200 bg-white/95'
           }`}
         >
           <div className="max-w-3xl mx-auto">

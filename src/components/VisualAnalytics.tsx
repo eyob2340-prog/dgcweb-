@@ -825,7 +825,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
   if (!selectedSurveyId || surveys.length === 0) {
     return (
       <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
-        <BarChart3 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+        <BarChart3 className="w-12 h-12 text-slate-700 mx-auto mb-3" />
         <h3 className="text-base font-semibold text-slate-700">እባክዎ አናሊቲክስ ለማየት መጠይቅ ይምረጡ</h3>
       </div>
     );
@@ -834,16 +834,16 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
   return (
     <div className="space-y-6 printable-a4-report">
       {/* Top Survey Selector & Export Action Bar */}
-      <div className="bg-slate-900/80 backdrop-blur-xl p-5 sm:p-6 rounded-3xl border border-slate-800 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white/80 backdrop-blur-xl p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex-grow max-w-md">
-          <label className="block text-xs font-bold text-amber-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <label className="block text-xs font-bold text-amber-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <BarChart3 className="w-3.5 h-3.5" />
             የጥናት ርዕስ ይምረጡ (Select Survey for Analytics)
           </label>
           <select
             value={selectedSurveyId}
             onChange={(e) => onSelectSurvey(parseInt(e.target.value, 10))}
-            className="w-full py-3 px-4 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm font-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 shadow-inner"
+            className="w-full py-3 px-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/50 shadow-inner"
           >
             {surveys.map((s) => (
               <option key={s.id} value={s.id}>
@@ -858,17 +858,17 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
           <button
             onClick={handleDownloadXlsx}
             disabled={xlsxLoading}
-            className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white rounded-2xl text-xs font-black transition-all shadow-lg shadow-emerald-600/30 flex items-center space-x-2 border border-emerald-300/40 disabled:opacity-60"
+            className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-500 hover:to-green-600 text-white rounded-2xl text-xs font-black transition-all shadow-lg shadow-emerald-600/30 flex items-center space-x-2 border border-emerald-300/40 disabled:opacity-60"
             title="የእያንዳንዱን ተሳታፊ መልሶች (አንድ ሰው = አንድ ረድፍ) በExcel (.xlsx) ያውርዱ"
           >
-            <FileSpreadsheet className="w-4 h-4 text-white" />
+            <FileSpreadsheet className="w-4 h-4 text-slate-900" />
             <span>{xlsxLoading ? 'በማዘጋጀት ላይ...' : 'ሁሉንም መልሶች Excel አውርድ'}</span>
           </button>
 
           <button
             onClick={() => setShowSurveyQr(true)}
             disabled={!selectedSurveyId}
-            className="px-4 py-2.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-500 border border-amber-500/40 rounded-2xl text-xs font-black transition-all flex items-center space-x-2"
+            className="px-4 py-2.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 border border-amber-500/40 rounded-2xl text-xs font-black transition-all flex items-center space-x-2"
             title="የዚህን መጠይቅ QR ኮድ ፖስተር ያውርዱ/ያትሙ"
           >
             <QrCode className="w-4 h-4" />
@@ -880,7 +880,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
             className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-black transition-all shadow-lg shadow-emerald-600/20 flex items-center space-x-2 border border-emerald-400/30"
             title="የA4 PDF ፋይል በስልክዎ/ኮምፒውተርዎ ላይ ያውርዱ"
           >
-            <Download className="w-4 h-4 text-emerald-200" />
+            <Download className="w-4 h-4 text-emerald-700" />
             <span>1. PDF አውርድ</span>
           </button>
 
@@ -889,16 +889,16 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
             className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs font-black transition-all shadow-lg shadow-blue-600/20 flex items-center space-x-2 border border-blue-400/30"
             title="በA4 ወረቀት ፕሪንት ያድርጉ"
           >
-            <Printer className="w-4 h-4 text-amber-300" />
+            <Printer className="w-4 h-4 text-amber-700" />
             <span>2. ፕሪንት</span>
           </button>
 
           <button
             onClick={handleDownloadCsv}
-            className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-2xl text-xs font-black transition-all shadow-md flex items-center space-x-2"
+            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 rounded-2xl text-xs font-black transition-all shadow-md flex items-center space-x-2"
             title="የጥያቄዎችንና የፖሊሲ ትንታኔ ዳታ በExcel/CSV ያውርዱ"
           >
-            <FileSpreadsheet className="w-4 h-4 text-slate-300" />
+            <FileSpreadsheet className="w-4 h-4 text-slate-700" />
             <span>3. CSV / Excel</span>
           </button>
 
@@ -908,7 +908,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
             className="px-4 py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white border border-sky-400/30 rounded-2xl text-xs font-black transition-all shadow-lg shadow-sky-600/20 flex items-center space-x-2 disabled:opacity-50"
             title="የፖሊሲ ትንታኔ ሪፖርትና ስቲስቲክሱን ወደ ቴሌግራም ይላኩ"
           >
-            <Send className={`w-4 h-4 text-sky-200 ${telegramStatus.loading ? 'animate-spin' : ''}`} />
+            <Send className={`w-4 h-4 text-sky-700 ${telegramStatus.loading ? 'animate-spin' : ''}`} />
             <span>4. Telegram</span>
           </button>
 
@@ -928,11 +928,11 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
             className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all shadow-lg flex items-center space-x-2 border ${
               showAiReport
                 ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 border-amber-300 shadow-amber-500/20 ring-2 ring-amber-300/50'
-                : 'bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 hover:from-blue-800 hover:to-indigo-800 text-blue-100 border-blue-400/30 shadow-blue-900/40'
+                : 'bg-gradient-to-r from-blue-100 via-indigo-100 to-white hover:from-blue-800 hover:to-indigo-800 text-blue-700 border-blue-400/30 shadow-blue-900/40'
             }`}
             title="የፖሊሲና የሕዝብ እርካታ ሪፖርት ተመልከት"
           >
-            <FileText className={`w-4 h-4 text-amber-300 ${loadingAiReport ? 'animate-spin' : ''}`} />
+            <FileText className={`w-4 h-4 text-amber-700 ${loadingAiReport ? 'animate-spin' : ''}`} />
             <span>
               {loadingAiReport
                 ? 'በማዘጋጀት ላይ...'
@@ -963,7 +963,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
           </div>
           <button
             onClick={() => setTelegramStatus({ loading: false })}
-            className="text-slate-400 hover:text-slate-700 font-bold ml-2"
+            className="text-slate-500 hover:text-slate-700 font-bold ml-2"
           >
             ✕
           </button>
@@ -980,18 +980,18 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
         <>
           {/* Official Policy Intelligence Report Box (OPA Engine Powered) - Shown when toggled or printed */}
           {showAiReport && (
-            <div className="bg-white rounded-3xl border-2 border-slate-900 shadow-2xl overflow-hidden p-6 sm:p-10 space-y-8 relative transition-all duration-300">
+            <div className="bg-white rounded-3xl border-2 border-slate-200 shadow-2xl overflow-hidden p-6 sm:p-10 space-y-8 relative transition-all duration-300">
               {/* Top Action Bar (No Print) */}
-              <div className="no-print flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-900 text-white p-5 rounded-2xl shadow-md">
+              <div className="no-print flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white text-slate-900 p-5 rounded-2xl shadow-md">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-amber-400/20 border border-amber-400/40 text-amber-300 rounded-xl flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 bg-amber-400/20 border border-amber-400/40 text-amber-700 rounded-xl flex items-center justify-center shrink-0">
                     <Award className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-sm sm:text-base font-black text-amber-300 flex items-center gap-2">
+                    <h2 className="text-sm sm:text-base font-black text-amber-700 flex items-center gap-2">
                       <span>ኦፊሴላዊ የሕዝብ አስተያየት ሪፖርት (A4 Document)</span>
                     </h2>
-                    <p className="text-xs text-slate-300 mt-0.5">
+                    <p className="text-xs text-slate-700 mt-0.5">
                       በድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ ለኢፌድሪ የመንግስት ኮሙኒኬሽን አገልግሎት የቀረበ
                     </p>
                   </div>
@@ -1001,7 +1001,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                   <button
                     onClick={() => fetchAiReport(selectedSurveyId)}
                     disabled={loadingAiReport}
-                    className="px-3 py-2 bg-white/10 hover:bg-white/20 text-amber-300 rounded-xl text-xs font-bold transition-all border border-amber-400/30 flex items-center space-x-1.5"
+                    className="px-3 py-2 bg-white/10 hover:bg-white/20 text-amber-700 rounded-xl text-xs font-bold transition-all border border-amber-400/30 flex items-center space-x-1.5"
                     title="ሪፖርት አዝምን"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${loadingAiReport ? 'animate-spin' : ''}`} />
@@ -1014,7 +1014,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                     className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center space-x-1.5"
                     title="በPDF ፋይል መልክ አውርድ"
                   >
-                    <Download className="w-3.5 h-3.5 text-emerald-200" />
+                    <Download className="w-3.5 h-3.5 text-emerald-700" />
                     <span>PDF አውርድ</span>
                   </button>
 
@@ -1024,13 +1024,13 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                     className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center space-x-1.5"
                     title="በA4 ወረቀት ፕሪንት አድርግ"
                   >
-                    <Printer className="w-3.5 h-3.5 text-blue-200" />
+                    <Printer className="w-3.5 h-3.5 text-blue-700" />
                     <span>ፕሪንት</span>
                   </button>
 
                   <button
                     onClick={() => setShowAiReport(false)}
-                    className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-all"
+                    className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all"
                     title="ሪፖርቱን ዝጋ"
                   >
                     <X className="w-5 h-5" />
@@ -1040,21 +1040,21 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
 
               {/* Progress Banner (No Print) */}
               {(loadingAiReport || reportProgress.isPreparing) && (
-                <div className="p-6 text-center bg-slate-900 text-white rounded-3xl border-2 border-amber-400/40 space-y-4 shadow-xl no-print">
+                <div className="p-6 text-center bg-white text-slate-900 rounded-3xl border-2 border-amber-400/40 space-y-4 shadow-xl no-print">
                   <div className="flex items-center justify-center space-x-3">
-                    <RefreshCw className="w-6 h-6 text-amber-400 animate-spin shrink-0" />
-                    <span className="text-sm sm:text-base font-black text-amber-300">
+                    <RefreshCw className="w-6 h-6 text-amber-600 animate-spin shrink-0" />
+                    <span className="text-sm sm:text-base font-black text-amber-700">
                       ኦፊሴላዊ የፖሊሲ ሪፖርትና PDF ማዘጋጃ
                     </span>
                   </div>
 
                   <div className="max-w-xl mx-auto space-y-2">
-                    <div className="flex justify-between items-center text-xs font-mono text-amber-300 font-bold">
+                    <div className="flex justify-between items-center text-xs font-mono text-amber-700 font-bold">
                       <span className="text-left">{reportProgress.stageLabel || 'በማዘጋጀት ላይ...'}</span>
                       <span className="text-sm font-black shrink-0 ml-2">{reportProgress.percentage || 15}%</span>
                     </div>
 
-                    <div className="w-full bg-slate-800 rounded-full h-3.5 p-0.5 border border-slate-700 overflow-hidden shadow-inner">
+                    <div className="w-full bg-slate-100 rounded-full h-3.5 p-0.5 border border-slate-300 overflow-hidden shadow-inner">
                       <div
                         className="bg-gradient-to-r from-amber-400 via-emerald-400 to-blue-500 h-full rounded-full transition-all duration-300 ease-out shadow-md"
                         style={{ width: `${reportProgress.percentage || 15}%` }}
@@ -1062,7 +1062,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-300 max-w-lg mx-auto">
+                  <p className="text-xs text-slate-700 max-w-lg mx-auto">
                     ይህ ሪፖርት በኢፌድሪ የመንግስት ኮሙኒኬሽን አገልግሎት እና በድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ ፎርማሊቲ መሰረት የሚዘጋጅ ባለብዙ ገፅ ኦፊሴላዊ ሰነድ ነው::
                   </p>
                 </div>
@@ -1076,7 +1076,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                 >
                   
                   {/* PAGE 1 COVER PAGE & HEADER */}
-                  <div className="text-center space-y-6 pt-4 pb-8 border-b-4 border-slate-900">
+                  <div className="text-center space-y-6 pt-4 pb-8 border-b-4 border-slate-200">
                     <div className="flex justify-center mb-2">
                       <DgcLogo className="scale-125 origin-center" />
                     </div>
@@ -1090,7 +1090,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                       </h2>
                     </div>
 
-                    <div className="max-w-2xl mx-auto py-6 px-4 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-inner my-6 space-y-3">
+                    <div className="max-w-2xl mx-auto py-6 px-4 bg-slate-50 border-2 border-slate-200 rounded-xl shadow-inner my-6 space-y-3">
                       <h3 className="text-base sm:text-lg font-black text-slate-900 leading-snug">
                         {aiReport.official_header?.recipient_service || 'የሀገራዊና የአካባቢያዊ ልማት'} ሂደቱን እንቅስቃሴን ቀጣይ ተስፋዎችን በተመለከተ እንደ ድሬዳዋ ተዘጋጅቶ የቀረበ
                       </h3>
@@ -1110,7 +1110,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
 
                     {/* SECTION 1: INTRODUCTION */}
                     <div className="text-left space-y-3 pt-6">
-                      <h3 className="text-base sm:text-lg font-black text-slate-900 border-b-2 border-slate-800 pb-1">
+                      <h3 className="text-base sm:text-lg font-black text-slate-900 border-b-2 border-slate-200 pb-1">
                         1. መግቢያ
                       </h3>
                       <p className="text-sm sm:text-base text-slate-800 leading-relaxed text-justify indent-8">
@@ -1121,13 +1121,13 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
 
                   {/* PAGE 2 BREAK: SECTION 2 - SURVEY QUESTIONS & DEMOGRAPHICS */}
                   <div className="print-page-break space-y-6 pt-6">
-                    <h2 className="text-lg sm:text-xl font-black text-slate-900 border-b-2 border-slate-900 pb-2">
+                    <h2 className="text-lg sm:text-xl font-black text-slate-900 border-b-2 border-slate-200 pb-2">
                       2. የሕዝብ አስተያየት የሚሰበሰብባቸው ጥያቄዎች እና የምላሽ ሰጪዎች ሁኔታ
                     </h2>
 
                     {/* 2.1 DEMOGRAPHICS OVERVIEW */}
                     <div className="space-y-4">
-                      <h3 className="text-base font-bold text-slate-900 bg-slate-100 p-2 border-l-4 border-blue-900">
+                      <h3 className="text-base font-bold text-slate-900 bg-slate-100 p-2 border-l-4 border-blue-200">
                         2.1 የመላሾች አጠቃላይ መረጃ (Respondent Demographics)
                       </h3>
 
@@ -1181,7 +1181,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
 
                     {/* 2.2 GENERAL SURVEY ANALYSIS */}
                     <div className="space-y-4 pt-4">
-                      <h3 className="text-base font-bold text-slate-900 bg-slate-100 p-2 border-l-4 border-blue-900">
+                      <h3 className="text-base font-bold text-slate-900 bg-slate-100 p-2 border-l-4 border-blue-200">
                         2.2 አጠቃላይ የመጠይቁ ትንተና (General Analysis)
                       </h3>
 
@@ -1190,7 +1190,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                       </p>
 
                       {/* POSITIVE REMARKS BLOCK */}
-                      <div className="border-2 border-emerald-800 rounded-xl p-4 bg-emerald-50/30 space-y-2">
+                      <div className="border-2 border-emerald-200 rounded-xl p-4 bg-emerald-50/30 space-y-2">
                         <h4 className="text-xs font-black text-emerald-900 uppercase tracking-wide flex items-center gap-1.5">
                           <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                           <span>በአውንታ የቀረቡ ሀሳብና አስተያየቶች (Positive Feedback & Observations)</span>
@@ -1210,7 +1210,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                       </div>
 
                       {/* NEGATIVE REMARKS BLOCK */}
-                      <div className="border-2 border-red-800 rounded-xl p-4 bg-red-50/30 space-y-2">
+                      <div className="border-2 border-red-200 rounded-xl p-4 bg-red-50/30 space-y-2">
                         <h4 className="text-xs font-black text-red-900 uppercase tracking-wide flex items-center gap-1.5">
                           <AlertCircle className="w-4 h-4 text-red-700" />
                           <span>በአሉታ የቀረቡ ሃሳብና አስተያየቶች (Negative Feedback & Critical Remarks)</span>
@@ -1233,7 +1233,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
 
                   {/* PAGE 3 BREAK: SECTION 3 - CATEGORIZED SECTION ANALYSES */}
                   <div className="print-page-break space-y-6 pt-6">
-                    <h2 className="text-lg sm:text-xl font-black text-slate-900 border-b-2 border-slate-900 pb-2">
+                    <h2 className="text-lg sm:text-xl font-black text-slate-900 border-b-2 border-slate-200 pb-2">
                       3. ዝርዝር የህዝብ አስተያየትና የስሜት ትንተና (Categorized Public Feedback Analysis)
                     </h2>
 
@@ -1277,7 +1277,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                     )}
 
                     {/* KEY FINDINGS SUMMARY */}
-                    <div className="border-2 border-slate-800 rounded-xl p-4 space-y-3 avoid-page-break">
+                    <div className="border-2 border-slate-200 rounded-xl p-4 space-y-3 avoid-page-break">
                       <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide border-b border-slate-300 pb-1">
                         የጥናቱ ዋና ዋና ግኝቶች (Key Findings Summary)
                       </h3>
@@ -1293,7 +1293,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                   <div className="print-page-break space-y-8 pt-6">
                     {/* SECTION 4: POLICY RECOMMENDATIONS */}
                     <div className="space-y-4">
-                      <h2 className="text-lg sm:text-xl font-black text-slate-900 border-b-2 border-slate-900 pb-2">
+                      <h2 className="text-lg sm:text-xl font-black text-slate-900 border-b-2 border-slate-200 pb-2">
                         4. የፖሊሲ ማሻሻያ ጥቆማዎች (Policy Recommendations)
                       </h2>
                       <p className="text-xs sm:text-sm text-slate-800 leading-relaxed text-justify">
@@ -1303,7 +1303,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                       <div className="space-y-3">
                         {aiReport.policy_recommendations.map((rec, i) => (
                           <div key={i} className="flex items-start space-x-3 p-3 bg-slate-50 border border-slate-300 rounded-xl">
-                            <span className="w-6 h-6 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                            <span className="w-6 h-6 rounded-full bg-white text-slate-900 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
                               {i + 1}
                             </span>
                             <p className="text-xs sm:text-sm text-slate-900 font-semibold leading-relaxed">{rec}</p>
@@ -1313,8 +1313,8 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                     </div>
 
                     {/* SECTION 5: CONCLUSION */}
-                    <div className="space-y-4 pt-4 border-t-2 border-slate-800">
-                      <h2 className="text-lg sm:text-xl font-black text-slate-900 border-b-2 border-slate-900 pb-2">
+                    <div className="space-y-4 pt-4 border-t-2 border-slate-200">
+                      <h2 className="text-lg sm:text-xl font-black text-slate-900 border-b-2 border-slate-200 pb-2">
                         5. ማጠቃለያ
                       </h2>
                       <p className="text-xs sm:text-sm text-slate-900 leading-relaxed text-justify indent-8">
@@ -1323,7 +1323,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                     </div>
 
                     {/* OFFICIAL SIGNATURE & STAMP BLOCK */}
-                    <div className="pt-10 border-t-2 border-slate-900 grid grid-cols-2 gap-8 text-xs font-bold text-slate-900 avoid-page-break">
+                    <div className="pt-10 border-t-2 border-slate-200 grid grid-cols-2 gap-8 text-xs font-bold text-slate-900 avoid-page-break">
                       <div className="space-y-12">
                         <div>
                           <p className="uppercase font-black text-slate-900">አዘጋጅ፦</p>
@@ -1364,24 +1364,24 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
           )}
 
           {/* Survey Overview Metadata Banner */}
-          <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 text-white p-6 rounded-2xl shadow-lg border border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="bg-gradient-to-r from-white via-slate-100 to-blue-50 text-slate-900 p-6 rounded-2xl shadow-lg border border-slate-300 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <span className="bg-emerald-500/20 text-emerald-300 text-xs px-2.5 py-0.5 rounded-full font-medium border border-emerald-500/30">
+              <span className="bg-emerald-500/20 text-emerald-700 text-xs px-2.5 py-0.5 rounded-full font-medium border border-emerald-500/30">
                 {analytics.survey.category}
               </span>
               <h2 className="text-lg sm:text-xl font-bold mt-2">{analytics.survey.title}</h2>
-              <p className="text-xs text-slate-300 mt-1">{analytics.survey.description}</p>
+              <p className="text-xs text-slate-700 mt-1">{analytics.survey.description}</p>
             </div>
 
-            <div className="bg-slate-800/80 border border-slate-700 p-4 rounded-xl shrink-0 flex items-center space-x-4">
-              <div className="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-xl flex items-center justify-center font-bold text-xl">
+            <div className="bg-slate-100/80 border border-slate-300 p-4 rounded-xl shrink-0 flex items-center space-x-4">
+              <div className="w-12 h-12 bg-emerald-500/20 text-emerald-600 rounded-xl flex items-center justify-center font-bold text-xl">
                 <Users className="w-6 h-6" />
               </div>
               <div>
-                <div className="text-2xl font-black text-emerald-400">
+                <div className="text-2xl font-black text-emerald-600">
                   {analytics.total_responses}
                 </div>
-                <div className="text-xs text-slate-400">አጠቃላይ ተሳታፊዎች (Total Respondents)</div>
+                <div className="text-xs text-slate-500">አጠቃላይ ተሳታፊዎች (Total Respondents)</div>
               </div>
             </div>
           </div>
@@ -1496,14 +1496,14 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                 {/* Question Header */}
                 <div className="flex items-start justify-between border-b border-slate-100 pb-4">
                   <div className="flex items-start space-x-3">
-                    <span className="w-7 h-7 rounded-lg bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                    <span className="w-7 h-7 rounded-lg bg-white text-slate-900 font-bold text-xs flex items-center justify-center shrink-0">
                       {idx + 1}
                     </span>
                     <div>
                       <h3 className="text-base font-bold text-slate-900 leading-snug">
                         {q.question_text}
                       </h3>
-                      <span className="text-xs text-slate-400 capitalize">
+                      <span className="text-xs text-slate-500 capitalize">
                         ዓይነት: {q.question_type === 'radio' ? 'ምርጫ (Multiple Choice)' : q.question_type === 'rating' ? 'ደረጃ (Rating 1-5)' : 'ጽሁፍ (Open-ended Text)'}
                       </span>
                     </div>
@@ -1591,7 +1591,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                       </div>
                       <div className="text-4xl sm:text-5xl font-black text-amber-600 flex items-center justify-center gap-1">
                         <span>{q.rating_average || 0}</span>
-                        <span className="text-lg text-amber-400 font-normal">/ 5</span>
+                        <span className="text-lg text-amber-600 font-normal">/ 5</span>
                       </div>
                       <div className="flex items-center justify-center space-x-1 pt-1">
                         {[1, 2, 3, 4, 5].map((s) => (
@@ -1599,8 +1599,8 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                             key={s}
                             className={`w-5 h-5 ${
                               s <= Math.round(q.rating_average || 0)
-                                ? 'fill-amber-400 text-amber-400'
-                                : 'text-slate-300'
+                                ? 'fill-amber-400 text-amber-600'
+                                : 'text-slate-700'
                             }`}
                           />
                         ))}
@@ -1625,7 +1625,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                 {q.question_type === 'text' && (
                   <div className="space-y-4">
                     <div className="relative">
-                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                       <input
                         type="text"
                         placeholder="የጽሁፍ አስተያየቶችን ፈልግ..."
@@ -1660,7 +1660,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
                           ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-slate-400 italic">ምንም የጽሁፍ አስተያየት አልተሰጠም::</p>
+                      <p className="text-xs text-slate-500 italic">ምንም የጽሁፍ አስተያየት አልተሰጠም::</p>
                     )}
                   </div>
                 )}
@@ -1672,14 +1672,14 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
 
       {/* Export to Telegram Modal */}
       {isTelegramModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
+        <div className="fixed inset-0 overflow-y-auto z-[100] flex items-center-safe justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
             <div className="bg-sky-600 text-white p-6">
               <h3 className="text-lg font-bold flex items-center gap-2">
                 <Send className="w-5 h-5" />
                 <span>Export Analytics to Telegram Bot</span>
               </h3>
-              <p className="text-xs text-sky-100 mt-1">
+              <p className="text-xs text-sky-700 mt-1">
                 የተሰበሰበውን የAI ፖሊሲ ሪፖርትና ሙሉ የስቲስቲክስ መረጃ ወደ አድሚን Telegram ቻናል በስኬት ይላኩ::
               </p>
             </div>
@@ -1756,7 +1756,7 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
         selectedSurveyId &&
         createPortal(
           <div
-            className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 no-print"
+            className="fixed inset-0 overflow-y-auto z-[100] bg-slate-900/40 backdrop-blur-md flex items-center-safe justify-center p-4 no-print"
             onClick={() => setShowSurveyQr(false)}
           >
             <div className="max-w-md w-full" onClick={(e) => e.stopPropagation()}>

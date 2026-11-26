@@ -225,17 +225,17 @@ export const DgcQrCard: React.FC<DgcQrCardProps> = ({ url, surveyTitle, onClose 
   const currentDownloadUrl = downloadUrl || fallbackDataUrl;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 max-w-md w-full space-y-5 text-center shadow-2xl relative">
+    <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 max-w-md w-full space-y-5 text-center shadow-2xl relative">
       {/* Header Modal Bar */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div className="flex items-center space-x-2 text-amber-300 font-bold text-sm">
-          <QrCode className="w-5 h-5 text-amber-400" />
+      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div className="flex items-center space-x-2 text-amber-700 font-bold text-sm">
+          <QrCode className="w-5 h-5 text-amber-600" />
           <span>የድሬዳዋ ኮሙኒኬሽን ብራንደድ QR ኮድ</span>
         </div>
         {onClose && (
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white font-black text-sm p-1 rounded-lg bg-slate-800"
+            className="text-slate-500 hover:text-slate-900 font-black text-sm p-1 rounded-lg bg-slate-100"
           >
             ✕
           </button>
@@ -243,11 +243,11 @@ export const DgcQrCard: React.FC<DgcQrCardProps> = ({ url, surveyTitle, onClose 
       </div>
 
       {surveyTitle && (
-        <p className="text-xs font-bold text-slate-200 line-clamp-2 px-2">{surveyTitle}</p>
+        <p className="text-xs font-bold text-slate-800 line-clamp-2 px-2">{surveyTitle}</p>
       )}
 
       {/* Rendered Canvas / Fallback Preview */}
-      <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 inline-block shadow-inner mx-auto max-w-full overflow-hidden">
+      <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 inline-block shadow-inner mx-auto max-w-full overflow-hidden">
         <canvas
           ref={canvasRef}
           className={`w-64 sm:w-72 h-auto mx-auto rounded-xl shadow-lg bg-white ${
@@ -262,14 +262,14 @@ export const DgcQrCard: React.FC<DgcQrCardProps> = ({ url, surveyTitle, onClose 
           />
         )}
         {isGenerating && !downloadUrl && !fallbackDataUrl && (
-          <div className="w-64 sm:w-72 h-64 bg-slate-900 flex items-center justify-center text-amber-400 font-bold text-xs animate-pulse">
+          <div className="w-64 sm:w-72 h-64 bg-white flex items-center justify-center text-amber-600 font-bold text-xs animate-pulse">
             ብራንደድ QR ኮድ በመዘጋጀት ላይ...
           </div>
         )}
       </div>
 
       {/* Helper text */}
-      <p className="text-[11px] text-slate-300 font-medium">
+      <p className="text-[11px] text-slate-700 font-medium">
         ይህንን ኦፊሴላዊ የድሬዳዋ ኮሙኒኬሽን QR ኮድ ዳውንሎድ በማድረግ ለህዝብ ማሰራጨት ወይም በፕሪንት መጠቀም ይችላሉ::
       </p>
 
@@ -279,7 +279,7 @@ export const DgcQrCard: React.FC<DgcQrCardProps> = ({ url, surveyTitle, onClose 
           onClick={copyShareLink}
           className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 shadow-sm"
         >
-          {copied ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4 text-amber-400" />}
+          {copied ? <Check className="w-4 h-4 text-emerald-700" /> : <Copy className="w-4 h-4 text-amber-600" />}
           <span>{copied ? 'ሊንኩ ኮፒ ተደርጓል! ✓' : 'የጥናቱን ሊንክ ኮፒ አድርግ (Copy Link)'}</span>
         </button>
 
@@ -288,9 +288,9 @@ export const DgcQrCard: React.FC<DgcQrCardProps> = ({ url, surveyTitle, onClose 
             href={currentDownloadUrl}
             download="DireDawa_Communication_Survey_QR.png"
             onClick={handleDownloadClick}
-            className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 border border-slate-700 shadow-sm"
+            className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 border border-slate-300 shadow-sm"
           >
-            <Download className="w-4 h-4 text-emerald-400" />
+            <Download className="w-4 h-4 text-emerald-600" />
             <span>QR ኮዱን ዳውንሎድ አድርግ (.PNG)</span>
           </a>
         )}

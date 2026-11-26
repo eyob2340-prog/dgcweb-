@@ -10,34 +10,34 @@ interface FooterProps {
 export const Footer: React.FC<FooterProps> = ({ onOpenPrivacy, onOpenTerms, isDarkMode = false }) => {
   const socialLinks = [
     { name: 'ፌስቡክ (Facebook)', url: 'https://facebook.com/DGCOMU', icon: Facebook, iconColor: 'text-blue-600 hover:text-blue-500' },
-    { name: 'ዩትዩብ (YouTube)', url: 'https://www.youtube.com/@DireDawaComm', icon: Youtube, iconColor: 'text-amber-500 hover:text-amber-400' },
-    { name: 'ቴሌግራም (Telegram)', url: 'https://t.me/DDGCAB', icon: Send, iconColor: 'text-blue-400 hover:text-blue-300' },
-    { name: 'ትዊተር / X (Twitter)', url: 'https://twitter.com/DawaOffice', icon: Twitter, iconColor: 'text-amber-400 hover:text-amber-300' },
+    { name: 'ዩትዩብ (YouTube)', url: 'https://www.youtube.com/@DireDawaComm', icon: Youtube, iconColor: 'text-amber-700 hover:text-amber-600' },
+    { name: 'ቴሌግራም (Telegram)', url: 'https://t.me/DDGCAB', icon: Send, iconColor: 'text-blue-600 hover:text-blue-700' },
+    { name: 'ትዊተር / X (Twitter)', url: 'https://twitter.com/DawaOffice', icon: Twitter, iconColor: 'text-amber-600 hover:text-amber-700' },
   ];
 
   return (
     <footer className={`border-t py-6 text-xs relative z-10 transition-colors duration-300 ${
-      isDarkMode ? 'bg-slate-950 text-slate-300 border-slate-800/80' : 'bg-white text-slate-700 border-slate-200'
+      isDarkMode ? 'bg-slate-50 text-slate-700 border-slate-200/80' : 'bg-white text-slate-700 border-slate-200'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`flex flex-col md:flex-row items-center justify-between gap-4 ${
-          isDarkMode ? 'text-slate-400' : 'text-slate-600'
+          isDarkMode ? 'text-slate-500' : 'text-slate-600'
         }`}>
           
           {/* Left: Copyright & Dire Dawa Admin Text with Inline Social Icons */}
           <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
             <div>
-              <p className={`font-bold text-xs sm:text-sm ${isDarkMode ? 'text-white' : 'text-slate-950'}`}>
+              <p className={`font-bold text-xs sm:text-sm ${isDarkMode ? 'text-slate-900' : 'text-slate-950'}`}>
                 © 2026 Dire Dawa Administration Government Communication Affairs Bureau.
               </p>
-              <p className={`text-[11px] mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              <p className={`text-[11px] mt-0.5 ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>
                 የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ • Official Citizen Inquiry & Survey Platform
               </p>
             </div>
 
             {/* Icon-only Social Media Links placed directly beside text */}
             <div className={`flex items-center space-x-2.5 sm:ml-2 sm:border-l sm:pl-3 pt-1 sm:pt-0 ${
-              isDarkMode ? 'border-slate-800' : 'border-slate-200'
+              isDarkMode ? 'border-slate-200' : 'border-slate-200'
             }`}>
               {socialLinks.map((item) => {
                 const Icon = item.icon;
@@ -49,7 +49,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenPrivacy, onOpenTerms, isDa
                     rel="noopener noreferrer"
                     title={item.name}
                     className={`p-1.5 rounded-lg border transition-transform hover:scale-110 ${
-                      isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-50 border-slate-200 shadow-sm'
+                      isDarkMode ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-200 shadow-sm'
                     } ${item.iconColor}`}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
@@ -68,7 +68,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenPrivacy, onOpenTerms, isDa
               >
                 ሚስጥራዊነት ፖሊሲ
               </button>
-              <span className={isDarkMode ? 'text-slate-600' : 'text-slate-300'}>•</span>
+              <span className={isDarkMode ? 'text-slate-600' : 'text-slate-700'}>•</span>
               <button
                 onClick={onOpenTerms}
                 className="hover:text-amber-500 transition-colors font-medium cursor-pointer"
@@ -85,11 +85,11 @@ export const Footer: React.FC<FooterProps> = ({ onOpenPrivacy, onOpenTerms, isDa
               title="Developed by Devloper opa (@eyobreta)"
               className={`border px-3.5 py-1.5 rounded-full text-[11px] font-black transition-all flex items-center space-x-1.5 shadow-sm hover:scale-105 cursor-pointer ${
                 isDarkMode
-                  ? 'bg-slate-900 hover:bg-slate-800 border-cyan-500/40 hover:border-cyan-400 text-cyan-400'
+                  ? 'bg-white hover:bg-slate-100 border-cyan-500/40 hover:border-cyan-400 text-cyan-600'
                   : 'bg-cyan-50 hover:bg-cyan-100 border-cyan-300 text-cyan-900'
               }`}
             >
-              <Send className="w-3.5 h-3.5 text-cyan-400" />
+              <Send className="w-3.5 h-3.5 text-cyan-600" />
               <span>Devloper opa</span>
             </a>
           </div>

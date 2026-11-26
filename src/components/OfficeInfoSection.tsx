@@ -36,18 +36,18 @@ export const OfficeInfoSection: React.FC = () => {
         {/* Mission Card */}
         <motion.div
           whileHover={{ y: -3 }}
-          className="bg-gradient-to-br from-blue-900 to-slate-900 text-white p-6 sm:p-7 rounded-2xl relative overflow-hidden shadow-lg border border-blue-800"
+          className="bg-gradient-to-br from-blue-100 to-white text-slate-900 p-6 sm:p-7 rounded-2xl relative overflow-hidden shadow-lg border border-blue-200"
         >
           <div className="absolute top-0 right-0 -mr-6 -mt-6 w-28 h-28 bg-blue-500/20 rounded-full blur-xl pointer-events-none" />
           <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-amber-400">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-amber-600">
               <Target className="w-5 h-5 animate-spin-slow" />
             </div>
-            <h3 className="text-base sm:text-lg font-bold text-amber-400">
+            <h3 className="text-base sm:text-lg font-bold text-amber-600">
               ተልዕኮ (Mission)
             </h3>
           </div>
-          <p className="text-xs sm:text-sm text-blue-100 leading-relaxed font-light">
+          <p className="text-xs sm:text-sm text-blue-700 leading-relaxed font-light">
             "ከፍተኛ ስነ ምግባር ያለው እና በመንግስት የመረጃ ልውውጥ ዘርፍ ጥሩ አገልግሎት የሚሰጥ፣ በህዝብ መረጃ ላይ የተመሰረተ ተሳትፎ በማድረግ ስልታዊ አመራር የሚሰጥ ከፍተኛ ስነ ምግባር ያለው ባለሙያ መገንባት ነው።"
           </p>
         </motion.div>
@@ -55,18 +55,18 @@ export const OfficeInfoSection: React.FC = () => {
         {/* Vision Card */}
         <motion.div
           whileHover={{ y: -3 }}
-          className="bg-gradient-to-br from-amber-900/90 via-slate-900 to-blue-950 text-white p-6 sm:p-7 rounded-2xl relative overflow-hidden shadow-lg border border-amber-800/60"
+          className="bg-gradient-to-br from-amber-100/90 via-white to-blue-50 text-slate-900 p-6 sm:p-7 rounded-2xl relative overflow-hidden shadow-lg border border-amber-200/60"
         >
           <div className="absolute top-0 right-0 -mr-6 -mt-6 w-28 h-28 bg-amber-500/20 rounded-full blur-xl pointer-events-none" />
           <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-400">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-600">
               <Eye className="w-5 h-5" />
             </div>
-            <h3 className="text-base sm:text-lg font-bold text-amber-400">
+            <h3 className="text-base sm:text-lg font-bold text-amber-600">
               ራዕይ (Vision)
             </h3>
           </div>
-          <p className="text-xs sm:text-sm text-amber-100/90 leading-relaxed font-light">
+          <p className="text-xs sm:text-sm text-amber-700/90 leading-relaxed font-light">
             "በጠንካራ መሰረት ላይ የተገነባ የበለፀገ እና አስተማማኝ የመንግስት ኮሙዩኒኬሽን ስርዓት ተፈጥሮን ማየት።"
           </p>
         </motion.div>

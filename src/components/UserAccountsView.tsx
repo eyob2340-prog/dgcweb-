@@ -381,18 +381,18 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
   return (
     <div className="space-y-8">
       {/* Banner / Header */}
-      <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 p-6 sm:p-8 rounded-3xl border border-blue-500/30 shadow-2xl relative overflow-hidden">
+      <div className="bg-gradient-to-r from-white via-blue-50 to-white p-6 sm:p-8 rounded-3xl border border-blue-500/30 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-black mb-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 text-xs font-black mb-2">
               <ShieldCheck className="w-4 h-4" />
               <span>የአካውንት እና የደህንነት ማስተዳደሪያ (Accounts & Security)</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               የተጠቃሚዎች እና የአድሚኖች ፓነል
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1">
+            <p className="text-xs sm:text-sm text-slate-700 mt-1">
               ፓስወርድ ሲጠፋ ማስተካከያ፣ አዲስ አድሚን መፍጠሪያ እና የራሶትን መረጃ ማሻሻያ
             </p>
           </div>
@@ -400,7 +400,7 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={fetchUsers}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 flex items-center gap-1.5 transition-all"
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 flex items-center gap-1.5 transition-all"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               <span>አድስ (Refresh)</span>
@@ -424,8 +424,8 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
         <div
           className={`p-4 rounded-2xl border text-xs sm:text-sm font-bold flex items-center gap-3 ${
             message.type === 'success'
-              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-              : 'bg-red-500/10 border-red-500/30 text-red-300'
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700'
+              : 'bg-red-500/10 border-red-500/30 text-red-700'
           }`}
         >
           {message.type === 'success' ? (
@@ -440,80 +440,80 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
       {/* Layout Grid */}
       <div className={`grid grid-cols-1 ${isDeveloperOrOwner ? 'lg:grid-cols-3' : 'max-w-xl mx-auto'} gap-8`}>
         {/* Profile Settings (Visible to All) */}
-        <div className={`${isDeveloperOrOwner ? 'lg:col-span-1' : 'w-full'} bg-slate-900/80 backdrop-blur-md rounded-3xl p-6 border border-slate-800 shadow-xl space-y-6`}>
-          <div className="flex items-center space-x-3 border-b border-slate-800 pb-4">
-            <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-2xl border border-amber-500/20">
+        <div className={`${isDeveloperOrOwner ? 'lg:col-span-1' : 'w-full'} bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-slate-200 shadow-xl space-y-6`}>
+          <div className="flex items-center space-x-3 border-b border-slate-200 pb-4">
+            <div className="p-2.5 bg-amber-500/10 text-amber-600 rounded-2xl border border-amber-500/20">
               <UserCog className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-sm font-black text-white">የኔ መለያ ማስተካከያ (My Profile)</h2>
-              <p className="text-[11px] text-slate-400">የግል መረጃዎንና ፓስወርድዎን እዚሁ ይለውጡ</p>
+              <h2 className="text-sm font-black text-slate-900">የኔ መለያ ማስተካከያ (My Profile)</h2>
+              <p className="text-[11px] text-slate-500">የግል መረጃዎንና ፓስወርድዎን እዚሁ ይለውጡ</p>
             </div>
           </div>
 
           <form onSubmit={handleUpdateMyProfile} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-amber-400" />
+              <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-amber-600" />
                 የተጠቃሚ ስም (Username)
               </label>
               <input
                 type="text"
                 value={myUsername}
                 onChange={(e) => setMyUsername(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 placeholder="Username"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
-                <Mail className="w-3.5 h-3.5 text-blue-400" />
+              <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-blue-600" />
                 ኢሜይል አድራሻ (Email)
               </label>
               <input
                 type="email"
                 value={myEmail}
                 onChange={(e) => setMyEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Email address"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
-                <Key className="w-3.5 h-3.5 text-emerald-400" />
+              <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                <Key className="w-3.5 h-3.5 text-emerald-600" />
                 አዲስ ፓስወርድ (New Password)
               </label>
               <input
                 type="password"
                 value={myNewPassword}
                 onChange={(e) => setMyNewPassword(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 placeholder="ባዶ ከተው አይቀየርም (Leave blank to keep current)"
               />
             </div>
 
             {/* Two-Factor Authentication (2FA) Modern Toggle Switch */}
-            <div className="pt-3 border-t border-slate-800/80">
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-3 shadow-inner">
+            <div className="pt-3 border-t border-slate-200/80">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3 shadow-inner">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className={`w-2.5 h-2.5 rounded-full ${twoFactorEnabled ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
-                    <span className="text-xs font-black text-white">Google Authenticator (2FA)</span>
+                    <span className="text-xs font-black text-slate-900">Google Authenticator (2FA)</span>
                   </div>
                   <p className="text-[11px] font-bold">
                     {twoFactorEnabled ? (
-                      <span className="text-emerald-400">🟢 2FA በርቷል (ON / Active)</span>
+                      <span className="text-emerald-600">🟢 2FA በርቷል (ON / Active)</span>
                     ) : (
-                      <span className="text-slate-400">⚪ 2FA ጠፍቷል (OFF / Disabled)</span>
+                      <span className="text-slate-500">⚪ 2FA ጠፍቷል (OFF / Disabled)</span>
                     )}
                   </p>
                 </div>
 
                 {/* Modern Interactive Switch Slider */}
                 <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-black uppercase tracking-wider ${twoFactorEnabled ? 'text-emerald-400' : 'text-slate-500'}`}>
+                  <span className={`text-[10px] font-black uppercase tracking-wider ${twoFactorEnabled ? 'text-emerald-600' : 'text-slate-500'}`}>
                     {twoFactorEnabled ? 'ON' : 'OFF'}
                   </span>
                   <button
@@ -522,7 +522,7 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                     disabled={toggling2FA}
                     title={twoFactorEnabled ? '2FA አጥፋ (Turn OFF)' : '2FA አብራ (Turn ON)'}
                     className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none cursor-pointer ${
-                      twoFactorEnabled ? 'bg-emerald-500 shadow-md shadow-emerald-500/30' : 'bg-slate-800 border border-slate-700'
+                      twoFactorEnabled ? 'bg-emerald-500 shadow-md shadow-emerald-500/30' : 'bg-slate-100 border border-slate-300'
                     }`}
                   >
                     <span className="sr-only">Toggle 2FA</span>
@@ -556,17 +556,17 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
         {/* Right Column: All Accounts Table (ONLY for Owner and Developer) */}
         {isDeveloperOrOwner && (
           <div className="lg:col-span-2 space-y-6">
-          <div className="bg-slate-900/80 backdrop-blur-md rounded-3xl p-6 border border-slate-800 shadow-xl space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-slate-200 shadow-xl space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div className="flex items-center space-x-3">
-                <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-2xl border border-blue-500/20">
+                <div className="p-2.5 bg-blue-500/10 text-blue-600 rounded-2xl border border-blue-500/20">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-black text-white">
+                  <h2 className="text-sm font-black text-slate-900">
                     የሲስተሙ የተጠቃሚዎች እና የአድሚኖች ዝርዝር
                   </h2>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-slate-500">
                     የባለቤቶች (Owners)፣ አድሚኖችና የደቨሎፐር አካውንቶች
                   </p>
                 </div>
@@ -577,24 +577,24 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 text-[11px] font-black text-slate-400 uppercase tracking-wider">
+                  <tr className="border-b border-slate-200 text-[11px] font-black text-slate-500 uppercase tracking-wider">
                     <th className="py-3 px-3">ተጠቃሚ / ኢሜይል</th>
                     <th className="py-3 px-3">ሚና (Role)</th>
                     <th className="py-3 px-3 text-right">ተግባር (Actions)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-xs">
+                <tbody className="divide-y divide-slate-200/60 text-xs">
                   {users.map((u) => (
-                    <tr key={u.id} className="hover:bg-slate-800/40 transition-colors">
+                    <tr key={u.id} className="hover:bg-slate-100/40 transition-colors">
                       <td className="py-3.5 px-3">
                         <div className="flex items-center space-x-3">
                           <div
                             className={`p-2 rounded-xl text-xs font-black ${
                               u.role === 'developer'
-                                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                                ? 'bg-purple-500/20 text-purple-700 border border-purple-500/30'
                                 : u.role === 'owner'
-                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                                ? 'bg-amber-500/20 text-amber-700 border border-amber-500/30'
+                                : 'bg-blue-500/20 text-blue-700 border border-blue-500/30'
                             }`}
                           >
                             {u.role === 'developer' ? (
@@ -606,10 +606,10 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                             )}
                           </div>
                           <div>
-                            <span className="font-bold text-white block">
+                            <span className="font-bold text-slate-900 block">
                               {u.username || u.email.split('@')[0]}
                             </span>
-                            <span className="text-[11px] text-slate-400 font-mono block">
+                            <span className="text-[11px] text-slate-500 font-mono block">
                               {u.email}
                             </span>
                           </div>
@@ -620,10 +620,10 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
                             u.role === 'developer'
-                              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                              ? 'bg-purple-500/20 text-purple-700 border border-purple-500/40'
                               : u.role === 'owner'
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                              : 'bg-blue-500/20 text-blue-300 border border-blue-500/40'
+                              ? 'bg-amber-500/20 text-amber-700 border border-amber-500/40'
+                              : 'bg-blue-500/20 text-blue-700 border border-blue-500/40'
                           }`}
                         >
                           {u.role === 'developer' && '⚡ OPA Developer'}
@@ -640,7 +640,7 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                                 setSelectedUserToReset(u);
                                 setResetPasswordInput('');
                               }}
-                              className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+                              className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 border border-amber-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
                             >
                               <Key className="w-3.5 h-3.5" />
                               <span>ፓስወርድ ቀይር</span>
@@ -649,7 +649,7 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                             {u.id !== currentUser?.id && (
                               <button
                                 onClick={() => handleDeleteUser(u)}
-                                className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-1"
+                                className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-1"
                                 title="ተጠቃሚውን ሰርዝ"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -671,25 +671,25 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
 
       {/* Password Reset Modal for Target User */}
       {selectedUserToReset && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 overflow-y-auto z-50 bg-slate-900/40 backdrop-blur-md flex items-center-safe justify-center p-4">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-slate-900 border border-amber-500/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5"
+            className="bg-white border border-amber-500/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5"
           >
-            <div className="flex items-center space-x-3 text-amber-400 border-b border-slate-800 pb-4">
+            <div className="flex items-center space-x-3 text-amber-600 border-b border-slate-200 pb-4">
               <Key className="w-6 h-6 shrink-0" />
               <div>
-                <h3 className="text-base font-black text-white">ፓስወርድ ማስተካከያ (Reset Password)</h3>
-                <p className="text-xs text-slate-400">
-                  ለተጠቃሚ: <span className="text-amber-300 font-bold">{selectedUserToReset.email}</span>
+                <h3 className="text-base font-black text-slate-900">ፓስወርድ ማስተካከያ (Reset Password)</h3>
+                <p className="text-xs text-slate-500">
+                  ለተጠቃሚ: <span className="text-amber-700 font-bold">{selectedUserToReset.email}</span>
                 </p>
               </div>
             </div>
 
             <form onSubmit={handleResetUserPassword} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
                   አዲስ ፓስወርድ ያስገቡ (New Password)
                 </label>
                 <input
@@ -697,7 +697,7 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                   required
                   value={resetPasswordInput}
                   onChange={(e) => setResetPasswordInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
                   placeholder="ምሳሌ: NewPass@2026"
                 />
               </div>
@@ -706,7 +706,7 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setSelectedUserToReset(null)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl"
                 >
                   ሰርዝ (Cancel)
                 </button>
@@ -726,23 +726,23 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
 
       {/* Create New Account Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 overflow-y-auto z-50 bg-slate-900/40 backdrop-blur-md flex items-center-safe justify-center p-4">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5"
+            className="bg-white border border-slate-300 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5"
           >
-            <div className="flex items-center space-x-3 text-amber-400 border-b border-slate-800 pb-4">
+            <div className="flex items-center space-x-3 text-amber-600 border-b border-slate-200 pb-4">
               <Plus className="w-6 h-6 shrink-0" />
               <div>
-                <h3 className="text-base font-black text-white">አዲስ ተጠቃሚ/አድሚን ፍጠር</h3>
-                <p className="text-xs text-slate-400">ለአዲስ ባለቤት ወይም አድሚን መግቢያ ይፍጠሩ</p>
+                <h3 className="text-base font-black text-slate-900">አዲስ ተጠቃሚ/አድሚን ፍጠር</h3>
+                <p className="text-xs text-slate-500">ለአዲስ ባለቤት ወይም አድሚን መግቢያ ይፍጠሩ</p>
               </div>
             </div>
 
             <form onSubmit={handleCreateUser} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
                   ኢሜይል አድራሻ *
                 </label>
                 <input
@@ -750,26 +750,26 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                   required
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
                   placeholder="e.g. newadmin@dgc.gov.et"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
                   የተጠቃሚ ስም (Username)
                 </label>
                 <input
                   type="text"
                   value={newUsername}
                   onChange={(e) => setNewUsername(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
                   placeholder="e.g. newadmin"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
                   የመግቢያ ፓስወርድ *
                 </label>
                 <input
@@ -777,19 +777,19 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
                   placeholder="Password"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
                   የተጠቃሚው ሚና (Role)
                 </label>
                 <select
                   value={newRole}
                   onChange={(e) => setNewRole(e.target.value as 'owner' | 'admin')}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 >
                   <option value="admin">🛡️ Admin (መጠይቆችና አቤቱታዎች መስሪያ)</option>
                   <option value="owner">👑 Owner (ባለቤት - ሙሉ ስልጣን ያለው)</option>
@@ -800,7 +800,7 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl"
                 >
                   ሰርዝ (Cancel)
                 </button>
@@ -819,32 +819,32 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
       )}
       {/* Google Authenticator 2FA Setup Modal with QR Code Scanning */}
       {isSetup2FaModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 overflow-y-auto z-50 bg-slate-900/40 backdrop-blur-md flex items-center-safe justify-center p-4">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-slate-900 border border-emerald-500/40 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-5"
+            className="bg-white border border-emerald-500/40 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-5"
           >
-            <div className="flex items-center space-x-3 text-emerald-400 border-b border-slate-800 pb-4">
-              <div className="p-2.5 bg-emerald-500/10 rounded-2xl border border-emerald-500/30 text-emerald-400">
+            <div className="flex items-center space-x-3 text-emerald-600 border-b border-slate-200 pb-4">
+              <div className="p-2.5 bg-emerald-500/10 rounded-2xl border border-emerald-500/30 text-emerald-600">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-black text-white">Google Authenticator (2FA) ማገናኛ</h3>
-                <p className="text-xs text-slate-400">የአካውንትዎን ደህንነት በ Google Authenticator አፕ ያጠናክሩ</p>
+                <h3 className="text-base font-black text-slate-900">Google Authenticator (2FA) ማገናኛ</h3>
+                <p className="text-xs text-slate-500">የአካውንትዎን ደህንነት በ Google Authenticator አፕ ያጠናክሩ</p>
               </div>
             </div>
 
             <div className="space-y-4">
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-xs text-slate-300 space-y-2">
-                <p className="font-bold text-slate-200">📌 ደረጃ 1፡ QR ኮዱን በስልክዎ ይቃኙ (Scan QR Code)</p>
-                <p className="text-slate-400 text-[11px] leading-relaxed">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs text-slate-700 space-y-2">
+                <p className="font-bold text-slate-800">📌 ደረጃ 1፡ QR ኮዱን በስልክዎ ይቃኙ (Scan QR Code)</p>
+                <p className="text-slate-500 text-[11px] leading-relaxed">
                   በስልክዎ ላይ <strong>Google Authenticator</strong> ወይም <strong>Microsoft Authenticator</strong> አፕሊኬሽን በመክፈት <strong>"+"</strong> ምልክቱን ተጭነው ከታች ያለውን QR ኮድ ይቃኙ::
                 </p>
               </div>
 
               {/* QR Code Presentation */}
-              <div className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-inner border border-slate-700">
+              <div className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-inner border border-slate-300">
                 {setupQrUrl ? (
                   <img
                     src={setupQrUrl}
@@ -866,14 +866,14 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
 
               <form onSubmit={handleConfirmSetup2FA} className="space-y-4">
                 {setup2FaError && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs font-bold flex items-center gap-2">
+                  <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-600 text-xs font-bold flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{setup2FaError}</span>
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-xs font-bold text-emerald-400 mb-1.5">
+                  <label className="block text-xs font-bold text-emerald-600 mb-1.5">
                     📌 ደረጃ 2፡ ከ Google Authenticator አፕ የመጣውን ባለ 6-አሃዝ ኮድ ያስገቡ *
                   </label>
                   <input
@@ -883,7 +883,7 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                     autoFocus
                     value={setupVerifyToken}
                     onChange={(e) => setSetupVerifyToken(e.target.value.replace(/\D/g, ''))}
-                    className="w-full px-3.5 py-3 bg-slate-950 border border-emerald-500/60 rounded-xl text-center text-lg font-mono font-black text-emerald-300 tracking-widest focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3.5 py-3 bg-slate-50 border border-emerald-500/60 rounded-xl text-center text-lg font-mono font-black text-emerald-700 tracking-widest focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     placeholder="••••••"
                   />
                 </div>
@@ -892,7 +892,7 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsSetup2FaModalOpen(false)}
-                    className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl"
+                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl"
                   >
                     ተመለስ (Cancel)
                   </button>
@@ -913,29 +913,29 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
 
       {/* Disable 2FA Security Confirmation Modal */}
       {isDisable2FaModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 overflow-y-auto z-50 bg-slate-900/40 backdrop-blur-md flex items-center-safe justify-center p-4">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-slate-900 border border-red-500/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5"
+            className="bg-white border border-red-500/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5"
           >
-            <div className="flex items-center space-x-3 text-red-400 border-b border-slate-800 pb-4">
+            <div className="flex items-center space-x-3 text-red-600 border-b border-slate-200 pb-4">
               <ShieldAlert className="w-6 h-6 shrink-0" />
               <div>
-                <h3 className="text-base font-black text-white">2FA ማጥፊያ የደህንነት ማረጋገጫ</h3>
-                <p className="text-xs text-slate-400">የአካውንትዎን ባለ 2-ደረጃ ጥበቃ ለማጥፋት ያረጋግጡ</p>
+                <h3 className="text-base font-black text-slate-900">2FA ማጥፊያ የደህንነት ማረጋገጫ</h3>
+                <p className="text-xs text-slate-500">የአካውንትዎን ባለ 2-ደረጃ ጥበቃ ለማጥፋት ያረጋግጡ</p>
               </div>
             </div>
 
             <form onSubmit={handleConfirmDisable2FA} className="space-y-4">
               {disable2FaError && (
-                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs font-bold">
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-600 text-xs font-bold">
                   {disable2FaError}
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
                   የአሁኑን ፓስወርድዎን ያስገቡ (Current Password) *
                 </label>
                 <input
@@ -943,13 +943,13 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                   required
                   value={disable2FaPassword}
                   onChange={(e) => setDisable2FaPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
                   placeholder="••••••••••••"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
                   የ Google Authenticator ባለ 6-አሃዝ ኮድ (አስገዳጅ ካልሆነ ክፍት ይተዉት)
                 </label>
                 <input
@@ -957,7 +957,7 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                   maxLength={6}
                   value={disable2FaOtp}
                   onChange={(e) => setDisable2FaOtp(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-center text-sm font-mono font-bold text-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-center text-sm font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500"
                   placeholder="••••••"
                 />
               </div>
@@ -966,7 +966,7 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsDisable2FaModalOpen(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl"
                 >
                   ሰርዝ (Cancel)
                 </button>
@@ -986,30 +986,30 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
 
       {/* User Deletion Confirmation Modal */}
       {userToDelete && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 overflow-y-auto z-50 bg-slate-900/40 backdrop-blur-md flex items-center-safe justify-center p-4">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-slate-900 border border-red-500/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5"
+            className="bg-white border border-red-500/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5"
           >
-            <div className="flex items-center space-x-3 text-red-400 border-b border-slate-800 pb-4">
+            <div className="flex items-center space-x-3 text-red-600 border-b border-slate-200 pb-4">
               <div className="p-3 bg-red-500/10 rounded-2xl border border-red-500/20">
                 <Trash2 className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-black text-white">ተጠቃሚን መሰረዝ</h3>
-                <p className="text-xs text-red-400">የአድሚን አካውንት የማጥፊያ ማረጋገጫ</p>
+                <h3 className="text-base font-black text-slate-900">ተጠቃሚን መሰረዝ</h3>
+                <p className="text-xs text-red-600">የአድሚን አካውንት የማጥፊያ ማረጋገጫ</p>
               </div>
             </div>
 
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2 text-xs">
-              <p className="text-slate-300">
-                እርግጠኛ ነዎት ተጠቃሚ <strong className="text-white">[{userToDelete.email}]</strong> ከዳታቤዝ እንዲሰረዝ ይፈልጋሉ?
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs">
+              <p className="text-slate-700">
+                እርግጠኛ ነዎት ተጠቃሚ <strong className="text-slate-900">[{userToDelete.email}]</strong> ከዳታቤዝ እንዲሰረዝ ይፈልጋሉ?
               </p>
-              <div className="text-[11px] text-slate-400 flex items-center gap-2">
-                <span>ሚና: <strong className="text-amber-400 uppercase">{userToDelete.role}</strong></span>
+              <div className="text-[11px] text-slate-500 flex items-center gap-2">
+                <span>ሚና: <strong className="text-amber-600 uppercase">{userToDelete.role}</strong></span>
                 <span>•</span>
-                <span>Username: <strong className="text-slate-200">{userToDelete.username || 'N/A'}</strong></span>
+                <span>Username: <strong className="text-slate-800">{userToDelete.username || 'N/A'}</strong></span>
               </div>
             </div>
 
@@ -1018,7 +1018,7 @@ export const UserAccountsView: React.FC<UserAccountsViewProps> = ({
                 type="button"
                 disabled={isDeletingUser}
                 onClick={() => setUserToDelete(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl"
               >
                 ተመለስ (Cancel)
               </button>

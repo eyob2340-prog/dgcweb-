@@ -269,26 +269,26 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
     switch (status) {
       case 'Resolved':
         return (
-          <span className="px-3.5 py-1.5 bg-amber-500/10 text-amber-500 border border-amber-500/30 rounded-full font-black text-xs flex items-center gap-1.5 shadow-sm">
-            <CheckCircle2 className="w-4 h-4 text-amber-500" /> ተመልሷል (Resolved)
+          <span className="px-3.5 py-1.5 bg-amber-500/10 text-amber-700 border border-amber-500/30 rounded-full font-black text-xs flex items-center gap-1.5 shadow-sm">
+            <CheckCircle2 className="w-4 h-4 text-amber-700" /> ተመልሷል (Resolved)
           </span>
         );
       case 'Under Review':
         return (
-          <span className="px-3.5 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-full font-black text-xs flex items-center gap-1.5 shadow-sm">
-            <Clock className="w-4 h-4 text-blue-400" /> ምርመራ ላይ (Under Review)
+          <span className="px-3.5 py-1.5 bg-blue-500/10 text-blue-600 border border-blue-500/30 rounded-full font-black text-xs flex items-center gap-1.5 shadow-sm">
+            <Clock className="w-4 h-4 text-blue-600" /> ምርመራ ላይ (Under Review)
           </span>
         );
       case 'Closed':
         return (
-          <span className="px-3.5 py-1.5 bg-slate-500/10 text-slate-400 border border-slate-500/30 rounded-full font-black text-xs flex items-center gap-1.5 shadow-sm">
-            <X className="w-4 h-4 text-slate-400" /> ተዘጋ (Closed)
+          <span className="px-3.5 py-1.5 bg-slate-500/10 text-slate-500 border border-slate-500/30 rounded-full font-black text-xs flex items-center gap-1.5 shadow-sm">
+            <X className="w-4 h-4 text-slate-500" /> ተዘጋ (Closed)
           </span>
         );
       default:
         return (
-          <span className="px-3.5 py-1.5 bg-amber-500/10 text-amber-500 border border-amber-500/30 rounded-full font-black text-xs flex items-center gap-1.5 shadow-sm">
-            <Clock className="w-4 h-4 animate-spin text-amber-500" /> በሂደት ላይ (Pending)
+          <span className="px-3.5 py-1.5 bg-amber-500/10 text-amber-700 border border-amber-500/30 rounded-full font-black text-xs flex items-center gap-1.5 shadow-sm">
+            <Clock className="w-4 h-4 animate-spin text-amber-700" /> በሂደት ላይ (Pending)
           </span>
         );
     }
@@ -296,14 +296,14 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto bg-slate-950/80 backdrop-blur-md">
+      <div className="fixed inset-0 z-[100] flex items-center-safe justify-center p-3 sm:p-4 md:p-6 overflow-y-auto bg-slate-900/40 backdrop-blur-md">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           className={`relative w-full max-w-3xl rounded-3xl border shadow-2xl overflow-hidden my-auto ${
             isDarkMode
-              ? 'bg-slate-900 border-slate-800 text-slate-100 shadow-blue-950/40'
+              ? 'bg-white border-slate-200 text-slate-900 shadow-blue-950/40'
               : 'bg-white border-slate-200 text-slate-900 shadow-slate-200/80'
           }`}
         >
@@ -311,7 +311,7 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
           <div
             className={`px-6 py-5 border-b flex items-center justify-between ${
               isDarkMode
-                ? 'bg-gradient-to-r from-blue-950/90 via-slate-900 to-amber-950/40 border-slate-800'
+                ? 'bg-gradient-to-r from-blue-50/90 via-white to-amber-50/40 border-slate-200'
                 : 'bg-gradient-to-r from-blue-50 via-white to-amber-50 border-slate-200'
             }`}
           >
@@ -323,8 +323,8 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                 <h3 className="text-lg sm:text-xl font-black tracking-tight">
                   የጥያቄዎ/አቤቱታዎ ሁኔታ መከታተያ (Status Tracker)
                 </h3>
-                <p className="text-xs text-amber-500 font-bold flex items-center gap-1.5">
-                  <BadgeCheck className="w-4 h-4 text-amber-500" /> የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ
+                <p className="text-xs text-amber-700 font-bold flex items-center gap-1.5">
+                  <BadgeCheck className="w-4 h-4 text-amber-700" /> የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ
                 </p>
               </div>
             </div>
@@ -332,7 +332,7 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
             <button
               onClick={onClose}
               className={`p-2 rounded-full transition-all cursor-pointer ${
-                isDarkMode ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500'
+                isDarkMode ? 'hover:bg-slate-100 text-slate-500 hover:text-slate-900' : 'hover:bg-slate-100 text-slate-500'
               }`}
             >
               <X className="w-5 h-5" />
@@ -341,7 +341,7 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
 
           {/* Navigation Tabs (By Code vs Saved in Browser vs Recover Lost Code) */}
           <div className={`px-6 pt-4 border-b flex flex-wrap gap-2 ${
-            isDarkMode ? 'border-slate-800' : 'border-slate-200'
+            isDarkMode ? 'border-slate-200' : 'border-slate-200'
           }`}>
             <button
               onClick={() => setActiveTab('code')}
@@ -349,7 +349,7 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                 activeTab === 'code'
                   ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
                   : isDarkMode
-                  ? 'bg-slate-800/60 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                  ? 'bg-slate-100/60 text-slate-500 hover:bg-slate-100 hover:text-slate-800'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -363,11 +363,11 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                 activeTab === 'saved'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                   : isDarkMode
-                  ? 'bg-slate-800/60 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                  ? 'bg-slate-100/60 text-slate-500 hover:bg-slate-100 hover:text-slate-800'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
-              <Bookmark className="w-3.5 h-3.5 text-amber-300" />
+              <Bookmark className="w-3.5 h-3.5 text-amber-700" />
               <span>የእኔ የተቀመጡ አቤቱታዎች (My Saved)</span>
               {savedTickets.length > 0 && (
                 <span className="px-1.5 py-0.5 text-[10px] font-black rounded-full bg-white text-blue-900 ml-1">
@@ -382,11 +382,11 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                 activeTab === 'recover'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                   : isDarkMode
-                  ? 'bg-slate-800/60 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                  ? 'bg-slate-100/60 text-slate-500 hover:bg-slate-100 hover:text-slate-800'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
-              <Key className="w-3.5 h-3.5 text-amber-300" />
+              <Key className="w-3.5 h-3.5 text-amber-700" />
               <span>በኢሜይል ፈልግ (Recover)</span>
             </button>
           </div>
@@ -397,7 +397,7 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
               /* TAB 1: SEARCH BY CODE */
               <div className="space-y-6">
                 <form onSubmit={handleSearchSubmit} className="space-y-3">
-                  <label className="block text-xs font-bold text-slate-300">
+                  <label className="block text-xs font-bold text-slate-700">
                     የክትትል ኮድዎን ያስገቡ (e.g. DGC-TKT-2026-W892)
                   </label>
                   <div className="flex gap-2">
@@ -408,7 +408,7 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                       placeholder="DGC-TKT-2026-XXXX"
                       className={`flex-1 px-4 py-3 rounded-2xl border text-sm font-mono font-bold tracking-wider transition-all focus:outline-none focus:ring-2 focus:ring-amber-500/50 uppercase ${
                         isDarkMode
-                          ? 'bg-slate-950 border-slate-800 text-amber-300 placeholder-slate-600'
+                          ? 'bg-slate-50 border-slate-200 text-amber-700 placeholder-slate-400'
                           : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'
                       }`}
                     />
@@ -425,15 +425,15 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
 
                 {/* Quick-Access Chips for Saved Tickets in this browser */}
                 {savedTickets.length > 0 && !ticket && (
-                  <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-2xl space-y-2.5">
+                  <div className="p-4 bg-slate-50/60 border border-slate-200 rounded-2xl space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1.5">
-                        <Bookmark className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+                        <Bookmark className="w-3.5 h-3.5 text-emerald-600" />
                         በዚህ ብሮውዘር በቅርቡ የላኳቸው አቤቱታዎች (Quick Track):
                       </span>
                       <button
                         onClick={() => setActiveTab('saved')}
-                        className="text-[11px] text-amber-400 hover:underline font-bold"
+                        className="text-[11px] text-amber-600 hover:underline font-bold"
                       >
                         ሁሉንም እይ ({savedTickets.length})
                       </button>
@@ -443,10 +443,10 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                         <button
                           key={st.ticket_code}
                           onClick={() => handleTrackSavedCode(st.ticket_code)}
-                          className="px-3 py-1.5 bg-slate-900 hover:bg-amber-500/20 border border-slate-800 hover:border-amber-500/50 rounded-xl text-xs font-mono font-bold text-amber-300 transition-all flex items-center gap-1.5 cursor-pointer"
+                          className="px-3 py-1.5 bg-white hover:bg-amber-500/20 border border-slate-200 hover:border-amber-500/50 rounded-xl text-xs font-mono font-bold text-amber-700 transition-all flex items-center gap-1.5 cursor-pointer"
                         >
                           <span>{st.ticket_code}</span>
-                          <span className="text-[10px] text-slate-400 font-sans max-w-[120px] truncate">
+                          <span className="text-[10px] text-slate-500 font-sans max-w-[120px] truncate">
                             {st.subject}
                           </span>
                         </button>
@@ -456,7 +456,7 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                 )}
 
                 {error && (
-                  <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400 text-xs font-semibold flex items-center gap-2">
+                  <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-600 text-xs font-semibold flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{error}</span>
                   </div>
@@ -468,35 +468,35 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     className={`p-6 rounded-3xl border space-y-6 shadow-2xl ${
-                      isDarkMode ? 'bg-slate-950/90 border-slate-800' : 'bg-slate-50 border-slate-200'
+                      isDarkMode ? 'bg-slate-50/90 border-slate-200' : 'bg-slate-50 border-slate-200'
                     }`}
                   >
                     {/* Status Bar */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                          <span className="text-[10px] uppercase font-bold text-slate-500 block tracking-wider">
                             የክትትል ኮድ (Ticket Code)
                           </span>
                           <button
                             onClick={(e) => handleCopy(ticket.ticket_code, e)}
-                            className="p-1 text-slate-400 hover:text-amber-300 transition-colors"
+                            className="p-1 text-slate-500 hover:text-amber-700 transition-colors"
                             title="ኮፒ"
                           >
                             {copiedCode === ticket.ticket_code ? (
-                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
                             ) : (
                               <Copy className="w-3.5 h-3.5" />
                             )}
                           </button>
                         </div>
-                        <span className="text-xl font-black font-mono text-amber-300 tracking-wider">
+                        <span className="text-xl font-black font-mono text-amber-700 tracking-wider">
                           {ticket.ticket_code}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md font-bold flex items-center gap-1">
+                        <span className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded-md font-bold flex items-center gap-1">
                           <Bookmark className="w-3 h-3" /> በብሮውዘርዎ ተቀምጧል
                         </span>
                         {getStatusBadge(ticket.status)}
@@ -506,15 +506,15 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                     {/* Ticket Metadata */}
                     <div className="space-y-3">
                       <div>
-                        <h4 className="text-lg font-black text-slate-100">{ticket.subject}</h4>
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 mt-1.5">
-                          <span className="flex items-center gap-1 px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg">
-                            <Building2 className="w-3.5 h-3.5 text-amber-400" />
+                        <h4 className="text-lg font-black text-slate-900">{ticket.subject}</h4>
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1.5">
+                          <span className="flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 rounded-lg">
+                            <Building2 className="w-3.5 h-3.5 text-amber-600" />
                             {ticket.category}
                           </span>
                           {ticket.residence && (
-                            <span className="flex items-center gap-1 px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg">
-                              <MapPin className="w-3.5 h-3.5 text-blue-400" />
+                            <span className="flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 rounded-lg">
+                              <MapPin className="w-3.5 h-3.5 text-blue-600" />
                               {ticket.residence}
                             </span>
                           )}
@@ -528,11 +528,11 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                       <div
                         className={`p-4 rounded-2xl border text-xs leading-relaxed ${
                           isDarkMode
-                            ? 'bg-slate-900/90 border-slate-800 text-slate-300'
+                            ? 'bg-white/90 border-slate-200 text-slate-700'
                             : 'bg-white border-slate-200 text-slate-700'
                         }`}
                       >
-                        <span className="font-bold text-slate-400 block mb-1 uppercase text-[10px] tracking-wider">
+                        <span className="font-bold text-slate-500 block mb-1 uppercase text-[10px] tracking-wider">
                           የቀረበው አቤቱታ/ጥያቄ ዝርዝር፡
                         </span>
                         <p className="whitespace-pre-wrap">{ticket.description}</p>
@@ -543,42 +543,42 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                     <div
                       className={`p-6 rounded-3xl border space-y-3 relative overflow-hidden shadow-2xl ${
                         ticket.admin_response
-                          ? 'bg-gradient-to-br from-blue-950/90 via-slate-900 to-amber-950/40 border-amber-500/50'
-                          : 'bg-slate-900/60 border-slate-800'
+                          ? 'bg-gradient-to-br from-blue-50/90 via-white to-amber-50/40 border-amber-500/50'
+                          : 'bg-white/60 border-slate-200'
                       }`}
                     >
                       <div className="flex items-center justify-between border-b border-amber-500/30 pb-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="p-2 bg-amber-500/20 rounded-xl border border-amber-500/40 text-amber-300">
+                          <div className="p-2 bg-amber-500/20 rounded-xl border border-amber-500/40 text-amber-700">
                             <Landmark className="w-5 h-5" />
                           </div>
                           <div>
-                            <h5 className="text-sm sm:text-base font-black text-amber-300 tracking-tight">
+                            <h5 className="text-sm sm:text-base font-black text-amber-700 tracking-tight">
                               የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ ኦፊሴላዊ መልስ (Official Response)
                             </h5>
-                            <p className="text-[10px] text-slate-300 font-semibold">
+                            <p className="text-[10px] text-slate-700 font-semibold">
                               የድሬዳዋ አስተዳደር ነዋሪዎች አቤቱታና ጥያቄ ምላሽ መስጫ ጽህፈት ቤት
                             </p>
                           </div>
                         </div>
 
-                        <BadgeCheck className="w-6 h-6 text-emerald-400 shrink-0" />
+                        <BadgeCheck className="w-6 h-6 text-emerald-600 shrink-0" />
                       </div>
 
                       {ticket.admin_response ? (
                         <div className="space-y-3 pt-1">
-                          <p className="text-sm sm:text-base font-semibold text-slate-100 whitespace-pre-wrap leading-relaxed">
+                          <p className="text-sm sm:text-base font-semibold text-slate-900 whitespace-pre-wrap leading-relaxed">
                             {ticket.admin_response}
                           </p>
                           {ticket.responded_at && (
-                            <div className="text-[11px] text-amber-200/80 font-mono font-medium pt-2 border-t border-blue-500/20 flex items-center justify-between">
+                            <div className="text-[11px] text-amber-700/80 font-mono font-medium pt-2 border-t border-blue-500/20 flex items-center justify-between">
                               <span>ኦፊሴላዊ መልሱ የተሰጠበት ቀን፡ {new Date(ticket.responded_at).toLocaleString('am-ET')}</span>
-                              <span className="text-emerald-400 font-bold">✓ በህጋዊ መልኩ የተደገፈ</span>
+                              <span className="text-emerald-600 font-bold">✓ በህጋዊ መልኩ የተደገፈ</span>
                             </div>
                           )}
                         </div>
                       ) : (
-                        <p className="text-xs text-slate-400 italic pt-1">
+                        <p className="text-xs text-slate-500 italic pt-1">
                           አቤቱታዎ ለሚመለከተው የመንግስት አካል የተመራ ሲሆን በአሁኑ ወቅት በምርመራ ሂደት ላይ ይገኛል:: ኦፊሴላዊ መልስ እንደተሰጠ በዚህ ገጽ ላይ በጉልህ ይለጠፋል::
                         </p>
                       )}
@@ -589,13 +589,13 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
             ) : activeTab === 'saved' ? (
               /* TAB 2: SAVED TICKETS IN THIS BROWSER */
               <div className="space-y-6">
-                <div className="p-4 bg-emerald-950/30 border border-emerald-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="p-4 bg-emerald-50/30 border border-emerald-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="space-y-1">
-                    <h4 className="text-sm font-black text-emerald-300 flex items-center gap-2">
-                      <Bookmark className="w-4 h-4 text-emerald-400" />
+                    <h4 className="text-sm font-black text-emerald-700 flex items-center gap-2">
+                      <Bookmark className="w-4 h-4 text-emerald-600" />
                       በዚህ ብሮውዘር የተቀመጡ አቤቱታዎች (Saved in this Browser)
                     </h4>
-                    <p className="text-xs text-slate-300">
+                    <p className="text-xs text-slate-700">
                       በዚህ መሳሪያ ያስገቧቸው ወይም የተከታተሏቸው አቤቱታዎች ያለ ምንም ተጨማሪ ጥረት በራስ-ሰር ይቀመጣሉ::
                     </p>
                   </div>
@@ -603,7 +603,7 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                   {savedTickets.length > 0 && (
                     <button
                       onClick={clearAllSavedTickets}
-                      className="px-3.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 self-start sm:self-center shrink-0 cursor-pointer"
+                      className="px-3.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 self-start sm:self-center shrink-0 cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>ሁሉንም አጥፋ</span>
@@ -612,11 +612,11 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                 </div>
 
                 {savedTickets.length === 0 ? (
-                  <div className="text-center py-12 px-4 border border-dashed border-slate-800 rounded-3xl space-y-3">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center mx-auto text-slate-500">
+                  <div className="text-center py-12 px-4 border border-dashed border-slate-200 rounded-3xl space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100/80 flex items-center justify-center mx-auto text-slate-500">
                       <Bookmark className="w-6 h-6" />
                     </div>
-                    <h5 className="text-sm font-bold text-slate-300">ምንም የተቀመጠ አቤቱታ የለም</h5>
+                    <h5 className="text-sm font-bold text-slate-700">ምንም የተቀመጠ አቤቱታ የለም</h5>
                     <p className="text-xs text-slate-500 max-w-sm mx-auto">
                       አዲስ አቤቱታ ሲያስገቡ ወይም በኮድ ሲፈልጉ በዚህ ብሮውዘር በራስ-ሰር ይቀመጣል::
                     </p>
@@ -633,29 +633,29 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                     {savedTickets.map((st) => (
                       <div
                         key={st.ticket_code}
-                        className="p-4 sm:p-5 bg-slate-950/80 border border-slate-800 hover:border-emerald-500/40 rounded-2xl space-y-3 transition-all shadow-md group"
+                        className="p-4 sm:p-5 bg-slate-50/80 border border-slate-200 hover:border-emerald-500/40 rounded-2xl space-y-3 transition-all shadow-md group"
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2.5">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-sm font-black font-mono text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
+                            <span className="text-sm font-black font-mono text-amber-700 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
                               {st.ticket_code}
                             </span>
                             <button
                               onClick={(e) => handleCopy(st.ticket_code, e)}
-                              className="p-1 text-slate-400 hover:text-amber-300 transition-colors"
+                              className="p-1 text-slate-500 hover:text-amber-700 transition-colors"
                               title="ኮፒ"
                             >
                               {copiedCode === st.ticket_code ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
                               ) : (
                                 <Copy className="w-3.5 h-3.5" />
                               )}
                             </button>
-                            <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-800 text-slate-300 rounded-md">
+                            <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md">
                               {st.category}
                             </span>
                             {st.residence && (
-                              <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                              <span className="text-[10px] text-slate-500 flex items-center gap-1">
                                 <MapPin className="w-3 h-3" /> {st.residence}
                               </span>
                             )}
@@ -664,7 +664,7 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                           <div className="flex items-center gap-2 self-end sm:self-auto">
                             <button
                               onClick={(e) => removeSavedTicket(st.ticket_code, e)}
-                              className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                              className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
                               title="ከዝርዝር አስወግድ"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -672,7 +672,7 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                           </div>
                         </div>
 
-                        <p className="text-xs font-bold text-slate-200">{st.subject}</p>
+                        <p className="text-xs font-bold text-slate-800">{st.subject}</p>
 
                         <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500">
                           <span>የተመዘገበበት ቀን፡ {new Date(st.created_at).toLocaleDateString('am-ET')}</span>
@@ -692,12 +692,12 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
             ) : (
               /* TAB 2: RECOVER LOST TICKET CODE WITH EMAIL OTP */
               <div className="space-y-6">
-                <div className="bg-blue-950/30 border border-blue-500/30 p-4 rounded-2xl space-y-1">
-                  <h4 className="text-sm font-black text-blue-300 flex items-center gap-2">
-                    <Key className="w-4 h-4 text-amber-400" />
+                <div className="bg-blue-50/30 border border-blue-500/30 p-4 rounded-2xl space-y-1">
+                  <h4 className="text-sm font-black text-blue-700 flex items-center gap-2">
+                    <Key className="w-4 h-4 text-amber-600" />
                     የተረሳ የክትትል ኮድ በኢሜይል ማረጋገጫ መፈለጊያ (Email-OTP Recovery)
                   </h4>
-                  <p className="text-xs text-slate-300 leading-relaxed">
+                  <p className="text-xs text-slate-700 leading-relaxed">
                     አቤቱታዎን በላኩበት ወቅት የተጠቀሙትን ኢሜይል ያስገቡ። ለደህንነት ሲባል ባለ 6-አሃዝ የማረጋገጫ ኮድ (OTP) ይላክልዎታል፤ ኮዱን ሲያረጋግጡ የክትትል ኮድዎንና የተሰጠውን ምላሽ ሙሉ በሙሉ ያገኛሉ::
                   </p>
                 </div>
@@ -706,8 +706,8 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                   /* STEP 1: ENTER EMAIL */
                   <form onSubmit={handleRequestOtp} className="space-y-4">
                     <div className="space-y-2">
-                      <label className="block text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                        <Mail className="w-4 h-4 text-amber-400" />
+                      <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <Mail className="w-4 h-4 text-amber-600" />
                         <span>ኢሜይልዎን ያስገቡ (Registered Email Address)</span>
                       </label>
                       <div className="flex gap-2">
@@ -719,7 +719,7 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                           placeholder="example@gmail.com"
                           className={`flex-1 px-4 py-3 rounded-2xl border text-sm font-bold tracking-wide transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
                             isDarkMode
-                              ? 'bg-slate-950 border-slate-800 text-slate-100 placeholder-slate-600'
+                              ? 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
                               : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'
                           }`}
                         />
@@ -738,22 +738,22 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                   /* STEP 2: ENTER OTP */
                   <form onSubmit={handleVerifyOtp} className="space-y-4">
                     {recoverySuccessMessage && (
-                      <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-300 text-xs font-bold flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-700 text-xs font-bold flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                         <span>{recoverySuccessMessage} ወደ <code>{recoveryEmail}</code> ተልኳል::</span>
                       </div>
                     )}
 
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <label className="block text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                        <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                          <ShieldCheck className="w-4 h-4 text-emerald-600" />
                           <span>ባለ 6-አሃዝ የማረጋገጫ ኮድ ያስገቡ (6-Digit OTP)</span>
                         </label>
                         <button
                           type="button"
                           onClick={handleResetRecovery}
-                          className="text-[11px] text-blue-400 hover:text-blue-300 font-bold underline cursor-pointer"
+                          className="text-[11px] text-blue-600 hover:text-blue-700 font-bold underline cursor-pointer"
                         >
                           ኢሜይል ቀይር / እንደገና ጀምር
                         </button>
@@ -769,7 +769,7 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                           placeholder="••••••"
                           className={`flex-1 px-4 py-3 rounded-2xl border text-center text-lg font-mono font-black tracking-[0.5em] transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/50 ${
                             isDarkMode
-                              ? 'bg-slate-950 border-slate-800 text-emerald-300 placeholder-slate-600'
+                              ? 'bg-slate-50 border-slate-200 text-emerald-700 placeholder-slate-400'
                               : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'
                           }`}
                         />
@@ -787,7 +787,7 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                 )}
 
                 {recoveryError && (
-                  <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400 text-xs font-semibold flex items-center gap-2">
+                  <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-600 text-xs font-semibold flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{recoveryError}</span>
                   </div>
@@ -797,11 +797,11 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                 {recoveredTickets.length > 0 && (
                   <div className="space-y-4 pt-2">
                     <div className="flex items-center justify-between">
-                      <h5 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <h5 className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1.5">
                         <CheckCircle2 className="w-4 h-4" />
                         የተገኙ አቤቱታዎች ({recoveredTickets.length})
                       </h5>
-                      <span className="text-[11px] text-slate-400 font-bold">
+                      <span className="text-[11px] text-slate-500 font-bold">
                         ባለቤትነት ተረጋግጧል (Verified Access)
                       </span>
                     </div>
@@ -810,18 +810,18 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                       {recoveredTickets.map((t) => (
                         <div
                           key={t.id}
-                          className="p-5 bg-slate-950/80 border border-slate-800 hover:border-amber-500/50 rounded-2xl space-y-3 transition-all shadow-md"
+                          className="p-5 bg-slate-50/80 border border-slate-200 hover:border-amber-500/50 rounded-2xl space-y-3 transition-all shadow-md"
                         >
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-sm font-black font-mono text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
+                              <span className="text-sm font-black font-mono text-amber-700 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
                                 {t.ticket_code}
                               </span>
-                              <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-800 text-slate-300 rounded-md">
+                              <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md">
                                 {t.category}
                               </span>
                               {t.residence && (
-                                <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                                <span className="text-[10px] text-slate-500 flex items-center gap-1">
                                   <MapPin className="w-3 h-3" /> {t.residence}
                                 </span>
                               )}
@@ -830,20 +830,20 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
                           </div>
 
                           <div className="space-y-1.5">
-                            <p className="text-xs font-black text-slate-200">{t.subject}</p>
+                            <p className="text-xs font-black text-slate-800">{t.subject}</p>
                             {t.description && (
-                              <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/60">
+                              <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed bg-white/50 p-2.5 rounded-xl border border-slate-200/60">
                                 {t.description}
                               </p>
                             )}
                           </div>
 
                           {t.admin_response && (
-                            <div className="p-3 bg-blue-950/40 border border-blue-500/30 rounded-xl space-y-1">
-                              <span className="text-[10px] font-black text-amber-400 block">
+                            <div className="p-3 bg-blue-50/40 border border-blue-500/30 rounded-xl space-y-1">
+                              <span className="text-[10px] font-black text-amber-600 block">
                                 💬 ኦፊሴላዊ የመንግስት መልስ (Official Response):
                               </span>
-                              <p className="text-xs text-slate-200 font-semibold">{t.admin_response}</p>
+                              <p className="text-xs text-slate-800 font-semibold">{t.admin_response}</p>
                             </div>
                           )}
 

@@ -145,14 +145,14 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto bg-slate-950/80 backdrop-blur-md">
+      <div className="fixed inset-0 z-[100] flex items-center-safe justify-center p-3 sm:p-4 md:p-6 overflow-y-auto bg-slate-900/40 backdrop-blur-md">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           className={`relative w-full max-w-2xl rounded-3xl border shadow-2xl overflow-hidden my-auto ${
             isDarkMode
-              ? 'bg-slate-900 border-slate-800 text-slate-100 shadow-blue-950/40'
+              ? 'bg-white border-slate-200 text-slate-900 shadow-blue-950/40'
               : 'bg-white border-slate-200 text-slate-900 shadow-slate-200/80'
           }`}
         >
@@ -160,7 +160,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
           <div
             className={`px-6 py-5 border-b flex items-center justify-between relative ${
               isDarkMode
-                ? 'bg-gradient-to-r from-blue-950/90 via-slate-900 to-amber-950/40 border-slate-800'
+                ? 'bg-gradient-to-r from-blue-50/90 via-white to-amber-50/40 border-slate-200'
                 : 'bg-gradient-to-r from-blue-50 via-white to-amber-50 border-slate-200'
             }`}
           >
@@ -172,7 +172,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                 <h3 className="text-lg sm:text-xl font-black tracking-tight">
                   የዜጎች አቤቱታና ጥያቄ መስኮት
                 </h3>
-                <p className="text-xs text-amber-500 font-semibold flex items-center gap-1">
+                <p className="text-xs text-amber-700 font-semibold flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5" /> የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን
                 </p>
               </div>
@@ -181,7 +181,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
             <button
               onClick={handleResetAndClose}
               className={`p-2 rounded-full transition-all ${
-                isDarkMode ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500'
+                isDarkMode ? 'hover:bg-slate-100 text-slate-500 hover:text-slate-900' : 'hover:bg-slate-100 text-slate-500'
               }`}
             >
               <X className="w-5 h-5" />
@@ -197,15 +197,15 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                 animate={{ opacity: 1, scale: 1 }}
                 className="space-y-6 text-center"
               >
-                <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto border border-emerald-500/40 animate-bounce">
+                <div className="w-16 h-16 bg-emerald-500/20 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-500/40 animate-bounce">
                   <CheckCircle2 className="w-10 h-10" />
                 </div>
 
                 <div className="space-y-2">
-                  <h4 className="text-xl sm:text-2xl font-black text-emerald-400">
+                  <h4 className="text-xl sm:text-2xl font-black text-emerald-600">
                     አቤቱታዎ/ጥያቄዎ በስኬት ተመዝግቧል!
                   </h4>
-                  <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto">
+                  <p className="text-xs sm:text-sm text-slate-700 max-w-md mx-auto">
                     አቤቱታዎ ለድሬዳዋ አስተዳደር የሚመለከተው ክፍለ ከተማና መመሪያ በኦፊሴላዊ መዝገብ የተመራ ሲሆን የሚከተለውን የክትትል ኮድ ያስቀምጡ::
                   </p>
                 </div>
@@ -213,15 +213,15 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                 {/* Tracking Ticket Code Box */}
                 <div
                   className={`p-5 rounded-2xl border shadow-inner max-w-md mx-auto space-y-3 ${
-                    isDarkMode ? 'bg-slate-950/80 border-amber-500/40' : 'bg-amber-50 border-amber-300'
+                    isDarkMode ? 'bg-slate-50/80 border-amber-500/40' : 'bg-amber-50 border-amber-300'
                   }`}
                 >
-                  <span className="text-xs font-bold uppercase tracking-wider text-amber-400 block">
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-600 block">
                     የአቤቱታዎ ልዩ የክትትል ኮድ (Ticket Tracking Code)
                   </span>
 
                   <div className="flex items-center justify-center gap-3">
-                    <span className="text-2xl sm:text-3xl font-black font-mono tracking-wider text-amber-300 selection:bg-amber-400 selection:text-slate-950">
+                    <span className="text-2xl sm:text-3xl font-black font-mono tracking-wider text-amber-700 selection:bg-amber-400 selection:text-slate-950">
                       {createdTicket.ticket_code}
                     </span>
                     <button
@@ -234,7 +234,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                     </button>
                   </div>
 
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-slate-500">
                     በዚህ ኮድ የጥያቄዎን የሂደት ደረጃ እና የአድሚኑን ኦፊሴላዊ መልስ በማንኛውም ጊዜ ከሆምፔጁ ላይ መከታተል ይችላሉ::
                   </p>
                 </div>
@@ -242,20 +242,20 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                 {/* Ticket Details Brief */}
                 <div
                   className={`p-4 rounded-2xl border text-left text-xs space-y-2 max-w-md mx-auto ${
-                    isDarkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'
+                    isDarkMode ? 'bg-slate-100/50 border-slate-300' : 'bg-slate-50 border-slate-200'
                   }`}
                 >
                   <div className="flex justify-between">
-                    <span className="text-slate-400">ዘርፍ:</span>
+                    <span className="text-slate-500">ዘርፍ:</span>
                     <span className="font-bold">{createdTicket.category}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">ርዕስ:</span>
+                    <span className="text-slate-500">ርዕስ:</span>
                     <span className="font-bold">{createdTicket.subject}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">ሁኔታ:</span>
-                    <span className="font-bold text-amber-400">በሂደት ላይ (Pending)</span>
+                    <span className="text-slate-500">ሁኔታ:</span>
+                    <span className="font-bold text-amber-600">በሂደት ላይ (Pending)</span>
                   </div>
                 </div>
 
@@ -278,7 +278,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                     onClick={handleResetAndClose}
                     className={`w-full sm:w-auto px-6 py-3 rounded-2xl font-bold text-xs transition-all border ${
                       isDarkMode
-                        ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                        ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
                         : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200'
                     }`}
                   >
@@ -290,7 +290,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
               /* Complaint Submission Form */
               <form onSubmit={handleSubmit} className="space-y-5">
                 {error && (
-                  <div className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400 text-xs font-semibold flex items-center gap-2">
+                  <div className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-600 text-xs font-semibold flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{error}</span>
                   </div>
@@ -301,9 +301,9 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className={`block text-xs font-bold mb-1.5 flex items-center gap-1.5 ${
-                        isDarkMode ? 'text-slate-300' : 'text-slate-700'
+                        isDarkMode ? 'text-slate-700' : 'text-slate-700'
                       }`}>
-                        <Building2 className="w-3.5 h-3.5 text-amber-500" />
+                        <Building2 className="w-3.5 h-3.5 text-amber-700" />
                         የአቤቱታው/ጥያቄው ዘርፍ *
                       </label>
                       <select
@@ -311,7 +311,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                         onChange={(e) => setCategory(e.target.value)}
                         className={`w-full px-3.5 py-2.5 rounded-2xl border text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                           isDarkMode
-                            ? 'bg-slate-950 border-slate-800 text-slate-100'
+                            ? 'bg-slate-50 border-slate-200 text-slate-900'
                             : 'bg-slate-50 border-slate-300 text-slate-900'
                         }`}
                       >
@@ -325,7 +325,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
 
                     <div>
                       <label className={`block text-xs font-bold mb-1.5 flex items-center gap-1.5 ${
-                        isDarkMode ? 'text-slate-300' : 'text-slate-700'
+                        isDarkMode ? 'text-slate-700' : 'text-slate-700'
                       }`}>
                         <MapPin className="w-3.5 h-3.5 text-blue-500" />
                         የቦታ መደብ (Residence Category) *
@@ -341,7 +341,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                         }}
                         className={`w-full px-3.5 py-2.5 rounded-2xl border text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                           isDarkMode
-                            ? 'bg-slate-950 border-slate-800 text-slate-100'
+                            ? 'bg-slate-50 border-slate-200 text-slate-900'
                             : 'bg-slate-50 border-slate-300 text-slate-900'
                         }`}
                       >
@@ -356,9 +356,9 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
 
                   <div>
                     <label className={`block text-xs font-bold mb-1.5 flex items-center gap-1.5 ${
-                      isDarkMode ? 'text-slate-300' : 'text-slate-700'
+                      isDarkMode ? 'text-slate-700' : 'text-slate-700'
                     }`}>
-                      <MapPin className="w-3.5 h-3.5 text-amber-500" />
+                      <MapPin className="w-3.5 h-3.5 text-amber-700" />
                       የተወሰነ ቦታ/ተቋም ({residenceCategory}) *
                     </label>
                     <select
@@ -366,7 +366,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                       onChange={(e) => setResidence(e.target.value)}
                       className={`w-full px-3.5 py-2.5 rounded-2xl border text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                         isDarkMode
-                          ? 'bg-slate-950 border-slate-800 text-slate-100'
+                          ? 'bg-slate-50 border-slate-200 text-slate-900'
                           : 'bg-slate-50 border-slate-300 text-slate-900'
                       }`}
                     >
@@ -395,7 +395,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                 {/* Subject */}
                 <div>
                   <label className={`block text-xs font-bold mb-1.5 ${
-                    isDarkMode ? 'text-slate-300' : 'text-slate-700'
+                    isDarkMode ? 'text-slate-700' : 'text-slate-700'
                   }`}>
                     የአቤቱታው ወይም የጥያቄው ርዕስ *
                   </label>
@@ -407,7 +407,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                     placeholder="ምሳሌ፡ በደቼቱ ቀበሌ 03 የመጠጥ ውኃ መቆራረጥ አቤቱታ"
                     className={`w-full px-3.5 py-2.5 rounded-2xl border text-xs transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       isDarkMode
-                        ? 'bg-slate-950 border-slate-800 text-slate-100 placeholder-slate-500'
+                        ? 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-500'
                         : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'
                     }`}
                   />
@@ -416,7 +416,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                 {/* Description */}
                 <div>
                   <label className={`block text-xs font-bold mb-1.5 ${
-                    isDarkMode ? 'text-slate-300' : 'text-slate-700'
+                    isDarkMode ? 'text-slate-700' : 'text-slate-700'
                   }`}>
                     ዝርዝር መግለጫ / አቤቱታ * (በአማርኛ፣ ኦሮምኛ፣ ሶማሊኛ ወይም እንግሊዝኛ መፃፍ ይችላሉ)
                   </label>
@@ -428,7 +428,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                     placeholder="እባክዎን ያጋጠመዎትን ችግር፣ ቦታውን እና የሚፈልጉትን መፍትሔ በዝርዝር ይፃፉ..."
                     className={`w-full px-3.5 py-2.5 rounded-2xl border text-xs transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       isDarkMode
-                        ? 'bg-slate-950 border-slate-800 text-slate-100 placeholder-slate-500'
+                        ? 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-500'
                         : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'
                     }`}
                   />
@@ -437,7 +437,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                 {/* Priority Selection */}
                 <div>
                   <label className={`block text-xs font-bold mb-1.5 ${
-                    isDarkMode ? 'text-slate-300' : 'text-slate-700'
+                    isDarkMode ? 'text-slate-700' : 'text-slate-700'
                   }`}>
                     የአስቸኳይነት ደረጃ (Priority)
                   </label>
@@ -455,7 +455,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                           priority === p.id
                             ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-sm'
                             : isDarkMode
-                            ? 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                            ? 'bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-300'
                             : 'bg-slate-100 text-slate-600 border-slate-200 hover:border-slate-300'
                         }`}
                       >
@@ -468,10 +468,10 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                 {/* Citizen Contact Details (Optional) */}
                 <div
                   className={`p-4 rounded-2xl border space-y-3 ${
-                    isDarkMode ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-50 border-slate-200'
+                    isDarkMode ? 'bg-slate-50/60 border-slate-200' : 'bg-slate-50 border-slate-200'
                   }`}
                 >
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-500">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700">
                     <User className="w-3.5 h-3.5" />
                     <span>የአመልካች መረጃ (አማራጭ - ለኦፊሴላዊ ምላሽና ማስታወቂያ)</span>
                   </div>
@@ -485,7 +485,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                         placeholder="ሙሉ ስም (አማራጭ)"
                         className={`w-full px-3 py-2 rounded-xl border text-xs ${
                           isDarkMode
-                            ? 'bg-slate-900 border-slate-800 text-slate-100 placeholder-slate-500'
+                            ? 'bg-white border-slate-200 text-slate-900 placeholder-slate-500'
                             : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
                         }`}
                       />
@@ -498,7 +498,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                         placeholder="ስልክ ቁጥር (ምሳሌ፡ 0915123456)"
                         className={`w-full px-3 py-2 rounded-xl border text-xs ${
                           isDarkMode
-                            ? 'bg-slate-900 border-slate-800 text-slate-100 placeholder-slate-500'
+                            ? 'bg-white border-slate-200 text-slate-900 placeholder-slate-500'
                             : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
                         }`}
                       />
@@ -515,7 +515,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
                   {isSubmitting ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    <Send className="w-4 h-4 text-amber-300" />
+                    <Send className="w-4 h-4 text-amber-700" />
                   )}
                   <span>{isSubmitting ? 'አቤቱታው በመመዝገብ ላይ ነው...' : 'አቤቱታውን/ጥያቄውን በኦፊሴላዊ መዝገብ አስገባ'}</span>
                 </button>

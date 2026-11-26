@@ -37,7 +37,7 @@ export const FeaturedSurveyBanner: React.FC<FeaturedSurveyBannerProps> = ({ surv
   };
 
   const secondaryBtn = d
-    ? 'border-white/15 bg-white/5 text-slate-100 hover:bg-white/10'
+    ? 'border-white/15 bg-white/5 text-slate-900 hover:bg-white/10'
     : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-sm';
 
   return (
@@ -70,29 +70,29 @@ export const FeaturedSurveyBanner: React.FC<FeaturedSurveyBannerProps> = ({ surv
             </span>
             <span
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-bold ${
-                d ? 'border-white/15 bg-white/5 text-slate-200' : 'border-blue-100 bg-white text-slate-600'
+                d ? 'border-white/15 bg-white/5 text-slate-800' : 'border-blue-100 bg-white text-slate-600'
               }`}
             >
-              <Landmark className={`h-3.5 w-3.5 ${d ? 'text-emerald-300' : 'text-blue-600'}`} />
+              <Landmark className={`h-3.5 w-3.5 ${d ? 'text-emerald-700' : 'text-blue-600'}`} />
               የሕዝብ ተወካዮች ምክር ቤት · ሕዳር 17/2019 ዓ.ም
             </span>
           </div>
 
           <h2
             id="featured-survey-title"
-            className={`text-2xl font-black leading-tight tracking-tight sm:text-3xl lg:text-[2.1rem] ${d ? 'text-white' : 'text-slate-900'}`}
+            className={`text-2xl font-black leading-tight tracking-tight sm:text-3xl lg:text-[2.1rem] ${d ? 'text-slate-900' : 'text-slate-900'}`}
           >
             {survey.title}
           </h2>
 
-          <p className={`max-w-2xl text-sm leading-relaxed sm:text-[15px] ${d ? 'text-slate-300' : 'text-slate-600'}`}>{survey.description}</p>
+          <p className={`max-w-2xl text-sm leading-relaxed sm:text-[15px] ${d ? 'text-slate-700' : 'text-slate-600'}`}>{survey.description}</p>
 
           <div className="flex flex-wrap gap-2">
             {TOPICS.map((topic) => (
               <span
                 key={topic}
                 className={`rounded-xl border px-2.5 py-1 text-[11px] font-semibold ${
-                  d ? 'border-slate-700/80 bg-slate-900/60 text-slate-300' : 'border-slate-200 bg-white/80 text-slate-600'
+                  d ? 'border-slate-300/80 bg-white/60 text-slate-700' : 'border-slate-200 bg-white/80 text-slate-600'
                 }`}
               >
                 {topic}
@@ -104,7 +104,7 @@ export const FeaturedSurveyBanner: React.FC<FeaturedSurveyBannerProps> = ({ surv
             {done ? (
               <div
                 className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-6 py-4 text-sm font-black ${
-                  d ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-300' : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                  d ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'
                 }`}
               >
                 <CheckCircle2 className="h-5 w-5" />
@@ -123,14 +123,14 @@ export const FeaturedSurveyBanner: React.FC<FeaturedSurveyBannerProps> = ({ surv
               onClick={share}
               className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-5 py-4 text-sm font-bold transition-colors cursor-pointer ${secondaryBtn}`}
             >
-              <Share2 className={`h-4 w-4 ${d ? 'text-emerald-300' : 'text-blue-600'}`} />
+              <Share2 className={`h-4 w-4 ${d ? 'text-emerald-700' : 'text-blue-600'}`} />
               {copied ? 'ሊንኩ ተቀድቷል ✓' : 'ለሌሎች ያጋሩ'}
             </button>
             <button
               onClick={() => setShowQr(true)}
               className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-5 py-4 text-sm font-bold transition-colors cursor-pointer ${secondaryBtn}`}
             >
-              <QrCode className={`h-4 w-4 ${d ? 'text-emerald-300' : 'text-blue-600'}`} />
+              <QrCode className={`h-4 w-4 ${d ? 'text-emerald-700' : 'text-blue-600'}`} />
               QR ኮድ
             </button>
           </div>
@@ -146,7 +146,7 @@ export const FeaturedSurveyBanner: React.FC<FeaturedSurveyBannerProps> = ({ surv
       {showQr &&
         createPortal(
           <div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md"
+            className="fixed inset-0 overflow-y-auto z-[100] flex items-center-safe justify-center bg-slate-900/40 p-4 backdrop-blur-md"
             onClick={() => setShowQr(false)}
           >
             <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
@@ -160,17 +160,17 @@ export const FeaturedSurveyBanner: React.FC<FeaturedSurveyBannerProps> = ({ surv
 };
 
 const Stat: React.FC<{ d: boolean; icon: React.ReactNode; value: string; label: string }> = ({ d, icon, value, label }) => (
-  <div className={`flex items-center gap-3 rounded-2xl border p-4 ${d ? 'border-white/10 bg-slate-950/50' : 'border-white bg-white/90 shadow-sm'}`}>
+  <div className={`flex items-center gap-3 rounded-2xl border p-4 ${d ? 'border-white/10 bg-slate-50/50' : 'border-white bg-white/90 shadow-sm'}`}>
     <div
       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-        d ? 'bg-emerald-400/15 text-emerald-300' : 'bg-gradient-to-br from-blue-50 to-emerald-50 text-blue-600'
+        d ? 'bg-emerald-400/15 text-emerald-700' : 'bg-gradient-to-br from-blue-50 to-emerald-50 text-blue-600'
       }`}
     >
       {icon}
     </div>
     <div className="min-w-0">
-      <div className={`text-lg font-black leading-none ${d ? 'text-white' : 'text-slate-900'}`}>{value}</div>
-      <div className={`mt-1 text-[11px] font-semibold ${d ? 'text-slate-400' : 'text-slate-500'}`}>{label}</div>
+      <div className={`text-lg font-black leading-none ${d ? 'text-slate-900' : 'text-slate-900'}`}>{value}</div>
+      <div className={`mt-1 text-[11px] font-semibold ${d ? 'text-slate-500' : 'text-slate-500'}`}>{label}</div>
     </div>
   </div>
 );

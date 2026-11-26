@@ -85,7 +85,7 @@ export const DgcLogo: React.FC<DgcLogoProps> = ({
 
       {/* Progress Bar under logo during press */}
       {isPressing && (
-        <div className="absolute -bottom-2 left-0 right-0 h-1.5 bg-slate-800 rounded-full overflow-hidden z-20">
+        <div className="absolute -bottom-2 left-0 right-0 h-1.5 bg-slate-100 rounded-full overflow-hidden z-20">
           <div
             className="h-full bg-gradient-to-r from-amber-400 via-red-500 to-red-600 transition-all duration-75 ease-linear"
             style={{ width: `${pressProgress}%` }}

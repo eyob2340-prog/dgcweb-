@@ -259,19 +259,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Top Header Row: Ethiopian Date, Notifications, and 24h Telegram Report CTA */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-900/90 backdrop-blur-2xl p-4 sm:p-5 rounded-3xl border border-slate-800 shadow-xl">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white/90 backdrop-blur-2xl p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-xl">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-600 shrink-0">
             <Calendar className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 font-bold">የኢትዮጵያ ዘመን አቆጣጠር:</span>
-              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black">
+              <span className="text-xs text-slate-500 font-bold">የኢትዮጵያ ዘመን አቆጣጠር:</span>
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 text-xs font-black">
                 {ethCurrentDate.formattedAmharic}
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-[11px] text-slate-500 mt-0.5">
               የድሬዳዋ አስተዳደር የመንግስት ኮሙኒኬሽን ጉዳዮች ቢሮ ዲጂታል መድረክ
             </p>
           </div>
@@ -284,10 +284,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
               setIsNotificationOpen(!isNotificationOpen);
               fetchNotifications();
             }}
-            className="relative px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-2xl border border-slate-700 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+            className="relative px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl border border-slate-300 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
             title="ማሳወቂያ ማዕከል (Notification Center)"
           >
-            <Bell className="w-4 h-4 text-amber-400" />
+            <Bell className="w-4 h-4 text-amber-600" />
             <span className="hidden sm:inline">ማሳወቂያዎች</span>
             {unreadNotifCount > 0 && (
               <span className="px-1.5 py-0.2 rounded-full bg-red-600 text-white text-[10px] font-black animate-pulse">
@@ -304,9 +304,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
             title="የ24 ሰዓት የPDF ሪፖርት፣ የዳታ ፋይል (Excel/CSV) እና የ OPA AI Engine ትንተና አሁኑኑ ወደ Telegram ይላኩ"
           >
             {isSending24hReport ? (
-              <RefreshCw className="w-4 h-4 animate-spin text-sky-200" />
+              <RefreshCw className="w-4 h-4 animate-spin text-sky-700" />
             ) : (
-              <Send className="w-4 h-4 text-sky-200" />
+              <Send className="w-4 h-4 text-sky-700" />
             )}
             <span>{isSending24hReport ? 'በመላክ ላይ...' : 'የ24h ዳታ ወደ Telegram ላክ'}</span>
           </button>
@@ -320,21 +320,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
           animate={{ opacity: 1, y: 0 }}
           className={`p-4 rounded-2xl text-xs font-bold border flex items-center justify-between gap-3 ${
             reportSendFeedback.success
-              ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
-              : 'bg-red-950/60 border-red-500/40 text-red-300'
+              ? 'bg-emerald-50/60 border-emerald-500/40 text-emerald-700'
+              : 'bg-red-50/60 border-red-500/40 text-red-700'
           }`}
         >
           <div className="flex items-center gap-2">
             {reportSendFeedback.success ? (
-              <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
             ) : (
-              <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+              <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
             )}
             <span>{reportSendFeedback.message}</span>
           </div>
           <button
             onClick={() => setReportSendFeedback(null)}
-            className="text-slate-400 hover:text-white text-xs underline cursor-pointer"
+            className="text-slate-500 hover:text-slate-900 text-xs underline cursor-pointer"
           >
             ዝጋ
           </button>
@@ -344,31 +344,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
       {/* Notification Center Modal / Drawer */}
       <AnimatePresence>
         {isNotificationOpen && (
-          <div className="fixed inset-0 z-[120] flex items-start justify-end p-4 sm:p-6 bg-slate-950/70 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[120] flex items-start justify-end p-4 sm:p-6 bg-slate-900/40 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              className="bg-slate-900 border border-slate-700 text-slate-100 w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto relative"
+              className="bg-white border border-slate-300 text-slate-900 w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto relative"
             >
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                 <div className="flex items-center space-x-2">
-                  <Bell className="w-5 h-5 text-amber-400" />
-                  <h3 className="text-base font-black text-white">🔔 የማሳወቂያ ማዕከል (Live Notifications)</h3>
+                  <Bell className="w-5 h-5 text-amber-600" />
+                  <h3 className="text-base font-black text-slate-900">🔔 የማሳወቂያ ማዕከል (Live Notifications)</h3>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={fetchNotifications}
                     disabled={loadingNotifs}
-                    className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
+                    className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
                     title="አድስ (Refresh Notifications)"
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 ${loadingNotifs ? 'animate-spin text-amber-400' : 'text-slate-400'}`} />
+                    <RefreshCw className={`w-3.5 h-3.5 ${loadingNotifs ? 'animate-spin text-amber-600' : 'text-slate-500'}`} />
                     <span className="hidden sm:inline">አድስ</span>
                   </button>
                   <button
                     onClick={() => setIsNotificationOpen(false)}
-                    className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold"
+                    className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold"
                   >
                     ዝጋ
                   </button>
@@ -381,8 +381,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                   onClick={() => setNotifFilter('all')}
                   className={`px-3 py-1 rounded-xl font-bold whitespace-nowrap transition-all ${
                     notifFilter === 'all'
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                      : 'bg-slate-800/70 text-slate-400 hover:bg-slate-800 border border-transparent'
+                      ? 'bg-amber-500/20 text-amber-700 border border-amber-500/40'
+                      : 'bg-slate-100/70 text-slate-500 hover:bg-slate-100 border border-transparent'
                   }`}
                 >
                   ሁሉም ({notifications.length})
@@ -391,8 +391,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                   onClick={() => setNotifFilter('surveys')}
                   className={`px-3 py-1 rounded-xl font-bold whitespace-nowrap transition-all flex items-center gap-1 ${
                     notifFilter === 'surveys'
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                      : 'bg-slate-800/70 text-slate-400 hover:bg-slate-800 border border-transparent'
+                      ? 'bg-emerald-500/20 text-emerald-700 border border-emerald-500/40'
+                      : 'bg-slate-100/70 text-slate-500 hover:bg-slate-100 border border-transparent'
                   }`}
                 >
                   <span>📝 ምላሾች</span>
@@ -404,8 +404,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                   onClick={() => setNotifFilter('tickets')}
                   className={`px-3 py-1 rounded-xl font-bold whitespace-nowrap transition-all flex items-center gap-1 ${
                     notifFilter === 'tickets'
-                      ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40'
-                      : 'bg-slate-800/70 text-slate-400 hover:bg-slate-800 border border-transparent'
+                      ? 'bg-blue-500/20 text-blue-700 border border-blue-500/40'
+                      : 'bg-slate-100/70 text-slate-500 hover:bg-slate-100 border border-transparent'
                   }`}
                 >
                   <span>🎫 አቤቱታዎች</span>
@@ -417,8 +417,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                   onClick={() => setNotifFilter('audit')}
                   className={`px-3 py-1 rounded-xl font-bold whitespace-nowrap transition-all flex items-center gap-1 ${
                     notifFilter === 'audit'
-                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
-                      : 'bg-slate-800/70 text-slate-400 hover:bg-slate-800 border border-transparent'
+                      ? 'bg-purple-500/20 text-purple-700 border border-purple-500/40'
+                      : 'bg-slate-100/70 text-slate-500 hover:bg-slate-100 border border-transparent'
                   }`}
                 >
                   <span>🛡️ ደህንነት</span>
@@ -430,8 +430,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
 
               <div className="space-y-3">
                 {loadingNotifs ? (
-                  <div className="p-8 text-center text-slate-400 text-xs flex items-center justify-center gap-2">
-                    <RefreshCw className="w-4 h-4 animate-spin text-amber-400" />
+                  <div className="p-8 text-center text-slate-500 text-xs flex items-center justify-center gap-2">
+                    <RefreshCw className="w-4 h-4 animate-spin text-amber-600" />
                     <span>ማሳወቂያዎች በመጫን ላይ...</span>
                   </div>
                 ) : notifications.length === 0 ? (
@@ -471,34 +471,34 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                         }}
                         className={`p-3.5 rounded-2xl border transition-all cursor-pointer hover:border-amber-400/60 ${
                           notif.priority === 'high'
-                            ? 'bg-red-950/30 border-red-500/30 text-red-200'
+                            ? 'bg-red-50/30 border-red-500/30 text-red-700'
                             : notif.priority === 'medium'
-                            ? 'bg-amber-950/30 border-amber-500/30 text-amber-200'
+                            ? 'bg-amber-50/30 border-amber-500/30 text-amber-700'
                             : notif.type === 'survey_response'
-                            ? 'bg-emerald-950/20 border-emerald-500/20 text-emerald-200'
-                            : 'bg-slate-950/60 border-slate-800 text-slate-300'
+                            ? 'bg-emerald-50/20 border-emerald-500/20 text-emerald-700'
+                            : 'bg-slate-50/60 border-slate-200 text-slate-700'
                         }`}
                       >
-                        <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
-                          <div className="flex items-center gap-1.5 font-bold text-white">
+                        <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1.5">
+                          <div className="flex items-center gap-1.5 font-bold text-slate-900">
                             {notif.type === 'survey_response' ? (
-                              <Vote className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                              <Vote className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                             ) : notif.type === 'ticket_urgent' ? (
-                              <AlertTriangle className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                              <AlertTriangle className="w-3.5 h-3.5 text-red-600 shrink-0" />
                             ) : notif.type === 'ticket_new' ? (
-                              <MessageSquare className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                              <MessageSquare className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                             ) : notif.type === 'ticket_status' ? (
-                              <CheckCircle2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                              <CheckCircle2 className="w-3.5 h-3.5 text-sky-600 shrink-0" />
                             ) : (
-                              <ShieldCheck className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                              <ShieldCheck className="w-3.5 h-3.5 text-purple-600 shrink-0" />
                             )}
                             <span className="line-clamp-1">{notif.title}</span>
                           </div>
-                          <span className="font-mono text-[10px] text-amber-300 shrink-0 ml-2">{notif.time_eth}</span>
+                          <span className="font-mono text-[10px] text-amber-700 shrink-0 ml-2">{notif.time_eth}</span>
                         </div>
-                        <p className="text-xs text-slate-300 pl-5">{notif.description}</p>
+                        <p className="text-xs text-slate-700 pl-5">{notif.description}</p>
                         <div className="mt-2 flex items-center justify-end">
-                          <span className="text-[10px] text-sky-400 font-bold flex items-center gap-1 hover:underline">
+                          <span className="text-[10px] text-sky-600 font-bold flex items-center gap-1 hover:underline">
                             <span>ዝርዝሩን ይመልከቱ</span>
                             <ExternalLink className="w-3 h-3" />
                           </span>
@@ -519,21 +519,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.05 }}
-          className="bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-800/80 shadow-2xl relative overflow-hidden group hover:border-slate-700 transition-all duration-300"
+          className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-200/80 shadow-2xl relative overflow-hidden group hover:border-slate-300 transition-all duration-300"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all"></div>
           <div className="flex items-center justify-between relative z-10">
             <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                <Vote className="w-3.5 h-3.5 text-blue-400" />
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                <Vote className="w-3.5 h-3.5 text-blue-600" />
                 አጠቃላይ ጥናቶች
               </span>
-              <div className="text-3xl sm:text-4xl font-black text-white tracking-tight flex items-baseline gap-2">
+              <div className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight flex items-baseline gap-2">
                 {surveys.length}
-                <span className="text-xs text-slate-400 font-normal">መጠይቆች</span>
+                <span className="text-xs text-slate-500 font-normal">መጠይቆች</span>
               </div>
             </div>
-            <div className="w-12 h-12 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-2xl flex items-center justify-center font-bold shadow-inner group-hover:scale-110 transition-transform">
+            <div className="w-12 h-12 bg-blue-500/10 border border-blue-500/20 text-blue-600 rounded-2xl flex items-center justify-center font-bold shadow-inner group-hover:scale-110 transition-transform">
               <Activity className="w-6 h-6" />
             </div>
           </div>
@@ -543,21 +543,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.1 }}
-          className="bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-800/80 shadow-2xl relative overflow-hidden group hover:border-emerald-500/40 transition-all duration-300"
+          className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-200/80 shadow-2xl relative overflow-hidden group hover:border-emerald-500/40 transition-all duration-300"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all"></div>
           <div className="flex items-center justify-between relative z-10">
             <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 ንቁ ጥናቶች
               </span>
-              <div className="text-3xl sm:text-4xl font-black text-emerald-400 tracking-tight flex items-baseline gap-2">
+              <div className="text-3xl sm:text-4xl font-black text-emerald-600 tracking-tight flex items-baseline gap-2">
                 {activeSurveysCount}
-                <span className="text-xs text-emerald-500/80 font-normal">በስራ ላይ</span>
+                <span className="text-xs text-emerald-700 font-normal">በስራ ላይ</span>
               </div>
             </div>
-            <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center font-bold shadow-inner group-hover:scale-110 transition-transform">
+            <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-2xl flex items-center justify-center font-bold shadow-inner group-hover:scale-110 transition-transform">
               <TrendingUp className="w-6 h-6" />
             </div>
           </div>
@@ -567,21 +567,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.15 }}
-          className="bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-800/80 shadow-2xl relative overflow-hidden group hover:border-amber-500/40 transition-all duration-300"
+          className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-200/80 shadow-2xl relative overflow-hidden group hover:border-amber-500/40 transition-all duration-300"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all"></div>
           <div className="flex items-center justify-between relative z-10">
             <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-amber-600" />
                 አጠቃላይ ተሳታፊዎች
               </span>
-              <div className="text-3xl sm:text-4xl font-black text-amber-300 tracking-tight flex items-baseline gap-2">
+              <div className="text-3xl sm:text-4xl font-black text-amber-700 tracking-tight flex items-baseline gap-2">
                 {totalResponsesSum}
-                <span className="text-xs text-amber-400/80 font-normal">ነዋሪዎች</span>
+                <span className="text-xs text-amber-600/80 font-normal">ነዋሪዎች</span>
               </div>
             </div>
-            <div className="w-12 h-12 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center font-bold shadow-inner group-hover:scale-110 transition-transform">
+            <div className="w-12 h-12 bg-amber-500/10 border border-amber-500/20 text-amber-600 rounded-2xl flex items-center justify-center font-bold shadow-inner group-hover:scale-110 transition-transform">
               <Users className="w-6 h-6" />
             </div>
           </div>
@@ -589,7 +589,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
       </div>
 
       {/* Primary Tab Navigation & Action Toolbar */}
-      <div className="bg-slate-900/90 backdrop-blur-2xl p-2 sm:p-2.5 rounded-2xl border border-slate-800/80 shadow-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <div className="bg-white/90 backdrop-blur-2xl p-2 sm:p-2.5 rounded-2xl border border-slate-200/80 shadow-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         {/* Sleek Segmented Navigation Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5">
           {/* Unified Analytics & Policy Intelligence Report */}
@@ -598,10 +598,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
             className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-200 flex items-center space-x-2 whitespace-nowrap shrink-0 cursor-pointer ${
               activeTab === 'analytics'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/40'
-                : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/40'
+                : 'bg-slate-100/60 text-slate-700 hover:bg-slate-100 hover:text-slate-900 border border-slate-300/40'
             }`}
           >
-            <BarChart3 className="w-4 h-4 text-sky-300 shrink-0" />
+            <BarChart3 className="w-4 h-4 text-sky-700 shrink-0" />
             <span>አናሊቲክስና ሪፖርት</span>
           </button>
 
@@ -611,12 +611,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
             className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-200 flex items-center space-x-2 whitespace-nowrap shrink-0 cursor-pointer ${
               activeTab === 'manage'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/40'
-                : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/40'
+                : 'bg-slate-100/60 text-slate-700 hover:bg-slate-100 hover:text-slate-900 border border-slate-300/40'
             }`}
           >
-            <Vote className="w-4 h-4 text-emerald-300 shrink-0" />
+            <Vote className="w-4 h-4 text-emerald-700 shrink-0" />
             <span>የጥናቶች ማኔጀር</span>
-            <span className="px-1.5 py-0.5 rounded-md bg-slate-950/60 text-[10px] text-slate-300 font-mono">
+            <span className="px-1.5 py-0.5 rounded-md bg-slate-50/60 text-[10px] text-slate-700 font-mono">
               {surveys.length}
             </span>
           </button>
@@ -627,10 +627,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
             className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-200 flex items-center space-x-2 whitespace-nowrap shrink-0 cursor-pointer ${
               activeTab === 'tickets'
                 ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30 border border-amber-400'
-                : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/40'
+                : 'bg-slate-100/60 text-slate-700 hover:bg-slate-100 hover:text-slate-900 border border-slate-300/40'
             }`}
           >
-            <MessageSquare className="w-4 h-4 text-amber-300 shrink-0" />
+            <MessageSquare className="w-4 h-4 text-amber-700 shrink-0" />
             <span>የዜጎች አቤቱታዎች</span>
           </button>
 
@@ -640,10 +640,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
             className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-200 flex items-center space-x-2 whitespace-nowrap shrink-0 cursor-pointer ${
               activeTab === 'users'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/40'
-                : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/40'
+                : 'bg-slate-100/60 text-slate-700 hover:bg-slate-100 hover:text-slate-900 border border-slate-300/40'
             }`}
           >
-            <UserCog className="w-4 h-4 text-indigo-300 shrink-0" />
+            <UserCog className="w-4 h-4 text-indigo-700 shrink-0" />
             <span>
               {currentUser?.role === 'admin' ? 'የኔ ፕሮፋይል' : 'አካውንቶችና ደህንነት'}
             </span>
@@ -656,10 +656,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
               className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-200 flex items-center space-x-2 whitespace-nowrap shrink-0 cursor-pointer ${
                 activeTab === 'audit'
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/40'
-                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/40'
+                  : 'bg-slate-100/60 text-slate-700 hover:bg-slate-100 hover:text-slate-900 border border-slate-300/40'
               }`}
             >
-              <History className="w-4 h-4 text-violet-300 shrink-0" />
+              <History className="w-4 h-4 text-violet-700 shrink-0" />
               <span>የኦዲት መዝገብ</span>
             </button>
           )}
@@ -672,10 +672,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
               className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-200 flex items-center space-x-2 whitespace-nowrap shrink-0 cursor-pointer ${
                 activeTab === 'db'
                   ? 'bg-sky-600 text-white shadow-lg shadow-sky-600/30 border border-sky-400/30'
-                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/40'
+                  : 'bg-slate-100/60 text-slate-700 hover:bg-slate-100 hover:text-slate-900 border border-slate-300/40'
               }`}
             >
-              <Send className="w-4 h-4 text-cyan-300 shrink-0" />
+              <Send className="w-4 h-4 text-cyan-700 shrink-0" />
               <span>Telegram</span>
             </button>
           )}
@@ -687,10 +687,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
               className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-200 flex items-center space-x-2 whitespace-nowrap shrink-0 cursor-pointer ${
                 activeTab === 'opa_control'
                   ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30 border border-purple-400/30'
-                  : 'bg-purple-950/60 text-purple-300 hover:bg-purple-900 hover:text-white border border-purple-800/40'
+                  : 'bg-purple-50/60 text-purple-700 hover:bg-purple-100 hover:text-slate-900 border border-purple-200/40'
               }`}
             >
-              <Laptop className="w-4 h-4 text-fuchsia-300 shrink-0" />
+              <Laptop className="w-4 h-4 text-fuchsia-700 shrink-0" />
               <span>OPA Dev</span>
             </button>
           )}
@@ -736,21 +736,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl overflow-hidden p-6 space-y-5"
+            className="bg-white/80 backdrop-blur-xl rounded-3xl border border-slate-200 shadow-2xl overflow-hidden p-6 space-y-5"
           >
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-200 pb-4">
               <div className="flex items-center space-x-2">
-                <Vote className="w-5 h-5 text-amber-400" />
-                <h3 className="text-base font-black text-white">የመጠይቆች ዝርዝር እና ማስተካከያ (Survey Management & Editing)</h3>
+                <Vote className="w-5 h-5 text-amber-600" />
+                <h3 className="text-base font-black text-slate-900">የመጠይቆች ዝርዝር እና ማስተካከያ (Survey Management & Editing)</h3>
               </div>
               <div className="relative w-full sm:w-72">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type="text"
                   placeholder="በስም ወይም መደብ ፈልግ..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-2xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                 />
               </div>
             </div>
@@ -758,7 +758,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-950/60 border-b border-slate-800 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                  <tr className="bg-slate-50/60 border-b border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-wider">
                     <th className="p-4">ID</th>
                     <th className="p-4">የመጠይቅ ርዕስ (Title)</th>
                     <th className="p-4">መደብ (Category)</th>
@@ -768,33 +768,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                     <th className="p-4 text-right">ድርጊቶች (Actions)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-xs sm:text-sm">
+                <tbody className="divide-y divide-slate-200/60 text-xs sm:text-sm">
                   {filteredSurveys.map((s) => {
                     return (
-                      <tr key={s.id} className="hover:bg-slate-800/40 transition-colors">
+                      <tr key={s.id} className="hover:bg-slate-100/40 transition-colors">
                         <td className="p-4 font-mono font-bold text-slate-500">#{s.id}</td>
-                        <td className="p-4 font-black text-slate-100 max-w-xs truncate">{s.title}</td>
+                        <td className="p-4 font-black text-slate-900 max-w-xs truncate">{s.title}</td>
                         <td className="p-4">
-                          <span className="bg-slate-800 text-slate-300 px-3 py-1 rounded-full font-bold border border-slate-700/80 text-xs">
+                          <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full font-bold border border-slate-300/80 text-xs">
                             {s.category}
                           </span>
                         </td>
-                        <td className="p-4 text-center font-medium text-slate-300 whitespace-nowrap text-xs">
+                        <td className="p-4 text-center font-medium text-slate-700 whitespace-nowrap text-xs">
                           {formatEthiopianDate(s.created_at)}
                         </td>
-                        <td className="p-4 text-center font-black text-amber-300">{s.total_responses || 0}</td>
+                        <td className="p-4 text-center font-black text-amber-700">{s.total_responses || 0}</td>
                         <td className="p-4 text-center">
                           <button
                             onClick={() => handleToggleActive(s.id, s.is_active)}
                             className={`inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-full font-black text-xs transition-all cursor-pointer ${
                               s.is_active
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20'
-                                : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700'
+                                ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 hover:bg-emerald-500/20'
+                                : 'bg-slate-100 text-slate-500 border border-slate-300 hover:bg-slate-200'
                             }`}
                           >
                             {s.is_active ? (
                               <>
-                                <ToggleRight className="w-4 h-4 text-emerald-400" />
+                                <ToggleRight className="w-4 h-4 text-emerald-600" />
                                 <span>ክፍት (Active)</span>
                               </>
                             ) : (
@@ -812,10 +812,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                               setSurveyToEdit(s);
                               setIsBuilderOpen(true);
                             }}
-                            className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 cursor-pointer"
+                            className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 border border-amber-500/30 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 cursor-pointer"
                             title="መጠይቁን አስተካክል / አርትዕ (Edit Survey)"
                           >
-                            <Edit3 className="w-3.5 h-3.5 text-amber-400" />
+                            <Edit3 className="w-3.5 h-3.5 text-amber-600" />
                             <span>አርትዕ</span>
                           </button>
 
@@ -832,10 +832,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                           {/* Delete Survey Button */}
                           <button
                             onClick={() => setSurveyToDelete(s)}
-                            className="px-2.5 py-1.5 bg-red-600/15 hover:bg-red-600/30 text-red-400 hover:text-red-300 border border-red-500/30 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
+                            className="px-2.5 py-1.5 bg-red-600/15 hover:bg-red-600/30 text-red-600 hover:text-red-700 border border-red-500/30 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
                             title="መጠይቁን ሰርዝ / አጥፋ (Delete Survey)"
                           >
-                            <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                            <Trash2 className="w-3.5 h-3.5 text-red-600" />
                             <span>መደለቻ</span>
                           </button>
                         </td>
@@ -892,24 +892,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl overflow-hidden p-6 space-y-4"
+            className="bg-white/80 backdrop-blur-xl rounded-3xl border border-slate-200 shadow-2xl overflow-hidden p-6 space-y-4"
           >
-            <div className="flex items-center space-x-2 border-b border-slate-800 pb-4">
-              <ShieldCheck className="w-5 h-5 text-emerald-400" />
-              <h3 className="text-base font-black text-white">የአድሚን ሲስተም እንቅስቃሴ መዝገብ (System Audit Logs)</h3>
+            <div className="flex items-center space-x-2 border-b border-slate-200 pb-4">
+              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+              <h3 className="text-base font-black text-slate-900">የአድሚን ሲስተም እንቅስቃሴ መዝገብ (System Audit Logs)</h3>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs sm:text-sm">
                 <thead>
-                  <tr className="bg-slate-950/60 border-b border-slate-800 text-slate-400 font-bold uppercase text-[11px]">
+                  <tr className="bg-slate-50/60 border-b border-slate-200 text-slate-500 font-bold uppercase text-[11px]">
                     <th className="p-3.5">ሰዓት / ቀን (የኢትዮጵያ ቀን)</th>
                     <th className="p-3.5">ተጠቃሚ (Admin)</th>
                     <th className="p-3.5">ድርጊት (Action)</th>
                     <th className="p-3.5">ዝርዝር መግለጫ (Details)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-slate-200/60">
                   {auditLogs.length === 0 ? (
                     <tr>
                       <td colSpan={4} className="p-8 text-center text-slate-500 italic">
@@ -918,17 +918,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                     </tr>
                   ) : (
                     auditLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="p-3.5 font-mono text-slate-400 whitespace-nowrap">
+                      <tr key={log.id} className="hover:bg-slate-100/40 transition-colors">
+                        <td className="p-3.5 font-mono text-slate-500 whitespace-nowrap">
                           {formatEthiopianDateTime(log.timestamp || log.created_at || new Date().toISOString())}
                         </td>
-                        <td className="p-3.5 font-bold text-slate-200">{log.admin_email}</td>
+                        <td className="p-3.5 font-bold text-slate-800">{log.admin_email}</td>
                         <td className="p-3.5">
-                          <span className="bg-blue-500/10 text-blue-400 font-mono font-bold px-2.5 py-1 rounded-lg border border-blue-500/20 text-xs">
+                          <span className="bg-blue-500/10 text-blue-600 font-mono font-bold px-2.5 py-1 rounded-lg border border-blue-500/20 text-xs">
                             {log.action}
                           </span>
                         </td>
-                        <td className="p-3.5 text-slate-300">{log.details}</td>
+                        <td className="p-3.5 text-slate-700">{log.details}</td>
                       </tr>
                     ))
                   )}
@@ -969,30 +969,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
       {/* Survey Delete Confirmation Modal */}
       {surveyToDelete && (
         <AnimatePresence>
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+          <div className="fixed inset-0 overflow-y-auto z-[110] flex items-center-safe justify-center p-4 bg-slate-900/40 backdrop-blur-md">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-slate-900 border border-red-500/40 text-slate-100 w-full max-w-md rounded-3xl p-6 space-y-5 shadow-2xl relative"
+              className="bg-white border border-red-500/40 text-slate-900 w-full max-w-md rounded-3xl p-6 space-y-5 shadow-2xl relative"
             >
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-600 shrink-0">
                   <Trash2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-white">የጥናት መጠይቅ መደለዝ</h3>
-                  <p className="text-xs text-red-400 font-mono">መጠይቅ ID: #{surveyToDelete.id}</p>
+                  <h3 className="text-base font-black text-slate-900">የጥናት መጠይቅ መደለዝ</h3>
+                  <p className="text-xs text-red-600 font-mono">መጠይቅ ID: #{surveyToDelete.id}</p>
                 </div>
               </div>
 
-              <div className="p-4 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-2 text-xs">
-                <p className="font-bold text-slate-200 line-clamp-2">ርዕስ: {surveyToDelete.title}</p>
-                <div className="flex items-center justify-between text-slate-400 text-[11px] pt-1">
+              <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                <p className="font-bold text-slate-800 line-clamp-2">ርዕስ: {surveyToDelete.title}</p>
+                <div className="flex items-center justify-between text-slate-500 text-[11px] pt-1">
                   <span>መደብ: {surveyToDelete.category}</span>
-                  <span className="text-amber-400 font-bold">ተሳታፊዎች: {surveyToDelete.total_responses || 0}</span>
+                  <span className="text-amber-600 font-bold">ተሳታፊዎች: {surveyToDelete.total_responses || 0}</span>
                 </div>
-                <p className="text-red-300 font-semibold pt-1">
+                <p className="text-red-700 font-semibold pt-1">
                   ⚠️ ይህን መጠይቅ ሲሰርዙ በውስጡ ያሉ ጥያቄዎችና የተሰጡ ምላሾች በሙሉ ከዳታቤዝ ይሰረዛሉ::
                 </p>
               </div>
@@ -1002,7 +1002,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDa
                   type="button"
                   disabled={isDeletingSurvey}
                   onClick={() => setSurveyToDelete(null)}
-                  className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl text-xs font-bold transition-all cursor-pointer"
+                  className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition-all cursor-pointer"
                 >
                   ተመለስ (Cancel)
                 </button>

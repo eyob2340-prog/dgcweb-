@@ -83,20 +83,20 @@ ADMIN_PASSWORD="Admin@123456"`;
       </div>
 
       {/* SQL Schema Block */}
-      <div className="bg-slate-900 text-slate-100 rounded-2xl p-6 border border-slate-800 shadow-lg space-y-4">
+      <div className="bg-white text-slate-900 rounded-2xl p-6 border border-slate-200 shadow-lg space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Code2 className="w-5 h-5 text-emerald-400" />
-            <h3 className="text-sm font-bold text-white">1. PostgreSQL / Supabase Schema SQL</h3>
+            <Code2 className="w-5 h-5 text-emerald-600" />
+            <h3 className="text-sm font-bold text-slate-900">1. PostgreSQL / Supabase Schema SQL</h3>
           </div>
 
           <button
             onClick={() => copyToClipboard(sqlSchema, setCopiedSql)}
-            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold border border-slate-700 transition-colors flex items-center space-x-1.5"
+            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold border border-slate-300 transition-colors flex items-center space-x-1.5"
           >
             {copiedSql ? (
               <>
-                <Check className="w-4 h-4 text-emerald-400" />
+                <Check className="w-4 h-4 text-emerald-600" />
                 <span>ተኮፒ አድርጓል!</span>
               </>
             ) : (
@@ -108,7 +108,7 @@ ADMIN_PASSWORD="Admin@123456"`;
           </button>
         </div>
 
-        <pre className="bg-slate-950 p-4 rounded-xl text-xs font-mono text-emerald-300 overflow-x-auto leading-relaxed border border-slate-800/80">
+        <pre className="bg-slate-50 p-4 rounded-xl text-xs font-mono text-emerald-700 overflow-x-auto leading-relaxed border border-slate-200/80">
           {sqlSchema}
         </pre>
       </div>

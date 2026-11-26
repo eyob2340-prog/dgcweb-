@@ -194,8 +194,8 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-red-950/85 backdrop-blur-md animate-fade-in text-left">
-      <div className="bg-slate-900 text-white rounded-3xl max-w-md w-full shadow-2xl border-2 border-red-600/80 overflow-hidden relative shadow-red-900/50">
+    <div className="fixed inset-0 overflow-y-auto z-[100] flex items-center-safe justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-fade-in text-left">
+      <div className="bg-white text-slate-900 rounded-3xl max-w-md w-full shadow-2xl border-2 border-red-600/80 overflow-hidden relative shadow-red-900/50">
         {/* Red Warning Banner Bar */}
         <div className="bg-red-600 text-white px-4 py-2 text-[11px] font-bold tracking-widest uppercase flex items-center justify-between">
           <span className="flex items-center gap-1.5">
@@ -206,25 +206,25 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
         </div>
 
         {/* Modal Header */}
-        <div className="bg-gradient-to-b from-red-950 to-slate-900 p-6 relative border-b border-red-900/50">
+        <div className="bg-gradient-to-b from-red-50 to-white p-6 relative border-b border-red-200/50">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-1.5 text-red-300 hover:text-white rounded-lg hover:bg-red-900/50 transition-colors"
+            className="absolute top-4 right-4 p-1.5 text-red-700 hover:text-slate-900 rounded-lg hover:bg-red-100/50 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
 
-          <div className="w-14 h-14 bg-red-600/20 border-2 border-red-500/50 rounded-2xl flex items-center justify-center text-red-400 mb-3 shadow-inner">
+          <div className="w-14 h-14 bg-red-600/20 border-2 border-red-500/50 rounded-2xl flex items-center justify-center text-red-600 mb-3 shadow-inner">
             {step === 'force_password_change' ? (
-              <Lock className="w-8 h-8 text-amber-400 animate-bounce" />
+              <Lock className="w-8 h-8 text-amber-600 animate-bounce" />
             ) : step === '2fa' || step === 'setup_2fa' ? (
-              <ShieldCheck className="w-8 h-8 text-emerald-400 animate-pulse" />
+              <ShieldCheck className="w-8 h-8 text-emerald-600 animate-pulse" />
             ) : (
               <ShieldAlert className="w-8 h-8 text-red-500 animate-pulse" />
             )}
           </div>
 
-          <h2 className="text-xl font-black text-red-400">
+          <h2 className="text-xl font-black text-red-600">
             {step === 'force_password_change'
               ? 'ቀዳሚ ፓስወርድ መቀየሪያ (Mandatory Password Setup)'
               : step === 'setup_2fa'
@@ -233,7 +233,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
               ? 'ባለ 2-ደረጃ ማረጋገጫ (Two-Factor OTP)'
               : 'የተፈቀደላቸው ባለሙያዎች ብቻ (Admin Login)'}
           </h2>
-          <p className="text-xs text-red-200/90 mt-1.5 leading-relaxed">
+          <p className="text-xs text-red-700/90 mt-1.5 leading-relaxed">
             {step === 'force_password_change'
               ? 'ለደህንነት ጥበቃ ሲባል በመጀመሪያው መግቢያ ጊዜ ጊዜያዊ ፓስወርድዎን መቀየር ግዴታ ነው::'
               : step === 'setup_2fa'
@@ -245,35 +245,35 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-5 bg-slate-900">
+        <div className="p-6 space-y-5 bg-white">
           {/* Escape Button */}
           <button
             type="button"
             onClick={onClose}
-            className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2"
+            className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2"
           >
-            <ArrowLeft className="w-4 h-4 text-amber-400" />
+            <ArrowLeft className="w-4 h-4 text-amber-600" />
             <span>ወደ ዋናው ገጽ ተመለስ (Back to Public Portal)</span>
           </button>
 
           {error && (
-            <div className="p-3 bg-red-900/60 border border-red-500 rounded-xl text-xs text-red-200 flex items-center space-x-2">
-              <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+            <div className="p-3 bg-red-100/60 border border-red-500 rounded-xl text-xs text-red-700 flex items-center space-x-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
               <span>{error}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="p-3 bg-emerald-950/80 border border-emerald-500 rounded-xl text-xs text-emerald-300 flex items-center space-x-2">
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+            <div className="p-3 bg-emerald-50/80 border border-emerald-500 rounded-xl text-xs text-emerald-700 flex items-center space-x-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
               <span>{successMsg}</span>
             </div>
           )}
 
           {step === 'setup_2fa' ? (
             <form onSubmit={handleVerifySetup} className="space-y-4" autoComplete="off">
-              <div className="bg-slate-950 p-3.5 rounded-2xl border border-emerald-500/30 text-xs text-slate-300 space-y-3">
-                <span className="font-bold text-emerald-400 block">📱 ደረጃ 1፦ QR ኮዱን ስካን ያድርጉ</span>
+              <div className="bg-slate-50 p-3.5 rounded-2xl border border-emerald-500/30 text-xs text-slate-700 space-y-3">
+                <span className="font-bold text-emerald-600 block">📱 ደረጃ 1፦ QR ኮዱን ስካን ያድርጉ</span>
                 {qrCodeUrl && (
                   <img src={qrCodeUrl} alt="2FA QR code" className="mx-auto w-48 h-48 rounded-xl bg-white p-2" />
                 )}
@@ -282,12 +282,12 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                 </p>
                 {setupSecret && (
                   <p className="break-all">
-                    ስካን ማድረግ ካልተቻለ ይህን ቁልፍ በእጅ ያስገቡ፦ <code className="text-emerald-300 font-mono">{setupSecret}</code>
+                    ስካን ማድረግ ካልተቻለ ይህን ቁልፍ በእጅ ያስገቡ፦ <code className="text-emerald-700 font-mono">{setupSecret}</code>
                   </p>
                 )}
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">ደረጃ 2፦ አፑ የሚያሳየውን ባለ 6-አሃዝ ኮድ ያስገቡ</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">ደረጃ 2፦ አፑ የሚያሳየውን ባለ 6-አሃዝ ኮድ ያስገቡ</label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -296,7 +296,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                   placeholder="••••••"
                   value={setupCode}
                   onChange={(e) => setSetupCode(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-4 py-3 bg-slate-950 border border-emerald-500/60 rounded-xl text-lg font-mono font-black tracking-widest text-center text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                  className="w-full px-4 py-3 bg-slate-50 border border-emerald-500/60 rounded-xl text-lg font-mono font-black tracking-widest text-center text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                 />
               </div>
               <button
@@ -310,7 +310,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           ) : step === 'force_password_change' ? (
             <form onSubmit={handleForcePasswordChange} className="space-y-4" autoComplete="off">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">አዲስ ጠንካራ ፓስወርድ (New Password)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">አዲስ ጠንካራ ፓስወርድ (New Password)</label>
                 <div className="relative">
                   <KeyRound className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
@@ -319,13 +319,13 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                     placeholder="ቢያንስ 8 ፊደላትና ቁጥሮች"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-amber-500/60 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+                    className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-amber-500/60 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">አዲሱን ፓስወርድ ያረጋግጡ (Confirm New Password)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">አዲሱን ፓስወርድ ያረጋግጡ (Confirm New Password)</label>
                 <div className="relative">
                   <KeyRound className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
@@ -334,7 +334,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                     placeholder="ፓስወርዱን በድጋሚ ያስገቡ"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-amber-500/60 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+                    className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-amber-500/60 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
                   />
                 </div>
               </div>
@@ -349,15 +349,15 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
             </form>
           ) : step === '2fa' ? (
             <form onSubmit={handleLogin} className="space-y-4" autoComplete="off">
-              <div className="bg-slate-950 p-3.5 rounded-2xl border border-emerald-500/30 text-xs text-slate-300">
-                <span className="font-bold text-emerald-400 block mb-1">📱 Google Authenticator ማረጋገጫ</span>
+              <div className="bg-slate-50 p-3.5 rounded-2xl border border-emerald-500/30 text-xs text-slate-700">
+                <span className="font-bold text-emerald-600 block mb-1">📱 Google Authenticator ማረጋገጫ</span>
                 በስልክዎ ባለው <strong>Google Authenticator</strong> ወይም <strong>Microsoft Authenticator</strong> አፕ ላይ የሚታየውን ባለ 6-አሃዝ ኮድ ያስገቡ::
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">ባለ 6-አሃዝ የደህንነት ኮድ (Google Authenticator Code)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">ባለ 6-አሃዝ የደህንነት ኮድ (Google Authenticator Code)</label>
                 <div className="relative">
-                  <ShieldCheck className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-emerald-400" />
+                  <ShieldCheck className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600" />
                   <input
                     type="text"
                     required
@@ -366,7 +366,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                     placeholder="••••••"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    className="w-full pl-9 pr-4 py-3 bg-slate-950 border border-emerald-500/60 rounded-xl text-lg font-mono font-black tracking-widest text-center text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                    className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-emerald-500/60 rounded-xl text-lg font-mono font-black tracking-widest text-center text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                   />
                 </div>
               </div>
@@ -375,7 +375,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setStep('login')}
-                  className="w-1/3 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all"
+                  className="w-1/3 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all"
                 >
                   ተመለስ
                 </button>
@@ -391,7 +391,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           ) : (
             <form onSubmit={handleLogin} className="space-y-4" autoComplete="off">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">የባለሙያ ኢሜይል (Official Email)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">የባለሙያ ኢሜይል (Official Email)</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
@@ -400,13 +400,13 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                     autoComplete="off"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-red-900/60 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+                    className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-red-200/60 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">ፓስወርድ (Password)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">ፓስወርድ (Password)</label>
                 <div className="relative">
                   <KeyRound className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
@@ -415,7 +415,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                     autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-red-900/60 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+                    className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-red-200/60 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
                   />
                 </div>
               </div>

@@ -498,18 +498,18 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
   return (
     <div className="space-y-8">
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 p-6 sm:p-8 rounded-3xl border border-purple-500/40 shadow-2xl relative overflow-hidden">
+      <div className="bg-gradient-to-r from-purple-50 via-white to-indigo-50 p-6 sm:p-8 rounded-3xl border border-purple-500/40 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-black mb-2">
-              <Laptop className="w-4 h-4 text-amber-300" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-700 text-xs font-black mb-2">
+              <Laptop className="w-4 h-4 text-amber-700" />
               <span>የሶፍትዌር ሰሪው (OPA Software Developer) ብቻ መግቢያና መቆጣጠሪያ ፓነል</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               OPA Developer Control & Real-Time System Diagnostics
             </h1>
-            <p className="text-xs sm:text-sm text-purple-200 mt-1">
+            <p className="text-xs sm:text-sm text-purple-700 mt-1">
               የኤረር ሎገር፣ የዳታቤዝ ፍተሻ፣ የቴሌግራም ቦት ሳንድቦክስ እና የሲስተም ጥገና ማብሪያ/ማጥፊያ
             </p>
           </div>
@@ -525,7 +525,7 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
 
             <button
               onClick={fetchHealth}
-              className="px-4 py-2 bg-purple-900/60 hover:bg-purple-800 text-purple-200 text-xs font-bold rounded-xl border border-purple-500/30 flex items-center gap-2 transition-all"
+              className="px-4 py-2 bg-purple-100/60 hover:bg-purple-800 text-purple-700 text-xs font-bold rounded-xl border border-purple-500/30 flex items-center gap-2 transition-all"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loadingHealth ? 'animate-spin' : ''}`} />
               <span>ዲያግኖስቲክስ አድስ</span>
@@ -538,14 +538,14 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
         <div
           className={`p-4 rounded-2xl border text-xs sm:text-sm font-bold flex items-center gap-3 ${
             actionMessage.type === 'success'
-              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-              : 'bg-red-500/10 border-red-500/30 text-red-300'
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700'
+              : 'bg-red-500/10 border-red-500/30 text-red-700'
           }`}
         >
           {actionMessage.type === 'success' ? (
-            <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
+            <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-600" />
           ) : (
-            <AlertCircle className="w-5 h-5 shrink-0 text-red-400" />
+            <AlertCircle className="w-5 h-5 shrink-0 text-red-600" />
           )}
           <span>{actionMessage.text}</span>
         </div>
@@ -553,68 +553,68 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
 
       {/* System Quick Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-lg flex items-center space-x-4">
-          <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-2xl border border-emerald-500/20">
+        <div className="bg-white/80 border border-slate-200 p-5 rounded-2xl shadow-lg flex items-center space-x-4">
+          <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-2xl border border-emerald-500/20">
             <Activity className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[11px] font-bold text-slate-400 block uppercase">የሲስተም ሁኔታ</span>
-            <span className="text-sm font-black text-emerald-400">ONLINE (ቀጥታ ግንኙነት)</span>
+            <span className="text-[11px] font-bold text-slate-500 block uppercase">የሲስተም ሁኔታ</span>
+            <span className="text-sm font-black text-emerald-600">ONLINE (ቀጥታ ግንኙነት)</span>
           </div>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-lg flex items-center space-x-4">
-          <div className="p-3 bg-purple-500/10 text-purple-400 rounded-2xl border border-purple-500/20">
+        <div className="bg-white/80 border border-slate-200 p-5 rounded-2xl shadow-lg flex items-center space-x-4">
+          <div className="p-3 bg-purple-500/10 text-purple-600 rounded-2xl border border-purple-500/20">
             <Zap className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[11px] font-bold text-slate-400 block uppercase">የስራ ጊዜ (Uptime)</span>
-            <span className="text-sm font-black text-purple-300">{healthStatus?.uptime || 'Active'}</span>
+            <span className="text-[11px] font-bold text-slate-500 block uppercase">የስራ ጊዜ (Uptime)</span>
+            <span className="text-sm font-black text-purple-700">{healthStatus?.uptime || 'Active'}</span>
           </div>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-lg flex items-center space-x-4">
-          <div className="p-3 bg-blue-500/10 text-blue-400 rounded-2xl border border-blue-500/20">
+        <div className="bg-white/80 border border-slate-200 p-5 rounded-2xl shadow-lg flex items-center space-x-4">
+          <div className="p-3 bg-blue-500/10 text-blue-600 rounded-2xl border border-blue-500/20">
             <Server className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[11px] font-bold text-slate-400 block uppercase">የሰርቨር ፖርት</span>
-            <span className="text-sm font-black text-white">Port {healthStatus?.activePort || '3000'} (Ingress)</span>
+            <span className="text-[11px] font-bold text-slate-500 block uppercase">የሰርቨር ፖርት</span>
+            <span className="text-sm font-black text-slate-900">Port {healthStatus?.activePort || '3000'} (Ingress)</span>
           </div>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-lg flex items-center space-x-4">
-          <div className="p-3 bg-amber-500/10 text-amber-400 rounded-2xl border border-amber-500/20">
+        <div className="bg-white/80 border border-slate-200 p-5 rounded-2xl shadow-lg flex items-center space-x-4">
+          <div className="p-3 bg-amber-500/10 text-amber-600 rounded-2xl border border-amber-500/20">
             <Cpu className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[11px] font-bold text-slate-400 block uppercase">የሜሞሪ አጠቃቀም</span>
-            <span className="text-sm font-black text-amber-300">{healthStatus?.memoryUsage || '~48.2 MB'}</span>
+            <span className="text-[11px] font-bold text-slate-500 block uppercase">የሜሞሪ አጠቃቀም</span>
+            <span className="text-sm font-black text-amber-700">{healthStatus?.memoryUsage || '~48.2 MB'}</span>
           </div>
         </div>
       </div>
 
       {/* Security Shield & Hardening Status Banner */}
-      <div className="bg-gradient-to-r from-emerald-950/80 via-slate-900/90 to-blue-950/80 backdrop-blur-md rounded-3xl p-6 border-2 border-emerald-500/40 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div className="bg-gradient-to-r from-emerald-50/80 via-white/90 to-blue-50/80 backdrop-blur-md rounded-3xl p-6 border-2 border-emerald-500/40 shadow-2xl space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
           <div className="flex items-center space-x-3">
-            <div className="p-3 bg-emerald-500/20 text-emerald-300 rounded-2xl border border-emerald-500/40 shadow-inner">
-              <ShieldCheck className="w-6 h-6 text-emerald-400" />
+            <div className="p-3 bg-emerald-500/20 text-emerald-700 rounded-2xl border border-emerald-500/40 shadow-inner">
+              <ShieldCheck className="w-6 h-6 text-emerald-600" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-black text-white">🔒 የሲስተም ደህንነትና የጥበቃ ሁኔታ (Security Health & Shield)</h2>
+                <h2 className="text-base font-black text-slate-900">🔒 የሲስተም ደህንነትና የጥበቃ ሁኔታ (Security Health & Shield)</h2>
                 <span className={`px-2 py-0.5 text-[10px] font-mono font-black rounded-full border ${
                   securityMetrics
                     ? securityMetrics.score >= 90
-                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                      : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                    : 'bg-slate-800 text-slate-400 border-slate-700 animate-pulse'
+                      ? 'bg-emerald-500/20 text-emerald-700 border-emerald-500/40'
+                      : 'bg-amber-500/20 text-amber-700 border-amber-500/40'
+                    : 'bg-slate-100 text-slate-500 border-slate-300 animate-pulse'
                 }`}>
                   {securityMetrics ? `SCORE ${securityMetrics.score}% ${securityMetrics.status}` : 'CALCULATING AUDIT SCORE...'}
                 </span>
               </div>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-slate-700">
                 PostgreSQL RBAC, Strict CORS Whitelist, Session-Scoped Tokens, Server-Side Password Enforcement, Dynamic Single-Use 2FA, Anti-Formula CSV, Dynamic IP Salt
               </p>
             </div>
@@ -622,30 +622,30 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
-          <div className="bg-slate-950/80 p-3 rounded-2xl border border-emerald-500/20">
-            <span className="text-slate-400 text-[10px] block">2FA የተገበረላቸው</span>
-            <span className="text-emerald-400 font-bold text-sm">
+          <div className="bg-slate-50/80 p-3 rounded-2xl border border-emerald-500/20">
+            <span className="text-slate-500 text-[10px] block">2FA የተገበረላቸው</span>
+            <span className="text-emerald-600 font-bold text-sm">
               {securityMetrics?.metrics?.admins_with_2fa || 0} / {securityMetrics?.metrics?.total_admins || 3} Admins
             </span>
           </div>
 
-          <div className="bg-slate-950/80 p-3 rounded-2xl border border-amber-500/20">
-            <span className="text-slate-400 text-[10px] block">ያልተሳኩ የመግባት ሙከራዎች</span>
-            <span className="text-amber-400 font-bold text-sm">
+          <div className="bg-slate-50/80 p-3 rounded-2xl border border-amber-500/20">
+            <span className="text-slate-500 text-[10px] block">ያልተሳኩ የመግባት ሙከራዎች</span>
+            <span className="text-amber-600 font-bold text-sm">
               {securityMetrics?.metrics?.failed_login_attempts_recorded || 0} Attempts
             </span>
           </div>
 
-          <div className="bg-slate-950/80 p-3 rounded-2xl border border-blue-500/20">
-            <span className="text-slate-400 text-[10px] block">የይለፍ ቃል ለውጦች</span>
-            <span className="text-blue-400 font-bold text-sm">
+          <div className="bg-slate-50/80 p-3 rounded-2xl border border-blue-500/20">
+            <span className="text-slate-500 text-[10px] block">የይለፍ ቃል ለውጦች</span>
+            <span className="text-blue-600 font-bold text-sm">
               {securityMetrics?.metrics?.password_changes_recorded || 0} Changed
             </span>
           </div>
 
-          <div className="bg-slate-950/80 p-3 rounded-2xl border border-purple-500/20">
-            <span className="text-slate-400 text-[10px] block">የደህንነት ኦዲት መዝገብ</span>
-            <span className="text-purple-300 font-bold text-sm">
+          <div className="bg-slate-50/80 p-3 rounded-2xl border border-purple-500/20">
+            <span className="text-slate-500 text-[10px] block">የደህንነት ኦዲት መዝገብ</span>
+            <span className="text-purple-700 font-bold text-sm">
               {securityMetrics?.metrics?.total_audit_logs || auditLogs.length} Records
             </span>
           </div>
@@ -653,15 +653,15 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
 
         {/* Dynamic Hardening Checklist */}
         {securityMetrics?.checklist && (
-          <div className="pt-2 border-t border-slate-800/80">
+          <div className="pt-2 border-t border-slate-200/80">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
               {securityMetrics.checklist.map((item: any, idx: number) => (
-                <div key={idx} className="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px]">
-                  <span className="text-slate-300 flex items-center gap-1.5">
+                <div key={idx} className="flex items-center justify-between p-2 rounded-xl bg-slate-50/60 border border-slate-200 text-[11px]">
+                  <span className="text-slate-700 flex items-center gap-1.5">
                     <span className={`w-1.5 h-1.5 rounded-full ${item.passed ? 'bg-emerald-400' : 'bg-amber-400'}`} />
                     {item.name}
                   </span>
-                  <span className={`font-mono text-[10px] font-bold ${item.passed ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  <span className={`font-mono text-[10px] font-bold ${item.passed ? 'text-emerald-600' : 'text-amber-600'}`}>
                     {item.status}
                   </span>
                 </div>
@@ -674,18 +674,18 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
       {/* Main Developer Tools Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* 1. 🚨 Real-Time Error & Exception Logger */}
-        <div className="bg-slate-900/80 backdrop-blur-md rounded-3xl p-6 border border-purple-500/30 shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-purple-500/30 shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div className="flex items-center space-x-3">
-              <div className="p-2.5 bg-red-500/10 text-red-400 rounded-2xl border border-red-500/20">
+              <div className="p-2.5 bg-red-500/10 text-red-600 rounded-2xl border border-red-500/20">
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-sm font-black text-white">1. 🚨 Real-Time Error & Exception Logger</h2>
-                <p className="text-[11px] text-slate-400">የኤረር እና የክራሽ ክትትል (Stack Trace Inspection)</p>
+                <h2 className="text-sm font-black text-slate-900">1. 🚨 Real-Time Error & Exception Logger</h2>
+                <p className="text-[11px] text-slate-500">የኤረር እና የክራሽ ክትትል (Stack Trace Inspection)</p>
               </div>
             </div>
-            <span className="px-2.5 py-1 bg-red-500/20 text-red-300 text-[10px] font-mono font-bold rounded-full border border-red-500/30">
+            <span className="px-2.5 py-1 bg-red-500/20 text-red-700 text-[10px] font-mono font-bold rounded-full border border-red-500/30">
               Active Logger
             </span>
           </div>
@@ -694,16 +694,16 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
             {errorLogs.map((log) => (
               <div
                 key={log.id}
-                className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-1.5 relative overflow-hidden"
+                className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-1.5 relative overflow-hidden"
               >
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-purple-400 font-bold">{log.api_path}</span>
+                  <span className="text-purple-600 font-bold">{log.api_path}</span>
                   <span className="text-slate-500">{log.timestamp}</span>
                 </div>
-                <p className="text-amber-300 font-bold">{log.error_type}: {log.message}</p>
-                <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-900">
-                  <span>Line: <span className="text-slate-200">{log.line_info || 'N/A'}</span></span>
-                  <span>IP: <span className="text-slate-200">{log.ip_address || '127.0.0.1'}</span></span>
+                <p className="text-amber-700 font-bold">{log.error_type}: {log.message}</p>
+                <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-200">
+                  <span>Line: <span className="text-slate-800">{log.line_info || 'N/A'}</span></span>
+                  <span>IP: <span className="text-slate-800">{log.ip_address || '127.0.0.1'}</span></span>
                 </div>
               </div>
             ))}
@@ -711,78 +711,78 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
         </div>
 
         {/* 2. 🗄️ Interactive DB Inspector & Seeder */}
-        <div className="bg-slate-900/80 backdrop-blur-md rounded-3xl p-6 border border-purple-500/30 shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-purple-500/30 shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div className="flex items-center space-x-3">
-              <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-2xl border border-blue-500/20">
+              <div className="p-2.5 bg-blue-500/10 text-blue-600 rounded-2xl border border-blue-500/20">
                 <Database className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-sm font-black text-white">2. 🗄️ DB Inspector & Test Data Generator</h2>
-                <p className="text-[11px] text-slate-400">የዳታቤዝ ሁኔታ እና የቴስት አቤቱታዎች ማመንጫ (Live Dynamic Sync)</p>
+                <h2 className="text-sm font-black text-slate-900">2. 🗄️ DB Inspector & Test Data Generator</h2>
+                <p className="text-[11px] text-slate-500">የዳታቤዝ ሁኔታ እና የቴስት አቤቱታዎች ማመንጫ (Live Dynamic Sync)</p>
               </div>
             </div>
             {dbStats?.isProduction ? (
-              <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold rounded-full border border-emerald-500/30 flex items-center gap-1">
+              <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-700 text-[10px] font-mono font-bold rounded-full border border-emerald-500/30 flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3" /> PROD PROTECTED
               </span>
             ) : (
-              <span className="px-2.5 py-1 bg-amber-500/20 text-amber-300 text-[10px] font-mono font-bold rounded-full border border-amber-500/30 flex items-center gap-1">
+              <span className="px-2.5 py-1 bg-amber-500/20 text-amber-700 text-[10px] font-mono font-bold rounded-full border border-amber-500/30 flex items-center gap-1">
                 <Wrench className="w-3 h-3" /> DEV SANDBOX
               </span>
             )}
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-xs font-mono">
-            <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-              <span className="text-slate-400 text-[10px] block">የአድሚኖች ብዛት</span>
-              <span className="text-white font-bold text-sm">
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <span className="text-slate-500 text-[10px] block">የአድሚኖች ብዛት</span>
+              <span className="text-slate-900 font-bold text-sm">
                 {loadingDbStats ? '...' : `${dbStats?.tablesCount?.admins ?? 0} (${dbStats?.tablesCount?.adminUsernames?.join(', ') || 'Active'})`}
               </span>
             </div>
-            <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-              <span className="text-slate-400 text-[10px] block">የአቤቱታዎች ብዛት</span>
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <span className="text-slate-500 text-[10px] block">የአቤቱታዎች ብዛት</span>
               <div className="flex items-baseline justify-between">
-                <span className="text-amber-400 font-bold text-sm">
+                <span className="text-amber-600 font-bold text-sm">
                   {loadingDbStats ? '...' : `${dbStats?.tablesCount?.tickets ?? 0} Tickets`}
                 </span>
                 {dbStats?.tablesCount?.testTicketsCount > 0 && (
-                  <span className="text-[10px] text-purple-400 font-bold">
+                  <span className="text-[10px] text-purple-600 font-bold">
                     ({dbStats?.tablesCount?.realTicketsCount || 0} Real / {dbStats?.tablesCount?.testTicketsCount} Test)
                   </span>
                 )}
               </div>
             </div>
-            <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-              <span className="text-slate-400 text-[10px] block">የመጠይቆች ብዛት</span>
-              <span className="text-blue-400 font-bold text-sm">
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <span className="text-slate-500 text-[10px] block">የመጠይቆች ብዛት</span>
+              <span className="text-blue-600 font-bold text-sm">
                 {loadingDbStats ? '...' : `${dbStats?.tablesCount?.surveys ?? 0} Surveys`}
               </span>
             </div>
-            <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-              <span className="text-slate-400 text-[10px] block">ኦዲት ሎግ</span>
-              <span className="text-emerald-400 font-bold text-sm">
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <span className="text-slate-500 text-[10px] block">ኦዲት ሎግ</span>
+              <span className="text-emerald-600 font-bold text-sm">
                 {loadingDbStats ? '...' : `${dbStats?.tablesCount?.audit_logs ?? 0} Activity Records`}
               </span>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-slate-800 space-y-2.5">
+          <div className="pt-2 border-t border-slate-200 space-y-2.5">
             {dbStats?.isProduction ? (
               <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl space-y-1">
-                <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+                <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs">
                   <ShieldCheck className="w-4 h-4" />
                   <span>የፕሮዳክሽን ዳታ ጥበቃ (Production Data Integrity Guard)</span>
                 </div>
-                <p className="text-[11px] text-slate-300">
+                <p className="text-[11px] text-slate-700">
                   የውሸት/የሙከራ አቤቱታዎችን ማመንጨት በProduction Environment ላይ የታገደ ሲሆን፤ እውነተኛ የዜጎች መረጃ ብቻ በዳታቤዝ ውስጥ እንዲመዘገብ የተጠበቀ ነው።
                 </p>
               </div>
             ) : (
               <>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-300 block">⚡ Quick Test Data Generator (Sandbox Only):</span>
-                  <span className="text-[10px] font-mono text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
+                  <span className="text-xs font-bold text-slate-700 block">⚡ Quick Test Data Generator (Sandbox Only):</span>
+                  <span className="text-[10px] font-mono text-purple-600 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
                     Non-Prod Mode
                   </span>
                 </div>
@@ -810,7 +810,7 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
                   <button
                     onClick={handleCleanupTestTickets}
                     disabled={cleaningTestTickets}
-                    className="w-full py-2 bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                    className="w-full py-2 bg-red-500/15 hover:bg-red-500/25 text-red-700 border border-red-500/30 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
                   >
                     {cleaningTestTickets ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                     <span>🧹 ሁሉንም ቴስት ዳታ አፅዳ ({dbStats.tablesCount.testTicketsCount} Test Tickets)</span>
@@ -822,38 +822,38 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
         </div>
 
         {/* 3. 📲 Notification Sandbox (Software Developer Only Telegram Config) */}
-        <div className="bg-slate-900/80 backdrop-blur-md rounded-3xl p-6 border border-purple-500/30 shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-purple-500/30 shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div className="flex items-center space-x-3">
-              <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-2xl border border-amber-500/20">
+              <div className="p-2.5 bg-amber-500/10 text-amber-600 rounded-2xl border border-amber-500/20">
                 <Send className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-sm font-black text-white">3. 📲 Telegram Bot Notification Sandbox</h2>
-                <p className="text-[11px] text-slate-400">የቴሌግራም መለያዎችና የሙከራ መልእክት መላኪያ (Software Developer Only)</p>
+                <h2 className="text-sm font-black text-slate-900">3. 📲 Telegram Bot Notification Sandbox</h2>
+                <p className="text-[11px] text-slate-500">የቴሌግራም መለያዎችና የሙከራ መልእክት መላኪያ (Software Developer Only)</p>
               </div>
             </div>
           </div>
 
           <form onSubmit={handleSaveTelegram} className="space-y-3">
             <div>
-              <label className="block text-[11px] font-bold text-slate-300 mb-1">Telegram Bot Token</label>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">Telegram Bot Token</label>
               <input
                 type="text"
                 value={telegramConfig.botToken || ''}
                 onChange={(e) => setTelegramConfig({ ...telegramConfig, botToken: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="e.g. 7123456789:ABCdefGhIJKlmNoPQRstuVWXyz"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-300 mb-1">Telegram Chat ID</label>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">Telegram Chat ID</label>
               <input
                 type="text"
                 value={telegramConfig.chatId || ''}
                 onChange={(e) => setTelegramConfig({ ...telegramConfig, chatId: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="e.g. -100123456789 or 987654321"
               />
             </div>
@@ -862,7 +862,7 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
               <button
                 type="submit"
                 disabled={savingTelegram}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 flex items-center gap-1.5"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 flex items-center gap-1.5"
               >
                 {savingTelegram ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                 <span>መረጃውን አስቀምጥ</span>
@@ -882,24 +882,24 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
         </div>
 
         {/* 4. 🛠️ Emergency Maintenance Mode & Cache Tools */}
-        <div className="bg-slate-900/80 backdrop-blur-md rounded-3xl p-6 border border-purple-500/30 shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-purple-500/30 shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div className="flex items-center space-x-3">
-              <div className="p-2.5 bg-purple-500/10 text-purple-400 rounded-2xl border border-purple-500/20">
+              <div className="p-2.5 bg-purple-500/10 text-purple-600 rounded-2xl border border-purple-500/20">
                 <Wrench className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-sm font-black text-white">4. 🛠️ Maintenance Mode & System Cache Tools</h2>
-                <p className="text-[11px] text-slate-400">የጥገና ሁኔታ ማብሪያና ማጥፊያ እና ካሽ ማፅጃ</p>
+                <h2 className="text-sm font-black text-slate-900">4. 🛠️ Maintenance Mode & System Cache Tools</h2>
+                <p className="text-[11px] text-slate-500">የጥገና ሁኔታ ማብሪያና ማጥፊያ እና ካሽ ማፅጃ</p>
               </div>
             </div>
           </div>
 
           <div className="space-y-4 pt-1">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-950 rounded-2xl border border-slate-800 gap-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200 gap-3">
               <div>
-                <span className="text-xs font-black text-white block">Emergency Maintenance Mode</span>
-                <span className="text-[11px] text-slate-400 block">ለዜጎች "ሲስተሙ በጥገና ላይ ነው" የማሳያ ገጽ ማብሪያ</span>
+                <span className="text-xs font-black text-slate-900 block">Emergency Maintenance Mode</span>
+                <span className="text-[11px] text-slate-500 block">ለዜጎች "ሲስተሙ በጥገና ላይ ነው" የማሳያ ገጽ ማብሪያ</span>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -907,7 +907,7 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
                   className={`px-4 py-2 rounded-xl text-xs font-black transition-all shadow-md ${
                     maintenanceMode
                       ? 'bg-amber-500 text-slate-950 border border-amber-300 animate-pulse'
-                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300'
                   }`}
                 >
                   {maintenanceMode ? 'ON (በጥገና ላይ ነው)' : 'OFF (መደበኛ አሰራር)'}
@@ -915,15 +915,15 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-slate-950 rounded-2xl border border-slate-800">
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200">
               <div>
-                <span className="text-xs font-black text-white block">Purge Server & Browser Cache</span>
-                <span className="text-[11px] text-slate-400 block">የተቀመጡ ያረጁ ዳታዎችን በ1-ክሊክ ማፅጃ</span>
+                <span className="text-xs font-black text-slate-900 block">Purge Server & Browser Cache</span>
+                <span className="text-[11px] text-slate-500 block">የተቀመጡ ያረጁ ዳታዎችን በ1-ክሊክ ማፅጃ</span>
               </div>
               <button
                 onClick={handleClearCache}
                 disabled={clearingCache}
-                className="px-4 py-2 bg-purple-900/60 hover:bg-purple-800 text-purple-200 text-xs font-black rounded-xl border border-purple-500/30 flex items-center gap-1.5 transition-all"
+                className="px-4 py-2 bg-purple-100/60 hover:bg-purple-800 text-purple-700 text-xs font-black rounded-xl border border-purple-500/30 flex items-center gap-1.5 transition-all"
               >
                 {clearingCache ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                 <span>Cache Cleaner</span>
@@ -933,21 +933,21 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
         </div>
 
         {/* 5. 🔐 Global 2FA Toggle */}
-        <div className="bg-slate-900/80 backdrop-blur-md rounded-3xl p-6 border border-emerald-500/30 shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-emerald-500/30 shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div className="flex items-center space-x-3">
-              <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-2xl border border-emerald-500/20">
+              <div className="p-2.5 bg-emerald-500/10 text-emerald-600 rounded-2xl border border-emerald-500/20">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-sm font-black text-white">5. 🔐 ስገዳጅ የ2FA ማረጋገጫ (Global 2FA Enforcement)</h2>
-                <p className="text-[11px] text-slate-400">ሁሉም አድሚኖች Google Authenticator ኮድ ግዴታ ማድረጊያ/ማሰናከያ</p>
+                <h2 className="text-sm font-black text-slate-900">5. 🔐 ስገዳጅ የ2FA ማረጋገጫ (Global 2FA Enforcement)</h2>
+                <p className="text-[11px] text-slate-500">ሁሉም አድሚኖች Google Authenticator ኮድ ግዴታ ማድረጊያ/ማሰናከያ</p>
               </div>
             </div>
             <span className={`px-2.5 py-1 text-[10px] font-mono font-black rounded-full border ${
               global2Fa
-                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 animate-pulse'
-                : 'bg-slate-800 text-slate-400 border-slate-700'
+                ? 'bg-emerald-500/20 text-emerald-700 border-emerald-500/40 animate-pulse'
+                : 'bg-slate-100 text-slate-500 border-slate-300'
             }`}>
               {global2Fa ? '🔒 GLOBAL 2FA ON' : '🔓 GLOBAL 2FA OFF'}
             </span>
@@ -958,21 +958,21 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
             <div className={`p-4 rounded-2xl border ${
               global2Fa
                 ? 'bg-emerald-500/10 border-emerald-500/30'
-                : 'bg-slate-950 border-slate-800'
+                : 'bg-slate-50 border-slate-200'
             }`}>
               <div className="flex items-start gap-3">
                 <div className={`p-2 rounded-xl mt-0.5 ${
-                  global2Fa ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-500'
+                  global2Fa ? 'bg-emerald-500/20 text-emerald-600' : 'bg-slate-100 text-slate-500'
                 }`}>
                   <Lock className="w-4 h-4" />
                 </div>
                 <div className="flex-1">
                   <span className={`text-xs font-black block ${
-                    global2Fa ? 'text-emerald-300' : 'text-slate-300'
+                    global2Fa ? 'text-emerald-700' : 'text-slate-700'
                   }`}>
                     Google Authenticator (2FA) {global2Fa ? '✅ ስገዳጅ (ENFORCED)' : '⚪ ጠፍቷል (OFF / Disabled)'}
                   </span>
-                  <span className="text-[11px] text-slate-400 block mt-0.5">
+                  <span className="text-[11px] text-slate-500 block mt-0.5">
                     {global2Fa
                       ? 'ሁሉም አድሚኖች (opa፣ owner፣ admin) ሲገቡ Google Authenticator ባለ 6-አሃዝ ኮድ ማቅረብ ይጠበቅባቸዋል::'
                       : 'Global 2FA ጠፍቷል - አድሚኖች ያለ Authenticator ኮድ ሊገቡ ይችላሉ:: (ለምርመራ/ዳግም ማዋቀር ጊዜ ጠቃሚ)'
@@ -1014,91 +1014,91 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
       </div>
 
       {/* Developer Master System Credentials Reference */}
-      <div className="bg-slate-900/80 backdrop-blur-md rounded-3xl p-6 border border-purple-500/30 shadow-xl space-y-5">
-        <div className="flex items-center space-x-3 border-b border-slate-800 pb-4">
-          <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-2xl border border-amber-500/20">
+      <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-purple-500/30 shadow-xl space-y-5">
+        <div className="flex items-center space-x-3 border-b border-slate-200 pb-4">
+          <div className="p-2.5 bg-amber-500/10 text-amber-600 rounded-2xl border border-amber-500/20">
             <Key className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-black text-white">የ3ቱ ዋና መለያዎች ዝርዝር (System Built-In Credentials)</h2>
-            <p className="text-[11px] text-slate-400">ለሶፍትዌር ሰሪው ኦፓ (opa)፣ ለባለቤት (Owner 1) እና ለሥራ አስፈፃሚ አድሚን</p>
+            <h2 className="text-sm font-black text-slate-900">የ3ቱ ዋና መለያዎች ዝርዝር (System Built-In Credentials)</h2>
+            <p className="text-[11px] text-slate-500">ለሶፍትዌር ሰሪው ኦፓ (opa)፣ ለባለቤት (Owner 1) እና ለሥራ አስፈፃሚ አድሚን</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Card 1: Developer opa */}
-          <div className="bg-purple-950/40 border border-purple-500/40 p-5 rounded-2xl space-y-2">
+          <div className="bg-purple-50/40 border border-purple-500/40 p-5 rounded-2xl space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-purple-300 uppercase flex items-center gap-1.5">
-                <Laptop className="w-4 h-4 text-purple-400" />
+              <span className="text-xs font-black text-purple-700 uppercase flex items-center gap-1.5">
+                <Laptop className="w-4 h-4 text-purple-600" />
                 1. Software Developer
               </span>
-              <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-200 text-[10px] font-mono font-bold">
+              <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-700 text-[10px] font-mono font-bold">
                 opa
               </span>
             </div>
-            <div className="text-xs space-y-1 pt-1 font-mono text-slate-300">
-              <p>Username: <span className="text-amber-300 font-bold">opa</span></p>
-              <p>Email: <span className="text-slate-200">opa@dgc.gov.et</span></p>
-              <p>Password: <span className="text-emerald-400 font-bold">OPA@123</span></p>
+            <div className="text-xs space-y-1 pt-1 font-mono text-slate-700">
+              <p>Username: <span className="text-amber-700 font-bold">opa</span></p>
+              <p>Email: <span className="text-slate-800">opa@dgc.gov.et</span></p>
+              <p>Password: <span className="text-emerald-600 font-bold">OPA@123</span></p>
             </div>
           </div>
 
           {/* Card 2: Owner 1 */}
-          <div className="bg-amber-950/30 border border-amber-500/40 p-5 rounded-2xl space-y-2">
+          <div className="bg-amber-50/30 border border-amber-500/40 p-5 rounded-2xl space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-amber-300 uppercase flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-amber-400" />
+              <span className="text-xs font-black text-amber-700 uppercase flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-amber-600" />
                 2. System Owner
               </span>
-              <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-200 text-[10px] font-mono font-bold">
+              <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 text-[10px] font-mono font-bold">
                 owner1
               </span>
             </div>
-            <div className="text-xs space-y-1 pt-1 font-mono text-slate-300">
-              <p>Username: <span className="text-amber-300 font-bold">owner1</span></p>
-              <p>Email: <span className="text-slate-200">owner1@dgc.gov.et</span></p>
-              <p>Password: <span className="text-emerald-400 font-bold">Owner1@123</span></p>
+            <div className="text-xs space-y-1 pt-1 font-mono text-slate-700">
+              <p>Username: <span className="text-amber-700 font-bold">owner1</span></p>
+              <p>Email: <span className="text-slate-800">owner1@dgc.gov.et</span></p>
+              <p>Password: <span className="text-emerald-600 font-bold">Owner1@123</span></p>
             </div>
           </div>
 
           {/* Card 3: Admin */}
-          <div className="bg-blue-950/30 border border-blue-500/40 p-5 rounded-2xl space-y-2">
+          <div className="bg-blue-50/30 border border-blue-500/40 p-5 rounded-2xl space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-blue-300 uppercase flex items-center gap-1.5">
-                <Wrench className="w-4 h-4 text-blue-400" />
+              <span className="text-xs font-black text-blue-700 uppercase flex items-center gap-1.5">
+                <Wrench className="w-4 h-4 text-blue-600" />
                 3. Admin (Report & Post)
               </span>
-              <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-200 text-[10px] font-mono font-bold">
+              <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-700 text-[10px] font-mono font-bold">
                 admin
               </span>
             </div>
-            <div className="text-xs space-y-1 pt-1 font-mono text-slate-300">
-              <p>Username: <span className="text-amber-300 font-bold">admin</span></p>
-              <p>Email: <span className="text-slate-200">admin@dgc.gov.et</span></p>
-              <p>Password: <span className="text-emerald-400 font-bold">Admin@123456</span></p>
+            <div className="text-xs space-y-1 pt-1 font-mono text-slate-700">
+              <p>Username: <span className="text-amber-700 font-bold">admin</span></p>
+              <p>Email: <span className="text-slate-800">admin@dgc.gov.et</span></p>
+              <p>Password: <span className="text-emerald-600 font-bold">Admin@123456</span></p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Developer Live Real-Time Terminal & Audit Event Logger */}
-      <div className="bg-slate-950 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl font-mono text-xs space-y-4">
+      <div className="bg-slate-50 border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-2xl font-mono text-xs space-y-4">
         {/* Terminal Header */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-purple-500/10 text-purple-400 rounded-xl border border-purple-500/20">
+            <div className="p-2 bg-purple-500/10 text-purple-600 rounded-xl border border-purple-500/20">
               <Terminal className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-black text-slate-100 text-sm tracking-tight">Live System Console & Event Log</span>
-                <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                <span className="font-black text-slate-900 text-sm tracking-tight">Live System Console & Event Log</span>
+                <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                   <span>● REAL-TIME LIVE</span>
                 </span>
               </div>
-              <p className="text-[11px] font-sans text-slate-400 mt-0.5">
+              <p className="text-[11px] font-sans text-slate-500 mt-0.5">
                 በሲስተሙ ውስጥ የሚከናወኑ ማንኛቸውም የዜጎች፣ የአድሚኖች እና የደቨሎፐር እንቅስቃሴዎች እዚህ ሎግ ላይ ወዲያውኑ ይታያሉ:: (Total: {auditLogs.length} events)
               </p>
             </div>
@@ -1107,12 +1107,12 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
           {/* Terminal Controls */}
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start md:justify-end">
             {/* Filter Dropdown */}
-            <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-2.5 py-1.5 rounded-xl text-slate-300 text-[11px]">
-              <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1.5 rounded-xl text-slate-700 text-[11px]">
+              <Filter className="w-3.5 h-3.5 text-slate-500" />
               <select
                 value={logFilter}
                 onChange={(e) => setLogFilter(e.target.value)}
-                className="bg-transparent text-slate-200 focus:outline-none cursor-pointer text-[11px] font-bold"
+                className="bg-transparent text-slate-800 focus:outline-none cursor-pointer text-[11px] font-bold"
               >
                 <option value="ALL">ሁሉንም ሎጎች (All Logs)</option>
                 <option value="CITIZEN">የዜጎች አቤቱታና አስተያየት</option>
@@ -1126,12 +1126,12 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
               onClick={() => setAutoRefreshLogs(!autoRefreshLogs)}
               className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold flex items-center gap-1.5 transition-all ${
                 autoRefreshLogs
-                  ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/30'
-                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
+                  ? 'bg-emerald-50/80 text-emerald-700 border-emerald-500/30'
+                  : 'bg-white text-slate-500 border-slate-200 hover:text-slate-800'
               }`}
               title={autoRefreshLogs ? 'Auto Refresh በርቷል' : 'Auto Refresh ቆሟል'}
             >
-              {autoRefreshLogs ? <Pause className="w-3 h-3 text-emerald-400" /> : <Play className="w-3 h-3" />}
+              {autoRefreshLogs ? <Pause className="w-3 h-3 text-emerald-600" /> : <Play className="w-3 h-3" />}
               <span>{autoRefreshLogs ? 'Auto 2.5s' : 'Paused'}</span>
             </button>
 
@@ -1139,9 +1139,9 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
             <button
               onClick={fetchAuditLogs}
               disabled={loadingLogs}
-              className="px-3 py-1.5 bg-purple-900/60 hover:bg-purple-800 text-purple-200 border border-purple-500/30 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-sm"
+              className="px-3 py-1.5 bg-purple-100/60 hover:bg-purple-800 text-purple-700 border border-purple-500/30 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-sm"
             >
-              <RefreshCw className={`w-3 h-3 ${loadingLogs ? 'animate-spin text-purple-300' : ''}`} />
+              <RefreshCw className={`w-3 h-3 ${loadingLogs ? 'animate-spin text-purple-700' : ''}`} />
               <span>አድስ</span>
             </button>
           </div>
@@ -1150,13 +1150,13 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
         {/* Console Viewport */}
         <div
           ref={logContainerRef}
-          className="bg-slate-900/90 p-4 rounded-2xl border border-slate-800/80 space-y-2.5 text-slate-300 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 font-mono text-[11px] leading-relaxed shadow-inner"
+          className="bg-white/90 p-4 rounded-2xl border border-slate-200/80 space-y-2.5 text-slate-700 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 font-mono text-[11px] leading-relaxed shadow-inner"
         >
           {/* Baseline System Boots */}
-          <div className="text-slate-500 border-b border-slate-800/60 pb-2 space-y-1">
-            <p className="text-emerald-400/90">[SYSTEM BOOT] Dual-persistence PostgreSQL & Local JSON fallback initialized.</p>
-            <p className="text-blue-400/90">[SECURITY ENGINE] Role-Based Access Control verified for opa, owner1, and admin.</p>
-            <p className="text-purple-300/90">[OPA ENGINE] OPA Multilingual NLP processor active (Afaan Oromoo / Soomaali / Amharic).</p>
+          <div className="text-slate-500 border-b border-slate-200/60 pb-2 space-y-1">
+            <p className="text-emerald-600/90">[SYSTEM BOOT] Dual-persistence PostgreSQL & Local JSON fallback initialized.</p>
+            <p className="text-blue-600/90">[SECURITY ENGINE] Role-Based Access Control verified for opa, owner1, and admin.</p>
+            <p className="text-purple-700/90">[OPA ENGINE] OPA Multilingual NLP processor active (Afaan Oromoo / Soomaali / Amharic).</p>
           </div>
 
           {auditLogs.length === 0 ? (
@@ -1175,33 +1175,33 @@ export const DeveloperOpaControl: React.FC<DeveloperOpaControlProps> = ({
               })
               .map((log) => {
                 const act = (log.action || '').toUpperCase();
-                let badgeClass = 'text-slate-300 bg-slate-800 border-slate-700';
-                if (act.includes('TICKET') || act.includes('SUBMISSION')) badgeClass = 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30';
-                else if (act.includes('LOGIN') || act.includes('ADMIN')) badgeClass = 'text-blue-300 bg-blue-500/15 border-blue-500/30';
-                else if (act.includes('MAINTENANCE')) badgeClass = 'text-amber-300 bg-amber-500/15 border-amber-500/30';
-                else if (act.includes('DEV') || act.includes('SEED') || act.includes('USER')) badgeClass = 'text-purple-300 bg-purple-500/15 border-purple-500/30';
-                else if (act.includes('TELEGRAM') || act.includes('EXPORT') || act.includes('REPORT')) badgeClass = 'text-cyan-300 bg-cyan-500/15 border-cyan-500/30';
+                let badgeClass = 'text-slate-700 bg-slate-100 border-slate-300';
+                if (act.includes('TICKET') || act.includes('SUBMISSION')) badgeClass = 'text-emerald-700 bg-emerald-500/15 border-emerald-500/30';
+                else if (act.includes('LOGIN') || act.includes('ADMIN')) badgeClass = 'text-blue-700 bg-blue-500/15 border-blue-500/30';
+                else if (act.includes('MAINTENANCE')) badgeClass = 'text-amber-700 bg-amber-500/15 border-amber-500/30';
+                else if (act.includes('DEV') || act.includes('SEED') || act.includes('USER')) badgeClass = 'text-purple-700 bg-purple-500/15 border-purple-500/30';
+                else if (act.includes('TELEGRAM') || act.includes('EXPORT') || act.includes('REPORT')) badgeClass = 'text-cyan-700 bg-cyan-500/15 border-cyan-500/30';
 
                 const formattedTime = log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : 'N/A';
 
                 return (
                   <div
                     key={log.id}
-                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 p-2 rounded-xl bg-slate-950/60 hover:bg-slate-950 transition-colors border border-slate-800/40"
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 p-2 rounded-xl bg-slate-50/60 hover:bg-slate-50 transition-colors border border-slate-200/40"
                   >
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-slate-500 text-[10px]">[{formattedTime}]</span>
                       <span className={`px-2 py-0.5 rounded-lg border text-[10px] font-bold ${badgeClass}`}>
                         [{log.action}]
                       </span>
-                      <span className="text-amber-300/90 font-bold text-[10px]">
+                      <span className="text-amber-700/90 font-bold text-[10px]">
                         &lt;{log.admin_email}&gt;
                       </span>
-                      <span className="text-slate-200">{log.details}</span>
+                      <span className="text-slate-800">{log.details}</span>
                     </div>
 
                     {log.ip_address && (
-                      <span className="text-[10px] text-slate-500 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 shrink-0">
+                      <span className="text-[10px] text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200 shrink-0">
                         IP: {log.ip_address}
                       </span>
                     )}
