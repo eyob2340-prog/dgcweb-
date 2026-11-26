@@ -527,9 +527,9 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
   const textSub = isDarkMode ? 'text-slate-400' : 'text-slate-500';
   const subtleBox = isDarkMode ? 'bg-slate-950/40' : 'bg-slate-50';
   const chip = (active: boolean, invalid: boolean) =>
-    `min-h-[44px] px-4 py-2.5 rounded-xl text-sm font-bold transition-all border cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
+    `min-h-[44px] px-4 py-2.5 rounded-xl text-sm font-bold transition-all border cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
       active
-        ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-md shadow-amber-500/20'
+        ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-600/20'
         : `${isDarkMode ? 'bg-slate-950/70 text-slate-200 hover:border-slate-500' : 'bg-white text-slate-800 hover:border-slate-400'} ${
             invalid ? 'border-red-500/70' : isDarkMode ? 'border-slate-700' : 'border-slate-300'
           }`
@@ -612,7 +612,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 pt-2">
             <button
               onClick={share}
-              className="px-6 py-3.5 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 rounded-2xl text-sm font-black shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer"
+              className="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-emerald-500 text-white rounded-2xl text-sm font-black shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 cursor-pointer"
             >
               <Share2 className="w-4 h-4" />
               {copied ? ui.copied : ui.share}
@@ -620,7 +620,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
             <button
               onClick={() => setShowQrModal(true)}
               className={`px-6 py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 border cursor-pointer ${
-                isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-700' : 'bg-white hover:bg-slate-50 text-amber-600 border-slate-300'
+                isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-blue-300 border-slate-700' : 'bg-white hover:bg-slate-50 text-blue-700 border-slate-300'
               }`}
             >
               <QrCode className="w-4 h-4" />
@@ -650,110 +650,133 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
     isDarkMode ? 'bg-slate-900/80 hover:bg-slate-800 text-slate-200 border-slate-800' : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200'
   }`;
 
+  const progressBox = (extra: string) => (
+    <div className={`${extra} rounded-2xl border px-4 py-3 shadow-lg ${isDarkMode ? 'bg-slate-900/95 border-slate-800' : 'bg-white/95 border-slate-200'}`}>
+      <div className="flex items-center justify-between text-xs sm:text-sm font-bold">
+        <span className={isDarkMode ? 'text-slate-200' : 'text-slate-700'}>
+          {ui.filled}: <span className={isDarkMode ? 'text-blue-400' : 'text-blue-600'}>{doneSteps}</span> / {totalSteps}
+        </span>
+        <span className={progressPercent === 100 ? 'text-emerald-600' : textSub}>
+          {progressPercent === 100 ? ui.ready : `${progressPercent}%`}
+        </span>
+      </div>
+      <div className={`mt-2 h-2 w-full overflow-hidden rounded-full ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
+        <motion.div
+          className="h-full rounded-full bg-gradient-to-r from-blue-600 to-emerald-500"
+          animate={{ width: `${progressPercent}%` }}
+          transition={{ duration: 0.3 }}
+        />
+      </div>
+    </div>
+  );
+
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-28 sm:pb-8">
+    <div className="mx-auto max-w-7xl pb-28 sm:pb-8">
       {/* Top bar */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="mb-6 flex items-center justify-between gap-3">
         <button onClick={onBack} className={topBtn}>
           <ArrowLeft className="w-4 h-4" />
           {tx.back}
         </button>
         <div className="flex items-center gap-2">
           <button onClick={share} className={topBtn} aria-label={ui.share}>
-            <Share2 className="w-4 h-4 text-amber-500" />
+            <Share2 className="w-4 h-4 text-blue-600" />
             <span className="hidden sm:inline">{copied ? ui.copied : ui.share}</span>
           </button>
-          <button
-            onClick={() => setShowQrModal(true)}
-            className="min-h-[44px] px-4 py-2 text-sm font-bold text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 rounded-2xl border border-amber-500/30 flex items-center gap-2 cursor-pointer"
-          >
-            <QrCode className="w-4 h-4" />
+          <button onClick={() => setShowQrModal(true)} className={topBtn}>
+            <QrCode className="w-4 h-4 text-blue-600" />
             QR
           </button>
         </div>
       </div>
 
-      {/* Language selector */}
-      <div className={`p-2.5 sm:p-3 rounded-2xl border shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 ${card}`}>
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center border border-amber-500/20">
-            <Globe className="w-4 h-4" />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:items-start xl:gap-8">
+        {/* Left column: title, language, progress (stays in view on desktop) */}
+        <aside className="space-y-4 lg:sticky lg:top-[104px]">
+          <div
+            className={`relative overflow-hidden rounded-[2rem] border p-6 sm:p-7 shadow-xl ${
+              isDarkMode
+                ? 'border-blue-500/30 bg-gradient-to-br from-[#0b1f4a] via-[#0a1733] to-[#06261f]'
+                : 'border-blue-100 bg-gradient-to-br from-white via-sky-50 to-emerald-50 shadow-blue-900/5'
+            }`}
+          >
+            <div className="absolute inset-x-0 top-0 flex h-1.5">
+              <span className="flex-1 bg-emerald-500" />
+              <span className="flex-1 bg-amber-400" />
+              <span className="flex-1 bg-red-500" />
+            </div>
+            <span
+              className={`inline-block rounded-full border px-3 py-1 text-[11px] font-bold ${
+                isDarkMode ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300' : 'border-blue-100 bg-white text-blue-700'
+              }`}
+            >
+              {currentCategory}
+            </span>
+            <h1 className={`mt-3 text-xl sm:text-2xl font-black leading-snug ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{currentTitle}</h1>
+            <p className={`mt-3 text-sm leading-relaxed whitespace-pre-line ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>{currentDescription}</p>
+            <div className={`mt-5 flex flex-wrap gap-2 text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+              {[
+                { icon: <ListChecks className="w-4 h-4" />, text: ui.questionsCount(questionsList.length) },
+                { icon: <Clock className="w-4 h-4" />, text: ui.minutes },
+                { icon: <Lock className="w-4 h-4" />, text: ui.anonymous },
+              ].map((chipItem) => (
+                <span
+                  key={chipItem.text}
+                  className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 ${
+                    isDarkMode ? 'bg-slate-950/50 border-white/10' : 'bg-white border-slate-200'
+                  }`}
+                >
+                  <span className={isDarkMode ? 'text-emerald-300' : 'text-blue-600'}>{chipItem.icon}</span>
+                  {chipItem.text}
+                </span>
+              ))}
+            </div>
           </div>
-          <span className={`text-xs font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{tx.langLabel}</span>
-        </div>
-        <div
-          role="tablist"
-          aria-label="Survey Language Selection"
-          className={`grid grid-cols-3 sm:inline-flex items-center p-1 rounded-xl border ${isDarkMode ? 'bg-slate-950/90 border-slate-800' : 'bg-slate-100 border-slate-200'}`}
-        >
-          {SURVEY_LANG_OPTIONS.map((l) => {
-            const sel = surveyLang === l.code;
-            return (
-              <button
-                key={l.code}
-                type="button"
-                role="tab"
-                aria-selected={sel}
-                onClick={() => handleLanguageChange(l.code)}
-                title={l.name}
-                className={`min-h-[40px] px-3 py-1.5 rounded-lg text-xs sm:text-sm font-black transition-all cursor-pointer ${
-                  sel
-                    ? 'bg-amber-500 text-slate-950 shadow-md'
-                    : isDarkMode
-                    ? 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-white'
-                }`}
-              >
-                {l.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
-      {/* Title card */}
-      <div className="relative overflow-hidden rounded-[2rem] border border-amber-400/30 bg-gradient-to-br from-[#0b1f4a] via-[#0a1733] to-[#140f05] p-6 sm:p-8 shadow-xl">
-        <div className="absolute inset-x-0 top-0 flex h-1.5">
-          <span className="flex-1 bg-emerald-500" />
-          <span className="flex-1 bg-amber-400" />
-          <span className="flex-1 bg-red-500" />
-        </div>
-        <span className="inline-block rounded-full bg-amber-400/15 border border-amber-400/30 px-3 py-1 text-[11px] font-bold text-amber-300">
-          {currentCategory}
-        </span>
-        <h1 className="mt-3 text-xl sm:text-2xl font-black leading-snug text-white">{currentTitle}</h1>
-        <p className="mt-3 text-sm sm:text-[15px] leading-relaxed text-slate-300 whitespace-pre-line">{currentDescription}</p>
-        <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-slate-300">
-          <span className="inline-flex items-center gap-1.5 rounded-xl bg-slate-950/50 border border-white/10 px-3 py-1.5">
-            <ListChecks className="w-4 h-4 text-amber-300" /> {ui.questionsCount(questionsList.length)}
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-xl bg-slate-950/50 border border-white/10 px-3 py-1.5">
-            <Clock className="w-4 h-4 text-amber-300" /> {ui.minutes}
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-xl bg-slate-950/50 border border-white/10 px-3 py-1.5">
-            <Lock className="w-4 h-4 text-emerald-300" /> {ui.anonymous}
-          </span>
-        </div>
-      </div>
+          {/* Language selector */}
+          <div className={`p-3 rounded-2xl border shadow-lg space-y-2.5 ${card}`}>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+                <Globe className="w-4 h-4" />
+              </div>
+              <span className={`text-xs font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{tx.langLabel}</span>
+            </div>
+            <div
+              role="tablist"
+              aria-label="Survey Language Selection"
+              className={`grid grid-cols-3 items-center p-1 rounded-xl border ${isDarkMode ? 'bg-slate-950/90 border-slate-800' : 'bg-slate-100 border-slate-200'}`}
+            >
+              {SURVEY_LANG_OPTIONS.map((l) => {
+                const sel = surveyLang === l.code;
+                return (
+                  <button
+                    key={l.code}
+                    type="button"
+                    role="tab"
+                    aria-selected={sel}
+                    onClick={() => handleLanguageChange(l.code)}
+                    title={l.name}
+                    className={`min-h-[40px] px-2 py-1.5 rounded-lg text-xs sm:text-sm font-black transition-all cursor-pointer ${
+                      sel
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : isDarkMode
+                        ? 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white'
+                    }`}
+                  >
+                    {l.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-      {/* Sticky progress (sits just under the sticky site header) */}
-      <div className={`sticky top-[88px] sm:top-[100px] z-20 rounded-2xl border px-4 py-3 shadow-xl ${isDarkMode ? 'bg-slate-900/95 border-slate-800 backdrop-blur-md' : 'bg-white/95 border-slate-200 backdrop-blur-md'}`}>
-        <div className="flex items-center justify-between text-xs sm:text-sm font-bold">
-          <span className={isDarkMode ? 'text-slate-200' : 'text-slate-700'}>
-            {ui.filled}: <span className="text-amber-500">{doneSteps}</span> / {totalSteps}
-          </span>
-          <span className={progressPercent === 100 ? 'text-emerald-500' : textSub}>
-            {progressPercent === 100 ? ui.ready : `${progressPercent}%`}
-          </span>
-        </div>
-        <div className={`mt-2 h-2 w-full overflow-hidden rounded-full ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
-          <motion.div
-            className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-amber-400 to-amber-300"
-            animate={{ width: `${progressPercent}%` }}
-            transition={{ duration: 0.3 }}
-          />
-        </div>
-      </div>
+          {progressBox('hidden lg:block')}
+        </aside>
+
+        {/* Right column: the form */}
+        <div className="min-w-0 space-y-6">
+          {progressBox('sticky top-[88px] sm:top-[100px] z-20 lg:hidden')}
 
       <form onSubmit={handleSubmit} noValidate className="space-y-6">
         {/* Section 1 */}
@@ -832,7 +855,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
               value={demographics.residence || ''}
               onChange={(e) => setDemo('residence', e.target.value)}
               aria-label={ui.residence}
-              className={`w-full min-h-[48px] px-4 border rounded-xl text-base font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 ${
+              className={`w-full min-h-[48px] px-4 border rounded-xl text-base font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 ${
                 isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-900'
               } ${missing.has('residence') ? 'border-red-500/70' : isDarkMode ? 'border-slate-700' : 'border-slate-300'}`}
             >
@@ -851,7 +874,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
         {/* Section 2 */}
         <section className="space-y-4">
           <div className="flex items-start gap-3 px-1">
-            <div className="w-11 h-11 shrink-0 rounded-2xl bg-amber-400/15 text-amber-500 flex items-center justify-center">
+            <div className="w-11 h-11 shrink-0 rounded-2xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center">
               <MessageSquareText className="w-5 h-5" />
             </div>
             <div>
@@ -876,7 +899,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
                 <div className="flex items-start gap-3">
                   <span
                     className={`mt-0.5 w-9 h-9 shrink-0 rounded-xl text-sm font-black flex items-center justify-center ${
-                      done ? 'bg-emerald-500 text-white' : 'bg-amber-400 text-slate-950'
+                      done ? 'bg-emerald-500 text-white' : 'bg-blue-600 text-white'
                     }`}
                   >
                     {done ? <Check className="w-4 h-4 stroke-[3]" /> : idx + 1}
@@ -897,7 +920,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
                         onChange={(e) => setAnswer(q.id, { text: e.target.value })}
                         placeholder={tx.textPlaceholder}
                         aria-label={ui.questionOf(idx + 1, questionsList.length)}
-                        className={`w-full resize-y rounded-2xl border p-4 text-base leading-relaxed focus:outline-none focus:ring-2 focus:ring-amber-400/60 focus:border-amber-400 ${
+                        className={`w-full resize-y rounded-2xl border p-4 text-base leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-500 ${
                           isDarkMode ? 'bg-slate-950/80 text-slate-100 placeholder-slate-500' : 'bg-slate-50 text-slate-900 placeholder-slate-400'
                         } ${invalid ? 'border-red-500/70' : isDarkMode ? 'border-slate-700' : 'border-slate-300'}`}
                       />
@@ -927,7 +950,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
                             onClick={() => setAnswer(q.id, { text: opt })}
                             className={`min-h-[48px] flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left text-sm sm:text-base font-semibold transition-all cursor-pointer ${
                               selected
-                                ? 'border-amber-400 bg-amber-400/10 ' + (isDarkMode ? 'text-amber-200' : 'text-amber-800')
+                                ? 'border-blue-500 bg-blue-500/10 ' + (isDarkMode ? 'text-blue-200' : 'text-blue-800')
                                 : `${isDarkMode ? 'bg-slate-950/70 text-slate-200 hover:border-slate-500' : 'bg-white text-slate-800 hover:border-slate-400'} ${
                                     invalid ? 'border-red-500/60' : isDarkMode ? 'border-slate-700' : 'border-slate-300'
                                   }`
@@ -936,7 +959,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
                             <span>{opt}</span>
                             <span
                               className={`w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center ${
-                                selected ? 'border-amber-400 bg-amber-400 text-slate-950' : isDarkMode ? 'border-slate-600' : 'border-slate-300'
+                                selected ? 'border-blue-600 bg-blue-600 text-white' : isDarkMode ? 'border-slate-600' : 'border-slate-300'
                               }`}
                             >
                               {selected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -1001,7 +1024,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full min-h-[56px] rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 text-base sm:text-lg font-black shadow-xl shadow-amber-500/25 transition-all hover:brightness-105 disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full min-h-[56px] rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 text-white text-base sm:text-lg font-black shadow-xl shadow-blue-600/25 transition-all hover:brightness-105 disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
             >
               {isSubmitting ? (
                 <>
@@ -1016,6 +1039,8 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
           </div>
         </div>
       </form>
+        </div>
+      </div>
 
       {qrModal}
     </div>

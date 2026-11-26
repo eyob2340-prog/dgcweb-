@@ -75,7 +75,7 @@ export default function App() {
 
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('dgc_theme');
-    return saved ? saved === 'dark' : true;
+    return saved ? saved === 'dark' : false; // bright theme by default
   });
 
   const toggleTheme = () => {
@@ -420,6 +420,7 @@ export default function App() {
                     survey={featured}
                     questionCount={FEATURED_SURVEY.questions.length}
                     onOpen={handleSelectSurvey}
+                    isDarkMode={isDarkMode}
                   />
                 ) : null;
               })()}
@@ -427,7 +428,7 @@ export default function App() {
               {/* Citizen services — compact modern tiles */}
               <section aria-label={t.heroTitle} className="space-y-4">
                 <div className="flex flex-col gap-1 px-1">
-                  <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[11px] font-black text-amber-500">
+                  <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-[11px] font-black text-blue-600">
                     <Sparkles className="h-3.5 w-3.5" />
                     {t.heroBadge}
                   </span>
@@ -440,14 +441,14 @@ export default function App() {
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <button
                     onClick={() => setIsComplaintModalOpen(true)}
-                    className="group relative flex min-h-[96px] items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 p-5 text-left text-slate-950 shadow-lg shadow-amber-500/20 transition-transform hover:-translate-y-0.5 cursor-pointer"
+                    className="group relative flex min-h-[96px] items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-emerald-500 p-5 text-left text-white shadow-lg shadow-blue-600/20 transition-transform hover:-translate-y-0.5 cursor-pointer"
                   >
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950/10">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/20">
                       <MessageSquare className="h-6 w-6" />
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-base font-black sm:text-lg">{t.submitComplaintBtn}</span>
-                      <span className="block text-xs font-bold opacity-80">{t.submitComplaintSub}</span>
+                      <span className="block text-xs font-bold text-white/85">{t.submitComplaintSub}</span>
                     </span>
                     <ArrowRight className="h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1" />
                   </button>
@@ -463,7 +464,7 @@ export default function App() {
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-base font-black sm:text-lg">{t.trackTicketBtn}</span>
-                      <span className="block text-xs font-bold text-amber-500">{t.trackTicketSub}</span>
+                      <span className="block text-xs font-bold text-blue-600">{t.trackTicketSub}</span>
                     </span>
                     <ArrowRight className={`h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`} />
                   </button>
