@@ -73,18 +73,13 @@ export default function App() {
   const [offlineCount, setOfflineCount] = useState<number>(0);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    const saved = localStorage.getItem('dgc_theme');
-    return saved ? saved === 'dark' : false; // bright theme by default
-  });
-
-  const toggleTheme = () => {
-    setIsDarkMode((prev) => {
-      const next = !prev;
-      localStorage.setItem('dgc_theme', next ? 'dark' : 'light');
-      return next;
-    });
-  };
+  // Dark mode removed: the site is always bright
+  const isDarkMode = false;
+  useEffect(() => {
+    try {
+      localStorage.removeItem('dgc_theme');
+    } catch {}
+  }, []);
 
   const t = translations[language];
 
@@ -389,7 +384,6 @@ export default function App() {
         onSyncOffline={syncOfflineQueue}
         isSyncing={isSyncing}
         isDarkMode={isDarkMode}
-        onToggleTheme={toggleTheme}
       />
 
       {/* Main Content */}

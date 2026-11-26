@@ -47,7 +47,7 @@ export const SurveyBuilderModal: React.FC<SurveyBuilderModalProps> = ({
   onSurveyCreated,
   adminToken,
   surveyToEdit,
-  isDarkMode = true,
+  isDarkMode = false,
 }) => {
   const isEditing = Boolean(surveyToEdit);
 

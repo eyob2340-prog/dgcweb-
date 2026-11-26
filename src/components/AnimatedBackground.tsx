@@ -10,7 +10,7 @@ interface AnimatedBackgroundProps {
  * (The previous version animated 18 icons and re-rendered on every mouse move,
  * which made low-end phones stutter.)
  */
-export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({ isDarkMode = true }) => {
+export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({ isDarkMode = false }) => {
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
       <div

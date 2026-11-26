@@ -46,7 +46,7 @@ export const TicketTrackerModal: React.FC<TicketTrackerModalProps> = ({
   isOpen,
   onClose,
   initialCode = '',
-  isDarkMode = true,
+  isDarkMode = false,
 }) => {
   const [activeTab, setActiveTab] = useState<'code' | 'saved' | 'recover'>('code');
   const [ticketCode, setTicketCode] = useState<string>(initialCode);

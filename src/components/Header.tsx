@@ -32,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
   isOnline,
   onSyncOffline,
   isSyncing,
-  isDarkMode = true,
+  isDarkMode = false,
   onToggleTheme,
 }) => {
   const t = translations[language] || translations.am;

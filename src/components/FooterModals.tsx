@@ -7,7 +7,7 @@ interface PolicyModalProps {
   isDarkMode?: boolean;
 }
 
-export const FooterModals: React.FC<PolicyModalProps> = ({ type, onClose, isDarkMode = true }) => {
+export const FooterModals: React.FC<PolicyModalProps> = ({ type, onClose, isDarkMode = false }) => {
   if (!type) return null;
 
   return (

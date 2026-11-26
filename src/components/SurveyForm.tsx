@@ -348,7 +348,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
   onBack,
   onSubmitSuccess,
   language = 'am',
-  isDarkMode = true,
+  isDarkMode = false,
 }) => {
   const [surveyLang, setSurveyLang] = useState<SupportedSurveyLang>(() => {
     try {

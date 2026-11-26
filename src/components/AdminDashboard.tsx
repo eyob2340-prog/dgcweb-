@@ -63,7 +63,7 @@ interface AdminNotification {
   refId?: string | number;
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDarkMode = true }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminToken, isDarkMode = false }) => {
   const [activeTab, setActiveTab] = useState<'analytics' | 'manage' | 'tickets' | 'users' | 'opa_control' | 'audit' | 'db'>('analytics');
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);

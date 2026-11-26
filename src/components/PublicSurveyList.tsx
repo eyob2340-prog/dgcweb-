@@ -18,7 +18,7 @@ export const PublicSurveyList: React.FC<PublicSurveyListProps> = ({
   surveys,
   onSelectSurvey,
   loading,
-  isDarkMode = true,
+  isDarkMode = false,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ሁሉም');

@@ -49,7 +49,7 @@ export const CitizenComplaintModal: React.FC<CitizenComplaintModalProps> = ({
   isOpen,
   onClose,
   onOpenTrackerWithCode,
-  isDarkMode = true,
+  isDarkMode = false,
 }) => {
   const [category, setCategory] = useState<string>(CATEGORIES[0].id);
   const [residenceCategory, setResidenceCategory] = useState<string>(RESIDENCE_CATEGORIES[0]);

@@ -82,7 +82,7 @@ function playNotificationChime() {
   }
 }
 
-export const CitizenChatWidget: React.FC<CitizenChatWidgetProps> = ({ isDarkMode = true }) => {
+export const CitizenChatWidget: React.FC<CitizenChatWidgetProps> = ({ isDarkMode = false }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [inputMessage, setInputMessage] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);

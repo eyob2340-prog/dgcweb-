@@ -10,7 +10,7 @@
 
   // 1. Background colour matching the saved theme
   try {
-    var light = localStorage.getItem('dgc_theme') !== 'dark'; // bright theme is the default
+    var light = true; // dark mode was removed; always bright
     var bg = light ? '#f8fafc' : '#020617';
     document.documentElement.style.backgroundColor = bg;
     document.documentElement.style.colorScheme = light ? 'light' : 'dark';

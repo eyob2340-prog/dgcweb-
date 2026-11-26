@@ -7,7 +7,7 @@ interface FooterProps {
   isDarkMode?: boolean;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenPrivacy, onOpenTerms, isDarkMode = true }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenPrivacy, onOpenTerms, isDarkMode = false }) => {
   const socialLinks = [
     { name: 'ፌስቡክ (Facebook)', url: 'https://facebook.com/DGCOMU', icon: Facebook, iconColor: 'text-blue-600 hover:text-blue-500' },
     { name: 'ዩትዩብ (YouTube)', url: 'https://www.youtube.com/@DireDawaComm', icon: Youtube, iconColor: 'text-amber-500 hover:text-amber-400' },
