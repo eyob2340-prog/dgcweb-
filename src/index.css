@@ -1,5 +1,46 @@
 @import "tailwindcss";
 
+@theme {
+  /* Inter for Latin text; Ethiopic falls back to the best font the device already has (no extra download) */
+  --font-sans: "Inter", "Noto Sans Ethiopic", "Nyala", "Ebrima", "Abyssinica SIL", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* ---- Performance & polish ---- */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+/* Phones: drop expensive backdrop blurs (big GPU cost on low-end Android, barely visible) */
+@media (max-width: 768px) {
+  [class*="backdrop-blur"] {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  /* Google Translate box overlapped the logo on small screens; surveys have their own language switch */
+  #gt-mount-point {
+    display: none !important;
+  }
+}
+
+/* Respect "reduce motion" system setting */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;

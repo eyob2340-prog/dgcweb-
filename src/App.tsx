@@ -10,7 +10,7 @@ import { DgcLogo } from './components/DgcLogo';
 import { FeaturedSurveyBanner } from './components/FeaturedSurveyBanner';
 import { FEATURED_SURVEY } from '../server/featuredSurvey';
 import { AnimatedBackground } from './components/AnimatedBackground';
-import { FileText, MessageSquare, Clock, Sparkles, Building2, Wrench } from 'lucide-react';
+import { FileText, MessageSquare, Clock, Sparkles, Building2, Wrench, ArrowRight, Lock, Globe, Zap } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Language, translations } from './lib/i18n';
 import { getOfflineQueue, processOfflineQueue } from './lib/offlineSync';
@@ -424,101 +424,79 @@ export default function App() {
                 ) : null;
               })()}
 
-              {/* Prominent Citizen Hero Action Portal Banner */}
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`p-6 sm:p-8 rounded-3xl border shadow-2xl relative overflow-hidden transition-all duration-300 ${
-                  isDarkMode
-                    ? 'bg-slate-900/90 backdrop-blur-xl border-blue-500/30 text-white shadow-blue-950/40'
-                    : 'bg-white/95 backdrop-blur-xl border-blue-200 text-slate-900 shadow-blue-100/60'
-                }`}
-              >
-                {/* Glowing Corner Accents */}
-                <div className={`absolute top-0 right-0 w-72 h-72 rounded-full blur-3xl pointer-events-none ${
-                  isDarkMode ? 'bg-blue-600/15' : 'bg-blue-400/20'
-                }`} />
-                <div className={`absolute bottom-0 left-0 w-60 h-60 rounded-full blur-3xl pointer-events-none ${
-                  isDarkMode ? 'bg-amber-500/10' : 'bg-amber-400/15'
-                }`} />
-
-                <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-                  <div className="space-y-3 max-w-xl">
-                    <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs font-black">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                      <span>{t.heroBadge}</span>
-                    </div>
-                    <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight ${
-                      isDarkMode ? 'text-white' : 'text-slate-950'
-                    }`}>
-                      {t.heroTitle}
-                    </h1>
-                    <p className={`text-xs sm:text-sm leading-relaxed ${
-                      isDarkMode ? 'text-slate-300' : 'text-slate-700'
-                    }`}>
-                      {t.heroSubtitle}
-                    </p>
-                  </div>
-
-                  {/* 2 Primary Interactive Hero CTA Portal Buttons */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full lg:w-auto shrink-0">
-                    <button
-                      onClick={() => setIsComplaintModalOpen(true)}
-                      className="px-6 py-4 bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-xs sm:text-sm rounded-2xl transition-all shadow-xl shadow-amber-500/25 hover:shadow-amber-500/45 hover:-translate-y-0.5 flex items-center justify-center gap-2 border border-amber-300 cursor-pointer"
-                    >
-                      <MessageSquare className="w-5 h-5 text-slate-950" />
-                      <div className="text-left">
-                        <span className="block font-black">{t.submitComplaintBtn}</span>
-                        <span className="text-[10px] opacity-85 font-bold block">{t.submitComplaintSub}</span>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => setIsTrackerModalOpen(true)}
-                      className={`px-6 py-4 rounded-2xl transition-all shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 group cursor-pointer border ${
-                        isDarkMode
-                          ? 'bg-slate-900 hover:bg-slate-800 text-amber-300 border-amber-500/40 shadow-slate-950/50'
-                          : 'bg-white hover:bg-slate-50 text-slate-900 border-amber-500/50 shadow-slate-200/80'
-                      }`}
-                    >
-                      <Clock className="w-5 h-5 text-amber-400 group-hover:rotate-180 transition-transform duration-500" />
-                      <div className="text-left">
-                        <span className={`block font-black ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                          {t.trackTicketBtn}
-                        </span>
-                        <span className="text-[10px] text-amber-500 font-bold block">{t.trackTicketSub}</span>
-                      </div>
-                    </button>
-                  </div>
+              {/* Citizen services — compact modern tiles */}
+              <section aria-label={t.heroTitle} className="space-y-4">
+                <div className="flex flex-col gap-1 px-1">
+                  <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[11px] font-black text-amber-500">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    {t.heroBadge}
+                  </span>
+                  <h1 className={`mt-2 text-2xl font-black tracking-tight sm:text-3xl ${isDarkMode ? 'text-white' : 'text-slate-950'}`}>
+                    {t.heroTitle}
+                  </h1>
+                  <p className={`max-w-3xl text-sm leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>{t.heroSubtitle}</p>
                 </div>
-              </motion.div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <button
+                    onClick={() => setIsComplaintModalOpen(true)}
+                    className="group relative flex min-h-[96px] items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 p-5 text-left text-slate-950 shadow-lg shadow-amber-500/20 transition-transform hover:-translate-y-0.5 cursor-pointer"
+                  >
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950/10">
+                      <MessageSquare className="h-6 w-6" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-base font-black sm:text-lg">{t.submitComplaintBtn}</span>
+                      <span className="block text-xs font-bold opacity-80">{t.submitComplaintSub}</span>
+                    </span>
+                    <ArrowRight className="h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1" />
+                  </button>
+
+                  <button
+                    onClick={() => setIsTrackerModalOpen(true)}
+                    className={`group flex min-h-[96px] items-center gap-4 rounded-3xl border p-5 text-left shadow-lg transition-transform hover:-translate-y-0.5 cursor-pointer ${
+                      isDarkMode ? 'border-slate-800 bg-slate-900 text-white shadow-black/20' : 'border-slate-200 bg-white text-slate-900 shadow-slate-200/70'
+                    }`}
+                  >
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-500/15 text-blue-500">
+                      <Clock className="h-6 w-6" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-base font-black sm:text-lg">{t.trackTicketBtn}</span>
+                      <span className="block text-xs font-bold text-amber-500">{t.trackTicketSub}</span>
+                    </span>
+                    <ArrowRight className={`h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`} />
+                  </button>
+                </div>
+
+                <div className={`grid grid-cols-3 divide-x rounded-2xl border text-center ${isDarkMode ? 'divide-slate-800 border-slate-800 bg-slate-900/60' : 'divide-slate-200 border-slate-200 bg-white'}`}>
+                  {[
+                    { icon: <Lock className="h-4 w-4" />, label: 'ስም አይጠየቅም' },
+                    { icon: <Globe className="h-4 w-4" />, label: 'አማ · Oromoo · Soomaali' },
+                    { icon: <Zap className="h-4 w-4" />, label: '~5 ደቂቃ' },
+                  ].map((item) => (
+                    <div key={item.label} className={`flex flex-col items-center justify-center gap-1 px-2 py-3 text-[11px] font-bold sm:flex-row sm:gap-2 sm:text-xs ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                      <span className="text-emerald-500">{item.icon}</span>
+                      {item.label}
+                    </div>
+                  ))}
+                </div>
+              </section>
 
               {/* Public Surveys Section */}
               <div className="space-y-4">
-                <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 ${
-                  isDarkMode ? 'border-slate-800' : 'border-slate-200'
-                }`}>
+                <div className="flex items-end justify-between gap-3 px-1">
                   <div>
-                    <div className="flex items-center space-x-2">
-                      <h2 className={`text-xl sm:text-2xl font-black tracking-tight ${
-                        isDarkMode ? 'text-white' : 'text-slate-950'
-                      }`}>
-                        {t.allSurveys}
-                      </h2>
-                      <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 border ${
-                        isDarkMode
-                          ? 'bg-blue-500/10 text-blue-300 border-blue-500/30'
-                          : 'bg-blue-50 text-blue-700 border-blue-200'
-                      }`}>
-                        <FileText className="w-3.5 h-3.5 text-blue-500" /> {t.officialSurveys}
-                      </span>
-                    </div>
-                    <p className={`text-xs sm:text-sm mt-1 ${
-                      isDarkMode ? 'text-slate-400' : 'text-slate-600'
-                    }`}>
-                      {t.surveySubtitle}
-                    </p>
+                    <h2 className={`text-xl font-black tracking-tight sm:text-2xl ${isDarkMode ? 'text-white' : 'text-slate-950'}`}>
+                      {t.allSurveys}
+                    </h2>
+                    <p className={`mt-1 text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>{t.surveySubtitle}</p>
                   </div>
+                  <span className={`hidden shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold sm:inline-flex ${
+                    isDarkMode ? 'border-blue-500/30 bg-blue-500/10 text-blue-300' : 'border-blue-200 bg-blue-50 text-blue-700'
+                  }`}>
+                    <FileText className="h-3.5 w-3.5" /> {t.officialSurveys}
+                  </span>
                 </div>
 
                 <PublicSurveyList

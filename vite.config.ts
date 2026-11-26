@@ -24,34 +24,11 @@ export default defineConfig(() => {
       cssCodeSplit: true,
       rollupOptions: {
         output: {
+          // Only split stable vendor code. Admin/PDF/chart code stays in its lazy chunks
+          // (forcing those into named chunks made the public homepage preload ~1.2 MB).
           manualChunks(id) {
-            // Heavy PDF libs — only loaded when user clicks PDF export
-            if (id.includes('jspdf') || id.includes('html2canvas')) {
-              return 'pdf-vendor';
-            }
-            // Chart libs — only loaded on analytics page
-            if (id.includes('recharts') || id.includes('d3-')) {
-              return 'chart-vendor';
-            }
-            // Admin dashboard — separate chunk
-            if (id.includes('AdminDashboard') || id.includes('VisualAnalytics')) {
-              return 'admin-chunk';
-            }
-            // Survey form — separate chunk
-            if (id.includes('SurveyForm') || id.includes('SurveyList')) {
-              return 'survey-chunk';
-            }
-            // Complaint modals — separate chunk
-            if (id.includes('CitizenComplaint') || id.includes('TicketTracker')) {
-              return 'complaint-chunk';
-            }
-            // React core — always needed
-            if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/scheduler/')) {
               return 'react-vendor';
-            }
-            // Motion/framer — separate
-            if (id.includes('motion') || id.includes('framer')) {
-              return 'motion-vendor';
             }
           },
         },

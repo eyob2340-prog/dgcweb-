@@ -251,6 +251,8 @@ const UI_TEXTS: Record<
     thanksTitle: string;
     thanksBody: string;
     home: string;
+    alreadyTitle: string;
+    alreadyBody: string;
   }
 > = {
   am: {
@@ -277,6 +279,8 @@ const UI_TEXTS: Record<
     thanksTitle: 'እናመሰግናለን! አስተያየትዎ ደርሶናል',
     thanksBody: 'የሰጡት አስተያየት ሚስጥራዊ ሆኖ ለፖሊሲና ለአሰራር ማሻሻያ ጥናት ይውላል። ሌሎችም እንዲሳተፉ ሊንኩን ያጋሩ።',
     home: 'ወደ ዋናው ገጽ',
+    alreadyTitle: 'ይህንን መጠይቅ ቀደም ብለው ሞልተዋል',
+    alreadyBody: 'አስተያየትዎ ተመዝግቧል — እናመሰግናለን! ከአንድ ስልክ/ኮምፒውተር አንድ ጊዜ ብቻ መሙላት ይቻላል። ሌሎችም እንዲሳተፉ ሊንኩን ያጋሩ።',
   },
   om: {
     aboutYou: 'Kutaa 1: Waa’ee keessan',
@@ -302,6 +306,8 @@ const UI_TEXTS: Record<
     thanksTitle: 'Galatoomaa! Yaadni keessan nu gaheera',
     thanksBody: 'Yaadni keessan icitiidhaan qorannoo fooyya’iinsa imaammataaf oola. Akka warri biroo hirmaatan liinkii qoodaa.',
     home: 'Gara fuula jalqabaa',
+    alreadyTitle: 'Gaaffannoo kana duraan guuttaniirtu',
+    alreadyBody: 'Yaadni keessan galmeeffameera — galatoomaa! Meeshaa tokkoon al tokko qofa guutuun ni danda’ama. Akka warri biroo hirmaatan liinkii qoodaa.',
   },
   so: {
     aboutYou: 'Qaybta 1: Adiga ku saabsan',
@@ -327,6 +333,8 @@ const UI_TEXTS: Record<
     thanksTitle: 'Mahadsanid! Fikraddaada waa na soo gaartay',
     thanksBody: 'Fikraddaadu si qarsoodi ah ayaa loogu isticmaali doonaa daraasadda horumarinta siyaasadda. La wadaag linkiga si dadka kale uga qaybgalaan.',
     home: 'Bogga hore',
+    alreadyTitle: 'Horay ayaad u buuxisay sahankan',
+    alreadyBody: 'Fikraddaada waa la diiwaangeliyay — mahadsanid! Qalab kasta hal mar oo keliya ayaa la buuxin karaa. La wadaag linkiga si dadka kale uga qaybgalaan.',
   },
 };
 
@@ -336,6 +344,7 @@ const CATEGORY_ICONS: Record<string, string> = { 'የሴክተር ተቋማት':
 
 export const SurveyForm: React.FC<SurveyFormProps> = ({
   survey,
+  hasResponded = false,
   onBack,
   onSubmitSuccess,
   language = 'am',
@@ -566,8 +575,8 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
     document.body
   );
 
-  // ---------------- Thank-you screen ----------------
-  if (submittedTicket) {
+  // ---------------- Thank-you / already-answered screen ----------------
+  if (submittedTicket || hasResponded) {
     return (
       <div className="max-w-2xl mx-auto">
         <motion.div
@@ -584,11 +593,12 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
             <CheckCircle2 className="w-12 h-12" />
           </motion.div>
           <div className="space-y-3">
-            <h2 className={`text-2xl sm:text-3xl font-black ${textMain}`}>{ui.thanksTitle}</h2>
+            <h2 className={`text-2xl sm:text-3xl font-black ${textMain}`}>{submittedTicket ? ui.thanksTitle : ui.alreadyTitle}</h2>
             <p className={`text-sm sm:text-base max-w-md mx-auto leading-relaxed ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-              {ui.thanksBody}
+              {submittedTicket ? ui.thanksBody : ui.alreadyBody}
             </p>
           </div>
+          {submittedTicket && (
           <div
             className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs ${
               isDarkMode ? 'bg-slate-950/80 border-slate-800 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'
@@ -598,6 +608,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
             <span>{tx.refCode}</span>
             <span className="font-mono font-black text-emerald-500 tracking-wider">{submittedTicket}</span>
           </div>
+          )}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 pt-2">
             <button
               onClick={share}
