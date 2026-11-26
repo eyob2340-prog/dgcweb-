@@ -17,6 +17,7 @@ import {
   RadioBreakdown,
   RatingBreakdown,
 } from '../src/types';
+import { FEATURED_SURVEY } from './featuredSurvey';
 
 // Check for DATABASE_URL & Production Environment
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -245,6 +246,29 @@ async function initPgDatabase() {
         console.log('🌱 Seeding initial surveys, questions, tickets, and rich demographic response data into PostgreSQL...');
         await seedPgInitialData(client);
         console.log('🎉 Default surveys and rich demographic responses successfully seeded into PostgreSQL!');
+      }
+
+      // Make sure the featured questionnaire survey exists (idempotent, matched by title)
+      const featured = await client.query('SELECT id FROM surveys WHERE title = $1 LIMIT 1', [FEATURED_SURVEY.title]);
+      if (featured.rows.length === 0) {
+        await client.query('BEGIN');
+        try {
+          const sRes = await client.query(
+            'INSERT INTO surveys (title, description, category, theme, is_active, created_at) VALUES ($1, $2, $3, $4, true, NOW()) RETURNING id',
+            [FEATURED_SURVEY.title, FEATURED_SURVEY.description, FEATURED_SURVEY.category, FEATURED_SURVEY.theme]
+          );
+          for (const q of FEATURED_SURVEY.questions) {
+            await client.query(
+              'INSERT INTO questions (survey_id, question_text, question_type, options) VALUES ($1, $2, $3, $4)',
+              [sRes.rows[0].id, q.question_text, q.question_type, JSON.stringify(q.options)]
+            );
+          }
+          await client.query('COMMIT');
+          console.log(`⭐ Featured survey created (id ${sRes.rows[0].id}).`);
+        } catch (e) {
+          await client.query('ROLLBACK');
+          throw e;
+        }
       }
     } finally {
       client.release();
@@ -670,11 +694,6 @@ function getInitialData(): LocalDB {
       { id: 59, response_id: 10, question_id: 5, answer_text: 'የሃይማኖት አባቶች፣ የሀገር ሽማግሌዎችና ወጣቶች እጅ ለእጅ ተያይዘው ሰላምና ፍቅርን ማጠናከር አለባቸው።', rating_value: null },
       { id: 60, response_id: 10, question_id: 6, answer_text: 'ድሬዳዋ የቀድሞ የፍቅር፣ የአንድነትና የስልጣኔ ማዕከልነቷን እንድታድስ ሁላችንም በጋራ እንቁም።', rating_value: null },
     ],
-
-      // ── Response 10 — Survey 5 — ሴት 46-55 — ገንዴ ቆሬ — አማርኛ ──
-      { id: 37, response_id: 10, question_id: 16, answer_text: null,                 rating_value: 3 },
-      { id: 38, response_id: 10, question_id: 17, answer_text: 'መካከለኛ',              rating_value: null },
-    ],
     tickets: [
       {
         id: 1,
@@ -803,6 +822,34 @@ function writeLocalDB(dbData: LocalDB): void {
     // Fallback for Windows cross-device lock
     fs.copyFileSync(tempFile, DB_FILE);
     try { fs.unlinkSync(tempFile); } catch {}
+  }
+}
+
+function ensureLocalFeaturedSurvey(): void {
+  const local = readLocalDB();
+  if (local.surveys.some((sv: any) => sv.title === FEATURED_SURVEY.title)) return;
+  const surveyId = local.surveys.length > 0 ? Math.max(...local.surveys.map((sv: any) => sv.id)) + 1 : 1;
+  local.surveys.unshift({
+    id: surveyId,
+    title: FEATURED_SURVEY.title,
+    description: FEATURED_SURVEY.description,
+    category: FEATURED_SURVEY.category,
+    is_active: true,
+    created_at: new Date().toISOString(),
+  } as any);
+  let nextQId = local.questions.length > 0 ? Math.max(...local.questions.map((q: any) => q.id)) + 1 : 1;
+  for (const q of FEATURED_SURVEY.questions) {
+    local.questions.push({ id: nextQId++, survey_id: surveyId, question_text: q.question_text, question_type: q.question_type, options: q.options } as any);
+  }
+  writeLocalDB(local);
+  console.log(`⭐ Featured survey created in local store (id ${surveyId}).`);
+}
+
+if (!pgPool) {
+  try {
+    ensureLocalFeaturedSurvey();
+  } catch (err) {
+    console.error('Failed to ensure featured survey in local store:', err);
   }
 }
 
@@ -1324,6 +1371,43 @@ export const db = {
     const local = readLocalDB();
     local.error_logs = [];
     writeLocalDB(local);
+  },
+
+  // One entry per respondent with all their answers (used by the Excel export)
+  async getSurveyResponsesDetailed(surveyId: number) {
+    if (pgPool) {
+      const rRes = await pgPool.query(
+        'SELECT id, age_group, gender, education, residence, language, submitted_at FROM responses WHERE survey_id = $1 ORDER BY submitted_at ASC, id ASC',
+        [surveyId]
+      );
+      const aRes = await pgPool.query(
+        `SELECT a.response_id, a.question_id, a.answer_text, a.rating_value
+         FROM answers a JOIN responses r ON r.id = a.response_id
+         WHERE r.survey_id = $1`,
+        [surveyId]
+      );
+      const byResponse = new Map<number, any[]>();
+      for (const a of aRes.rows) {
+        if (!byResponse.has(a.response_id)) byResponse.set(a.response_id, []);
+        byResponse.get(a.response_id)!.push(a);
+      }
+      return rRes.rows.map((r: any) => ({ ...r, answers: byResponse.get(r.id) || [] }));
+    }
+
+    const local = readLocalDB();
+    return (local.responses as any[])
+      .filter((r) => r.survey_id === surveyId)
+      .sort((a, b) => new Date(a.submitted_at).getTime() - new Date(b.submitted_at).getTime() || a.id - b.id)
+      .map((r) => ({
+        id: r.id,
+        age_group: r.age_group,
+        gender: r.gender,
+        education: r.education,
+        residence: r.residence,
+        language: r.language,
+        submitted_at: r.submitted_at,
+        answers: (local.answers as any[]).filter((a) => a.response_id === r.id),
+      }));
   },
 
   async getAllRawResponses() {

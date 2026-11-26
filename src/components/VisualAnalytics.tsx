@@ -36,7 +36,10 @@ import {
   ShieldCheck,
   Bot,
   X,
+  QrCode,
 } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { DgcQrCard } from './DgcQrCard';
 import { Survey, SurveyAnalytics, AiReportResponse } from '../types';
 import { toEthiopianDate } from '../lib/ethiopianDate';
 import { DireDawaMapVisual } from './DireDawaMapVisual';
@@ -244,6 +247,38 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
       }
     } catch (err: any) {
       setTelegramStatus({ loading: false, success: false, message: err.message });
+    }
+  };
+
+  const [xlsxLoading, setXlsxLoading] = useState(false);
+  const [showSurveyQr, setShowSurveyQr] = useState(false);
+
+  const handleDownloadXlsx = async () => {
+    if (!selectedSurveyId) return;
+    setXlsxLoading(true);
+    try {
+      const res = await fetch(`/api/admin/surveys/${selectedSurveyId}/export-xlsx`, {
+        headers: { Authorization: adminToken ? `Bearer ${adminToken}` : '' },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || 'የExcel ፋይሉን ማውረድ አልተቻለም:: እባክዎ እንደገና ይግቡ::');
+        return;
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `survey_${selectedSurveyId}_responses_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Excel download error:', err);
+      alert('የExcel ፋይል በሚወርድበት ወቅት ስህተት ተከሰተ::');
+    } finally {
+      setXlsxLoading(false);
     }
   };
 
@@ -820,6 +855,26 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
 
         {/* 5 Integrated Action Buttons: PDF Download, Print, CSV/Excel, Telegram, Official Report */}
         <div className="flex flex-wrap items-center gap-2.5 no-print">
+          <button
+            onClick={handleDownloadXlsx}
+            disabled={xlsxLoading}
+            className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white rounded-2xl text-xs font-black transition-all shadow-lg shadow-emerald-600/30 flex items-center space-x-2 border border-emerald-300/40 disabled:opacity-60"
+            title="የእያንዳንዱን ተሳታፊ መልሶች (አንድ ሰው = አንድ ረድፍ) በExcel (.xlsx) ያውርዱ"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-white" />
+            <span>{xlsxLoading ? 'በማዘጋጀት ላይ...' : 'ሁሉንም መልሶች Excel አውርድ'}</span>
+          </button>
+
+          <button
+            onClick={() => setShowSurveyQr(true)}
+            disabled={!selectedSurveyId}
+            className="px-4 py-2.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-500 border border-amber-500/40 rounded-2xl text-xs font-black transition-all flex items-center space-x-2"
+            title="የዚህን መጠይቅ QR ኮድ ፖስተር ያውርዱ/ያትሙ"
+          >
+            <QrCode className="w-4 h-4" />
+            <span>QR ኮድ</span>
+          </button>
+
           <button
             onClick={handleDownloadPdfDirect}
             className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-black transition-all shadow-lg shadow-emerald-600/20 flex items-center space-x-2 border border-emerald-400/30"
@@ -1696,6 +1751,24 @@ export const VisualAnalytics: React.FC<VisualAnalyticsProps> = ({
           </div>
         </div>
       )}
+
+      {showSurveyQr &&
+        selectedSurveyId &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 no-print"
+            onClick={() => setShowSurveyQr(false)}
+          >
+            <div className="max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+              <DgcQrCard
+                url={`${window.location.origin}/?survey=${selectedSurveyId}`}
+                surveyTitle={surveys.find((sv) => sv.id === selectedSurveyId)?.title}
+                onClose={() => setShowSurveyQr(false)}
+              />
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import QRCodeLib from 'qrcode';
 import { Survey } from '../types';
 import { DgcQrCard } from './DgcQrCard';
+import { FEATURED_SURVEY_TITLE } from '../../server/featuredSurvey';
 import { formatEthiopianDate } from '../lib/ethiopianDate';
 
 interface PublicSurveyListProps {
@@ -39,6 +40,9 @@ export const PublicSurveyList: React.FC<PublicSurveyListProps> = ({
 
   // Ensure newest surveys are strictly sorted at the front/top
   const sortedSurveys = [...filteredSurveys].sort((a, b) => {
+    const featuredA = a.title === FEATURED_SURVEY_TITLE ? 1 : 0;
+    const featuredB = b.title === FEATURED_SURVEY_TITLE ? 1 : 0;
+    if (featuredA !== featuredB) return featuredB - featuredA;
     const timeA = new Date(a.created_at || 0).getTime();
     const timeB = new Date(b.created_at || 0).getTime();
     if (timeA !== timeB) return timeB - timeA;

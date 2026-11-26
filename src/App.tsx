@@ -7,6 +7,8 @@ import { AdminLoginModal } from './components/AdminLoginModal';
 import { Footer } from './components/Footer';
 import { Survey, AdminUser, AuthResponse } from './types';
 import { DgcLogo } from './components/DgcLogo';
+import { FeaturedSurveyBanner } from './components/FeaturedSurveyBanner';
+import { FEATURED_SURVEY } from '../server/featuredSurvey';
 import { AnimatedBackground } from './components/AnimatedBackground';
 import { FileText, MessageSquare, Clock, Sparkles, Building2, Wrench } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -326,7 +328,7 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen font-sans flex flex-col transition-colors duration-300 relative overflow-hidden ${
+      className={`min-h-screen font-sans flex flex-col transition-colors duration-300 relative overflow-x-clip ${
         isDarkMode
           ? 'bg-slate-950 text-slate-100 selection:bg-blue-600 selection:text-white'
           : 'bg-slate-50 text-slate-900 selection:bg-blue-500 selection:text-white'
@@ -410,6 +412,18 @@ export default function App() {
             />
           ) : (
             <div className="space-y-8">
+              {/* Featured questionnaire — always shown first */}
+              {(() => {
+                const featured = surveys.find((sv) => sv.title === FEATURED_SURVEY.title);
+                return featured ? (
+                  <FeaturedSurveyBanner
+                    survey={featured}
+                    questionCount={FEATURED_SURVEY.questions.length}
+                    onOpen={handleSelectSurvey}
+                  />
+                ) : null;
+              })()}
+
               {/* Prominent Citizen Hero Action Portal Banner */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
@@ -568,7 +582,7 @@ export default function App() {
         />
 
         {/* Public Citizen Chat Widget (Floating at Bottom-Right) */}
-        {currentTab === 'public' && <CitizenChatWidget isDarkMode={isDarkMode} />}
+        {currentTab === 'public' && !selectedSurveyDetails && <CitizenChatWidget isDarkMode={isDarkMode} />}
       </Suspense>
 
       {/* Admin Login Modal (eagerly loaded — needed for maintenance page too) */}

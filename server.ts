@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import ExcelJS from 'exceljs';
 import { createServer as createViteServer } from 'vite';
 
 import { db } from './server/db';
@@ -1978,6 +1979,171 @@ function sanitizeCsvField(value: any): string {
 }
 
 // CSV Export Download Endpoint with Person-by-Person Q&A, Positive/Negative Sentiment Lists & AI Policy Report
+// Excel export: one row per respondent, one column per question
+app.get('/api/admin/surveys/:id/export-xlsx', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const surveyId = parseInt(req.params.id, 10);
+    if (isNaN(surveyId)) return res.status(400).json({ error: 'ትክክለኛ ያልሆነ መለያ' });
+
+    const survey = await db.getSurveyById(surveyId);
+    if (!survey) return res.status(404).json({ error: 'መጠይቁ አልተገኘም' });
+    const questions: any[] = survey.questions || [];
+    const responses = await db.getSurveyResponsesDetailed(surveyId);
+
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'Dire Dawa Government Communication Affairs Bureau';
+    wb.created = new Date();
+
+    const FONT = 'Nyala';
+    const HEADER_FILL: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B1F4A' } };
+    const HEADER_FONT: Partial<ExcelJS.Font> = { bold: true, color: { argb: 'FFFFFFFF' }, name: FONT, size: 11 };
+    const LINE = { style: 'thin' as const, color: { argb: 'FFCBD5E1' } };
+    const BORDER: Partial<ExcelJS.Borders> = { top: LINE, left: LINE, bottom: LINE, right: LINE };
+    const addisTime = (d: any) =>
+      new Date(d).toLocaleString('en-GB', { timeZone: 'Africa/Addis_Ababa', dateStyle: 'short', timeStyle: 'short' });
+
+    // ---- Sheet 1: answers, one row per respondent ----
+    const ws = wb.addWorksheet('መልሶች', { views: [{ state: 'frozen', xSplit: 1, ySplit: 3 }] });
+    const fixedCols = ['ተ.ቁ', 'ቀን (ኢት.)', 'ሰዓት (አዲስ አበባ)', 'ዕድሜ', 'ፆታ', 'የትምህርት ደረጃ', 'ቦታ / ተቋም', 'ቋንቋ'];
+    const qCols = questions.map((_, i) => `ጥያቄ ${i + 1}`);
+    const totalCols = fixedCols.length + qCols.length;
+
+    ws.mergeCells(1, 1, 1, totalCols);
+    const titleCell = ws.getCell(1, 1);
+    titleCell.value = survey.title;
+    titleCell.font = { bold: true, size: 14, name: FONT, color: { argb: 'FF0B1F4A' } };
+    titleCell.alignment = { vertical: 'middle', wrapText: true };
+    ws.getRow(1).height = 36;
+    ws.mergeCells(2, 1, 2, totalCols);
+    ws.getCell(2, 1).value = `ጠቅላላ ተሳታፊዎች: ${responses.length}   ·   የወረደበት: ${addisTime(new Date())}   ·   የጥያቄዎቹ ሙሉ ጽሑፍ "ጥያቄዎች" በሚለው ሉህ ላይ ይገኛል`;
+    ws.getCell(2, 1).font = { italic: true, size: 10, name: FONT, color: { argb: 'FF475569' } };
+
+    const header = ws.getRow(3);
+    [...fixedCols, ...qCols].forEach((h, i) => {
+      const c = header.getCell(i + 1);
+      c.value = h;
+      c.fill = HEADER_FILL;
+      c.font = HEADER_FONT;
+      c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      c.border = BORDER;
+    });
+    header.height = 28;
+    questions.forEach((q, i) => {
+      header.getCell(fixedCols.length + i + 1).note = q.question_text;
+    });
+
+    responses.forEach((r: any, idx: number) => {
+      const answerFor = (qid: number) => {
+        const a = r.answers.find((x: any) => x.question_id === qid);
+        if (!a) return '';
+        if (a.rating_value) return Number(a.rating_value);
+        return a.answer_text || '';
+      };
+      let ethDate = '';
+      try {
+        const e = toEthiopianDate(new Date(r.submitted_at));
+        ethDate = `${e.day}/${e.month}/${e.year}`;
+      } catch {
+        ethDate = '';
+      }
+      const row = ws.addRow([
+        idx + 1,
+        ethDate,
+        addisTime(r.submitted_at),
+        r.age_group || '',
+        r.gender || '',
+        r.education || '',
+        r.residence || '',
+        ({ am: 'አማርኛ', om: 'Afaan Oromoo', so: 'Soomaali' } as Record<string, string>)[r.language] || r.language || 'አማርኛ',
+        ...questions.map((q) => answerFor(q.id)),
+      ]);
+      row.eachCell({ includeEmpty: true }, (c, col) => {
+        c.border = BORDER;
+        c.alignment = { vertical: 'top', wrapText: true, horizontal: col === 1 ? 'center' : 'left' };
+        c.font = { name: FONT, size: 11 };
+        if (idx % 2 === 1) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+      });
+    });
+
+    const widths = [6, 12, 17, 10, 8, 22, 28, 14, ...questions.map(() => 50)];
+    widths.forEach((w, i) => (ws.getColumn(i + 1).width = w));
+    ws.autoFilter = { from: { row: 3, column: 1 }, to: { row: 3, column: totalCols } };
+
+    // ---- Sheet 2: question texts ----
+    const qs = wb.addWorksheet('ጥያቄዎች');
+    qs.columns = [
+      { header: 'ቁጥር', key: 'n', width: 10 },
+      { header: 'የጥያቄው ሙሉ ጽሑፍ', key: 't', width: 110 },
+      { header: 'የመለሱ ብዛት', key: 'c', width: 14 },
+    ];
+    questions.forEach((q, i) => {
+      const count = responses.filter((r: any) =>
+        r.answers.some((a: any) => a.question_id === q.id && ((a.answer_text || '').trim() || a.rating_value))
+      ).length;
+      qs.addRow({ n: `ጥያቄ ${i + 1}`, t: q.question_text, c: count });
+    });
+
+    // ---- Sheet 3: demographic summary ----
+    const sm = wb.addWorksheet('ማጠቃለያ');
+    sm.columns = [
+      { header: 'መለኪያ', key: 'k', width: 22 },
+      { header: 'ምድብ', key: 'l', width: 40 },
+      { header: 'ብዛት', key: 'c', width: 10 },
+      { header: 'መቶኛ (%)', key: 'p', width: 12 },
+    ];
+    const total = responses.length;
+    sm.addRow({ k: 'ጠቅላላ ተሳታፊዎች', l: '', c: total, p: total ? 100 : 0 });
+    const groups: [string, string][] = [
+      ['ፆታ', 'gender'],
+      ['ዕድሜ', 'age_group'],
+      ['የትምህርት ደረጃ', 'education'],
+      ['ቦታ / ተቋም', 'residence'],
+    ];
+    for (const [label, key] of groups) {
+      const counts = new Map<string, number>();
+      responses.forEach((r: any) => {
+        const v = r[key] || 'ያልተገለጸ';
+        counts.set(v, (counts.get(v) || 0) + 1);
+      });
+      [...counts.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([v, c]) => sm.addRow({ k: label, l: v, c, p: total ? Math.round((c / total) * 1000) / 10 : 0 }));
+    }
+
+    for (const sheet of [qs, sm]) {
+      sheet.eachRow((row, n) => {
+        row.eachCell({ includeEmpty: true }, (c) => {
+          c.border = BORDER;
+          if (n === 1) {
+            c.fill = HEADER_FILL;
+            c.font = HEADER_FONT;
+            c.alignment = { vertical: 'middle', horizontal: 'center' };
+          } else {
+            c.alignment = { vertical: 'top', wrapText: true };
+            c.font = { name: FONT, size: 11 };
+          }
+        });
+      });
+      sheet.getRow(1).height = 24;
+      sheet.views = [{ state: 'frozen', ySplit: 1 }];
+    }
+
+    await db.addAuditLog(
+      req.adminUser?.email || 'admin@dgc.gov.et',
+      'EXPORT_XLSX',
+      `ለጥናት ID ${surveyId} የሁሉም ተሳታፊዎች መልሶች በExcel ወርደዋል (${responses.length} ተሳታፊዎች)::`,
+      req.ip
+    );
+
+    const buffer = await wb.xlsx.writeBuffer();
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="survey_${surveyId}_responses.xlsx"`);
+    res.send(Buffer.from(buffer as ArrayBuffer));
+  } catch (err: any) {
+    handleApiError(res, req, err, 'የExcel ፋይል ማዘጋጀት አልተቻለም');
+  }
+});
+
 app.get('/api/admin/surveys/:id/export-csv', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const surveyId = parseInt(req.params.id, 10);

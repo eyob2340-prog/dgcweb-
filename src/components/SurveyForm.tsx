@@ -1,27 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ArrowLeft,
   Star,
   Send,
   CheckCircle2,
   AlertTriangle,
-  PenTool,
   Check,
-  ChevronDown,
-  ChevronUp,
-  Calendar,
   Lock,
   QrCode,
-  UserCheck,
-  RefreshCw,
-  WifiOff,
-  BookmarkCheck,
-  Save,
-  Sparkles,
+  Share2,
   Globe,
+  Clock,
+  ListChecks,
+  UserRound,
+  MessageSquareText,
+  Loader2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import QRCodeLib from 'qrcode';
 import {
   Survey,
   Demographics,
@@ -31,7 +27,7 @@ import {
   URBAN_WOREDAS,
   RURAL_WOREDAS,
 } from '../types';
-import { Language, translations } from '../lib/i18n';
+import { Language } from '../lib/i18n';
 import { DgcQrCard } from './DgcQrCard';
 import { getAnonymousClientId } from '../lib/clientId';
 
@@ -229,6 +225,115 @@ const RESIDENCE_CATEGORIES_BY_LANG: Record<SupportedSurveyLang, { value: string;
 const AGE_GROUPS = ['18-25', '26-35', '36-45', '46-65', '65+'];
 const GENDERS = ['ወንድ', 'ሴት'];
 
+// Extra UI strings for the simplified form layout
+const UI_TEXTS: Record<
+  SupportedSurveyLang,
+  {
+    aboutYou: string;
+    aboutYouSub: string;
+    yourOpinion: string;
+    yourOpinionSub: string;
+    residence: string;
+    choosePlace: string;
+    questionOf: (n: number, total: number) => string;
+    filled: string;
+    ready: string;
+    notAnswered: string;
+    answered: string;
+    chars: string;
+    missing: (demo: number, q: number) => string;
+    sendMine: string;
+    share: string;
+    copied: string;
+    questionsCount: (n: number) => string;
+    minutes: string;
+    anonymous: string;
+    thanksTitle: string;
+    thanksBody: string;
+    home: string;
+  }
+> = {
+  am: {
+    aboutYou: 'ክፍል 1፦ ስለ እርስዎ',
+    aboutYouSub: 'ስምዎ አይጠየቅም። ይህ መረጃ ለጥናቱ ትንታኔ ብቻ ይውላል።',
+    yourOpinion: 'ክፍል 2፦ የእርስዎ አስተያየት',
+    yourOpinionSub: 'ለእያንዳንዱ ጥያቄ ሐሳብዎን በራስዎ ቃል በነፃነት ይጻፉ።',
+    residence: 'የሚኖሩበት / የሚሰሩበት ቦታ',
+    choosePlace: '— ቦታ/ተቋም ይምረጡ —',
+    questionOf: (n, t) => `ጥያቄ ${n} ከ ${t}`,
+    filled: 'ተሞልቷል',
+    ready: 'ለመላክ ዝግጁ ነው ✓',
+    notAnswered: 'ይህ ጥያቄ አልተመለሰም',
+    answered: '✓ ተመልሷል',
+    chars: 'ፊደል',
+    missing: (d, q) =>
+      `እባክዎ ያልተሞሉትን ያሟሉ፦ ${[d ? `${d} የግል መረጃ` : '', q ? `${q} ጥያቄ` : ''].filter(Boolean).join(' እና ')} ይቀራል። በቀይ የተከበቡትን ይመልከቱ።`,
+    sendMine: 'አስተያየቴን ላክ',
+    share: 'ለሌሎች ያጋሩ',
+    copied: 'ሊንኩ ተቀድቷል ✓',
+    questionsCount: (n) => `${n} ጥያቄዎች`,
+    minutes: '~5 ደቂቃ',
+    anonymous: 'ስም አይጠየቅም · ሚስጥራዊ',
+    thanksTitle: 'እናመሰግናለን! አስተያየትዎ ደርሶናል',
+    thanksBody: 'የሰጡት አስተያየት ሚስጥራዊ ሆኖ ለፖሊሲና ለአሰራር ማሻሻያ ጥናት ይውላል። ሌሎችም እንዲሳተፉ ሊንኩን ያጋሩ።',
+    home: 'ወደ ዋናው ገጽ',
+  },
+  om: {
+    aboutYou: 'Kutaa 1: Waa’ee keessan',
+    aboutYouSub: 'Maqaan keessan hin gaafatamu. Odeeffannoon kun xiinxala qorannoo qofaaf oola.',
+    yourOpinion: 'Kutaa 2: Yaada keessan',
+    yourOpinionSub: 'Gaaffii hundaaf yaada keessan jecha mataa keessaniin bilisaan barreessaa.',
+    residence: 'Bakka jireenyaa / hojii',
+    choosePlace: '— Bakka/Dhaabbata filadhaa —',
+    questionOf: (n, t) => `Gaaffii ${n} / ${t}`,
+    filled: 'Guutameera',
+    ready: 'Erguuf qophaa’eera ✓',
+    notAnswered: 'Gaaffiin kun hin deebifamne',
+    answered: '✓ Deebifameera',
+    chars: 'qubee',
+    missing: (d, q) =>
+      `Mee kanneen hin guutamin guutaa: ${[d ? `odeeffannoo dhuunfaa ${d}` : '', q ? `gaaffii ${q}` : ''].filter(Boolean).join(' fi ')} hafeera. Kanneen diimaan marfaman ilaalaa.`,
+    sendMine: 'Yaada koo ergi',
+    share: 'Warra biroof qoodi',
+    copied: 'Liinkiin waraabameera ✓',
+    questionsCount: (n) => `Gaaffilee ${n}`,
+    minutes: '~Daqiiqaa 5',
+    anonymous: 'Maqaan hin gaafatamu · Icitii',
+    thanksTitle: 'Galatoomaa! Yaadni keessan nu gaheera',
+    thanksBody: 'Yaadni keessan icitiidhaan qorannoo fooyya’iinsa imaammataaf oola. Akka warri biroo hirmaatan liinkii qoodaa.',
+    home: 'Gara fuula jalqabaa',
+  },
+  so: {
+    aboutYou: 'Qaybta 1: Adiga ku saabsan',
+    aboutYouSub: 'Magacaaga lama weydiinayo. Xogtan waxaa loo isticmaalayaa falanqaynta sahanka oo keliya.',
+    yourOpinion: 'Qaybta 2: Fikraddaada',
+    yourOpinionSub: 'Su’aal kasta fikraddaada si xor ah ugu qor erayadaada.',
+    residence: 'Goobta aad ku nooshahay / ka shaqeyso',
+    choosePlace: '— Dooro goobta/hay’adda —',
+    questionOf: (n, t) => `Su’aal ${n} / ${t}`,
+    filled: 'La buuxiyay',
+    ready: 'Diyaar u ah in la diro ✓',
+    notAnswered: 'Su’aashan lama jawaabin',
+    answered: '✓ Waa la jawaabay',
+    chars: 'xaraf',
+    missing: (d, q) =>
+      `Fadlan buuxi waxa haray: ${[d ? `${d} xog shakhsi ah` : '', q ? `${q} su’aal` : ''].filter(Boolean).join(' iyo ')}. Eeg kuwa casaanka lagu wareejiyay.`,
+    sendMine: 'Dir fikraddayda',
+    share: 'La wadaag dadka kale',
+    copied: 'Linkiga waa la koobiyeeyay ✓',
+    questionsCount: (n) => `${n} su’aalood`,
+    minutes: '~5 daqiiqo',
+    anonymous: 'Magac lama weydiinayo · Qarsoodi',
+    thanksTitle: 'Mahadsanid! Fikraddaada waa na soo gaartay',
+    thanksBody: 'Fikraddaadu si qarsoodi ah ayaa loogu isticmaali doonaa daraasadda horumarinta siyaasadda. La wadaag linkiga si dadka kale uga qaybgalaan.',
+    home: 'Bogga hore',
+  },
+};
+
+type DemoField = 'gender' | 'age_group' | 'education' | 'residence';
+const DEMO_FIELDS: DemoField[] = ['gender', 'age_group', 'education', 'residence'];
+const CATEGORY_ICONS: Record<string, string> = { 'የሴክተር ተቋማት': '🏢', 'ወረዳ': '🏙️', 'የገጠር ወረዳዎች': '🌾' };
+
 export const SurveyForm: React.FC<SurveyFormProps> = ({
   survey,
   onBack,
@@ -236,17 +341,12 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
   language = 'am',
   isDarkMode = true,
 }) => {
-  // Survey language state: remembers per survey via localStorage, defaults to passed language or 'am'
   const [surveyLang, setSurveyLang] = useState<SupportedSurveyLang>(() => {
     try {
       const saved = localStorage.getItem(`dgc_survey_lang_${survey.id}`);
-      if (saved === 'am' || saved === 'om' || saved === 'so') {
-        return saved as SupportedSurveyLang;
-      }
+      if (saved === 'am' || saved === 'om' || saved === 'so') return saved as SupportedSurveyLang;
     } catch {}
-    if (language === 'om' || language === 'so' || language === 'am') {
-      return language as SupportedSurveyLang;
-    }
+    if (language === 'om' || language === 'so' || language === 'am') return language as SupportedSurveyLang;
     return 'am';
   });
 
@@ -259,101 +359,75 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
     } catch {}
   };
 
-  // Translations resolution
   const activeTranslation = surveyLang !== 'am' ? survey.translations?.[surveyLang] : undefined;
   const currentTitle = activeTranslation?.title || survey.title;
   const currentDescription = activeTranslation?.description || survey.description;
   const currentCategory = activeTranslation?.category || survey.category;
-  const currentTexts = SURVEY_TEXTS[surveyLang] || SURVEY_TEXTS.am;
-  const t = translations[language] || translations.am;
+  const tx = SURVEY_TEXTS[surveyLang] || SURVEY_TEXTS.am;
+  const ui = UI_TEXTS[surveyLang] || UI_TEXTS.am;
 
-  // Demographic state
+  // No defaults: every respondent picks their own values (defaults silently skew the data)
   const [demographics, setDemographics] = useState<Demographics>({
-    age_group: '26-35',
-    gender: 'ወንድ',
-    education: 'የመጀመሪያ ዲግሪ',
-    residence: 'አዲስ ከተማ',
-    residence_category: 'ወረዳ',
+    age_group: '',
+    gender: '',
+    education: '',
+    residence: '',
+    residence_category: RESIDENCE_CATEGORIES[0],
   });
-
   const [answers, setAnswers] = useState<Record<number, { text?: string; rating?: number }>>({});
-  const [collapsedQuestions, setCollapsedQuestions] = useState<Record<number, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [missing, setMissing] = useState<Set<string>>(new Set());
   const [submittedTicket, setSubmittedTicket] = useState<string | null>(null);
-  const [isOfflineSaved, setIsOfflineSaved] = useState<boolean>(false);
-  const [showProgressSavedToast, setShowProgressSavedToast] = useState(false);
-  const [restoredProgressNotice, setRestoredProgressNotice] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const fieldRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const shareUrl = `${window.location.origin}/?survey=${survey.id}`;
 
-  // In-memory state only (Strictly avoids persisting unencrypted citizen opinions/demographics into shared localStorage)
+  // In-memory only: never persist citizen opinions in shared-device localStorage
   useEffect(() => {
     try {
       localStorage.removeItem(`dgc_survey_progress_${survey.id}`);
     } catch {}
   }, [survey.id]);
 
-  // Progress Calculation
   const questionsList = survey.questions || [];
-  const totalQuestions = questionsList.length;
-  const answeredCount = questionsList.filter((q) => {
-    const a = answers[q.id];
+  const isAnswered = (qId: number) => {
+    const a = answers[qId];
     return Boolean(a?.text && a.text.trim()) || Boolean(a?.rating);
-  }).length;
-  const progressPercent = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
+  };
+  const demoDone = DEMO_FIELDS.filter((f) => Boolean(demographics[f])).length;
+  const answeredCount = questionsList.filter((q) => isAnswered(q.id)).length;
+  const totalSteps = DEMO_FIELDS.length + questionsList.length;
+  const doneSteps = demoDone + answeredCount;
+  const progressPercent = totalSteps > 0 ? Math.round((doneSteps / totalSteps) * 100) : 0;
 
-  // QR Code & Share modal state
-  const [showQrModal, setShowQrModal] = useState(false);
-  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const clearMissing = (key: string) =>
+    setMissing((m) => {
+      if (!m.has(key)) return m;
+      const next = new Set(m);
+      next.delete(key);
+      return next;
+    });
 
-  useEffect(() => {
-    if (showQrModal) {
-      const shareUrl = `${window.location.origin}/#survey-${survey.id}`;
-      QRCodeLib.toDataURL(shareUrl, { width: 280, margin: 2 })
-        .then((url) => setQrDataUrl(url))
-        .catch((err) => console.error('QR generation error:', err));
-    }
-  }, [showQrModal, survey.id]);
-
-  const toggleQuestionCollapse = (qId: number) => {
-    setCollapsedQuestions((prev) => ({
-      ...prev,
-      [qId]: !prev[qId],
-    }));
+  const setDemo = (field: DemoField, value: string) => {
+    setDemographics((p) => ({ ...p, [field]: value }));
+    clearMissing(field);
   };
 
-  const handleRadioSelect = (questionId: number, option: string) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: { ...prev[questionId], text: option },
-    }));
+  const setAnswer = (qId: number, patch: { text?: string; rating?: number }) => {
+    setAnswers((prev) => ({ ...prev, [qId]: { ...prev[qId], ...patch } }));
+    clearMissing(`q${qId}`);
   };
 
-  const handleRatingSelect = (questionId: number, rating: number) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: { ...prev[questionId], rating },
-    }));
-  };
-
-  const handleTextChange = (questionId: number, text: string) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: { ...prev[questionId], text },
-    }));
-  };
-
-  // Helper to resolve question text & options in active language
   const getQuestionDisplay = (q: Question, index: number) => {
     if (surveyLang === 'am' || !activeTranslation?.questions) {
-      return {
-        text: q.question_text,
-        options: q.options || [],
-      };
+      return { text: q.question_text, options: q.options || [] };
     }
     const match = activeTranslation.questions.find((tq: any) => tq.id === q.id) || activeTranslation.questions[index];
     return {
       text: match?.question_text || q.question_text,
-      options: match?.options && match.options.length > 0 ? match.options : (q.options || []),
+      options: match?.options && match.options.length > 0 ? match.options : q.options || [],
     };
   };
 
@@ -361,675 +435,578 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({
     e.preventDefault();
     setErrorMessage(null);
 
-    // Validate Demographic selections
-    if (!demographics.age_group || !demographics.gender || !demographics.education || !demographics.residence) {
-      setErrorMessage(currentTexts.errDemographics);
+    const missingNow = new Set<string>();
+    DEMO_FIELDS.forEach((f) => {
+      if (!demographics[f]) missingNow.add(f);
+    });
+    questionsList.forEach((q) => {
+      if (!isAnswered(q.id)) missingNow.add(`q${q.id}`);
+    });
+    if (missingNow.size > 0) {
+      setMissing(missingNow);
+      const d = DEMO_FIELDS.filter((f) => missingNow.has(f)).length;
+      const qn = questionsList.filter((q) => missingNow.has(`q${q.id}`)).length;
+      setErrorMessage(ui.missing(d, qn));
+      const firstKey = [...DEMO_FIELDS, ...questionsList.map((q) => `q${q.id}`)].find((k) => missingNow.has(k));
+      if (firstKey) fieldRefs.current[firstKey]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
-    // Validate questions
-    const questions = survey.questions || [];
-    for (let i = 0; i < questions.length; i++) {
-      const q = questions[i];
-      const displayQ = getQuestionDisplay(q, i);
-      if (q.question_type === 'radio' && !answers[q.id]?.text) {
-        setCollapsedQuestions((prev) => ({ ...prev, [q.id]: false }));
-        setErrorMessage(currentTexts.errQuestionChoice(displayQ.text));
-        return;
-      }
-      if (q.question_type === 'rating' && !answers[q.id]?.rating) {
-        setCollapsedQuestions((prev) => ({ ...prev, [q.id]: false }));
-        setErrorMessage(currentTexts.errQuestionRating(displayQ.text));
-        return;
-      }
+    if (!navigator.onLine) {
+      setErrorMessage(tx.errOffline);
+      return;
     }
 
     setIsSubmitting(true);
-
-    const payloadAnswers = questions
-      .map((q) => {
-        const val = answers[q.id];
-        return {
-          question_id: q.id,
-          answer_text: val?.text || undefined,
-          rating_value: val?.rating || undefined,
-        };
-      })
+    const payloadAnswers = questionsList
+      .map((q) => ({
+        question_id: q.id,
+        answer_text: answers[q.id]?.text?.trim() || undefined,
+        rating_value: answers[q.id]?.rating || undefined,
+      }))
       .filter((a) => a.answer_text !== undefined || a.rating_value !== undefined);
-
-    // Check offline
-    if (!navigator.onLine) {
-      setErrorMessage(currentTexts.errOffline);
-      setIsSubmitting(false);
-      return;
-    }
 
     try {
       const res = await fetch(`/api/surveys/${survey.id}/responses`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': getAnonymousClientId(),
-        },
+        headers: { 'Content-Type': 'application/json', 'X-Client-Id': getAnonymousClientId() },
         body: JSON.stringify({
           answers: payloadAnswers,
-          demographics,
+          demographics: {
+            age_group: demographics.age_group,
+            gender: demographics.gender,
+            education: demographics.education,
+            residence: demographics.residence,
+          },
           language: surveyLang,
         }),
       });
-
-      const data = await res.json();
-
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setErrorMessage(data.error || currentTexts.errNetwork);
+        setErrorMessage(data.error || tx.errNetwork);
       } else {
-        const ticketCode = data.refCode || 'DGC-OP-' + Math.floor(100000 + Math.random() * 900000);
-        setSubmittedTicket(ticketCode);
+        setSubmittedTicket(data.refCode || 'DGC-OP-' + Math.floor(100000 + Math.random() * 900000));
         onSubmitSuccess();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
-    } catch (err: any) {
-      setErrorMessage(currentTexts.errNetwork);
+    } catch {
+      setErrorMessage(tx.errNetwork);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Completion Success Screen
+  const share = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: currentTitle, url: shareUrl });
+        return;
+      }
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      /* cancelled */
+    }
+  };
+
+  // ----- theme helpers -----
+  const card = isDarkMode
+    ? 'bg-slate-900/75 backdrop-blur-md border-slate-800'
+    : 'bg-white border-slate-200 shadow-slate-200/70';
+  const textMain = isDarkMode ? 'text-slate-100' : 'text-slate-900';
+  const textSub = isDarkMode ? 'text-slate-400' : 'text-slate-500';
+  const subtleBox = isDarkMode ? 'bg-slate-950/40' : 'bg-slate-50';
+  const chip = (active: boolean, invalid: boolean) =>
+    `min-h-[44px] px-4 py-2.5 rounded-xl text-sm font-bold transition-all border cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
+      active
+        ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-md shadow-amber-500/20'
+        : `${isDarkMode ? 'bg-slate-950/70 text-slate-200 hover:border-slate-500' : 'bg-white text-slate-800 hover:border-slate-400'} ${
+            invalid ? 'border-red-500/70' : isDarkMode ? 'border-slate-700' : 'border-slate-300'
+          }`
+    }`;
+  const fieldBox = (key: string) =>
+    `space-y-3 rounded-2xl p-4 sm:p-5 transition-colors ${missing.has(key) ? 'bg-red-500/5 ring-2 ring-red-500/60' : subtleBox}`;
+
+  const FieldLabel = ({ n, label, done }: { n: number; label: string; done: boolean }) => (
+    <div className="flex items-center gap-2.5">
+      <span
+        className={`w-6 h-6 rounded-full text-[11px] font-black flex items-center justify-center ${
+          done ? 'bg-emerald-500 text-white' : isDarkMode ? 'bg-slate-700 text-slate-200' : 'bg-slate-200 text-slate-700'
+        }`}
+      >
+        {done ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : n}
+      </span>
+      <span className={`text-sm sm:text-[15px] font-bold ${textMain}`}>{label}</span>
+    </div>
+  );
+
+  const qrModal = createPortal(
+    <AnimatePresence>
+      {showQrModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
+          onClick={() => setShowQrModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.92, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.92, y: 20 }}
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-md w-full"
+          >
+            <DgcQrCard url={shareUrl} surveyTitle={currentTitle} onClose={() => setShowQrModal(false)} />
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+
+  // ---------------- Thank-you screen ----------------
   if (submittedTicket) {
     return (
-      <div className={`max-w-2xl mx-auto rounded-3xl p-8 border shadow-2xl text-center space-y-6 transition-all duration-300 ${
-        isDarkMode
-          ? 'bg-slate-900/90 backdrop-blur-md border-emerald-500/30 text-white'
-          : 'bg-white/95 backdrop-blur-md border-emerald-500/40 text-slate-900 shadow-slate-200/80'
-      }`}>
+      <div className="max-w-2xl mx-auto">
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-3xl flex items-center justify-center mx-auto border border-emerald-500/20 shadow-inner"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`rounded-[2rem] p-8 sm:p-10 border shadow-2xl text-center space-y-6 ${card} ${isDarkMode ? 'border-emerald-500/30' : 'border-emerald-300'}`}
         >
-          {isOfflineSaved ? <WifiOff className="w-10 h-10 text-amber-400" /> : <CheckCircle2 className="w-10 h-10 animate-bounce" />}
-        </motion.div>
-        <div className="space-y-2">
-          <h2 className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-slate-950'}`}>
-            {isOfflineSaved ? t.offlineQueued : currentTexts.submittedSuccess}
-          </h2>
-          <p className={`text-xs sm:text-sm max-w-md mx-auto leading-relaxed ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-            {isOfflineSaved
-              ? t.offlineSyncNotice
-              : currentTexts.submittedMessage}
-          </p>
-        </div>
-
-        <div className={`p-5 rounded-2xl border inline-block text-left text-xs space-y-1.5 shadow-inner ${
-          isDarkMode ? 'bg-slate-950/80 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'
-        }`}>
-          <div className={`flex items-center space-x-2 font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
-            <Lock className="w-4 h-4 text-emerald-500" />
-            <span>{currentTexts.refCode}</span>
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 220, damping: 14 }}
+            className="w-24 h-24 rounded-full flex items-center justify-center mx-auto bg-emerald-500/15 text-emerald-500"
+          >
+            <CheckCircle2 className="w-12 h-12" />
+          </motion.div>
+          <div className="space-y-3">
+            <h2 className={`text-2xl sm:text-3xl font-black ${textMain}`}>{ui.thanksTitle}</h2>
+            <p className={`text-sm sm:text-base max-w-md mx-auto leading-relaxed ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+              {ui.thanksBody}
+            </p>
           </div>
-          <p className="font-mono text-base text-emerald-500 font-black tracking-widest pl-6">
-            {submittedTicket}
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-          <button
-            onClick={() => {
-              setSubmittedTicket(null);
-              setIsOfflineSaved(false);
-              setAnswers({});
-            }}
-            className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer ${
-              isDarkMode
-                ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
+          <div
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs ${
+              isDarkMode ? 'bg-slate-950/80 border-slate-800 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'
             }`}
           >
-            <RefreshCw className="w-4 h-4 text-amber-500" />
-            <span>{currentTexts.giveAnother}</span>
-          </button>
-
-          <button
-            onClick={onBack}
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs font-bold transition-all shadow-md flex items-center space-x-2 cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4 text-amber-400" />
-            <span>{currentTexts.backToSurveys}</span>
-          </button>
-        </div>
+            <Lock className="w-4 h-4 text-emerald-500" />
+            <span>{tx.refCode}</span>
+            <span className="font-mono font-black text-emerald-500 tracking-wider">{submittedTicket}</span>
+          </div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 pt-2">
+            <button
+              onClick={share}
+              className="px-6 py-3.5 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 rounded-2xl text-sm font-black shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Share2 className="w-4 h-4" />
+              {copied ? ui.copied : ui.share}
+            </button>
+            <button
+              onClick={() => setShowQrModal(true)}
+              className={`px-6 py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 border cursor-pointer ${
+                isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-700' : 'bg-white hover:bg-slate-50 text-amber-600 border-slate-300'
+              }`}
+            >
+              <QrCode className="w-4 h-4" />
+              QR
+            </button>
+            <button
+              onClick={onBack}
+              className={`px-6 py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 border cursor-pointer ${
+                isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700' : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
+              }`}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {ui.home}
+            </button>
+          </div>
+        </motion.div>
+        {qrModal}
       </div>
     );
   }
 
-  return (
-    <div className="max-w-3xl mx-auto space-y-5">
-      {/* Top bar with Back and Share QR buttons */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <button
-          onClick={onBack}
-          className={`px-4 py-2 text-xs font-bold rounded-2xl border transition-all flex items-center space-x-1.5 shadow-md cursor-pointer ${
-            isDarkMode
-              ? 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border-slate-800'
-              : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border-slate-200'
-          }`}
-        >
-          <ArrowLeft className="w-4 h-4 text-blue-500" />
-          <span>{currentTexts.back}</span>
-        </button>
+  // ---------------- Form ----------------
+  const category = demographics.residence_category || RESIDENCE_CATEGORIES[0];
+  const locations: readonly string[] =
+    category === 'ወረዳ' ? URBAN_WOREDAS : category === 'የገጠር ወረዳዎች' ? RURAL_WOREDAS : SECTOR_INSTITUTIONS;
+  const topBtn = `min-h-[44px] px-4 py-2 text-sm font-bold rounded-2xl border flex items-center gap-2 cursor-pointer ${
+    isDarkMode ? 'bg-slate-900/80 hover:bg-slate-800 text-slate-200 border-slate-800' : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200'
+  }`;
 
-        <div className="flex items-center space-x-2">
+  return (
+    <div className="max-w-3xl mx-auto space-y-6 pb-28 sm:pb-8">
+      {/* Top bar */}
+      <div className="flex items-center justify-between gap-3">
+        <button onClick={onBack} className={topBtn}>
+          <ArrowLeft className="w-4 h-4" />
+          {tx.back}
+        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={share} className={topBtn} aria-label={ui.share}>
+            <Share2 className="w-4 h-4 text-amber-500" />
+            <span className="hidden sm:inline">{copied ? ui.copied : ui.share}</span>
+          </button>
           <button
             onClick={() => setShowQrModal(true)}
-            className="px-4 py-2 text-xs font-bold text-amber-500 hover:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 rounded-2xl border border-amber-500/30 transition-all flex items-center space-x-2 shadow-md cursor-pointer"
+            className="min-h-[44px] px-4 py-2 text-sm font-bold text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 rounded-2xl border border-amber-500/30 flex items-center gap-2 cursor-pointer"
           >
-            <QrCode className="w-4 h-4 text-amber-500" />
-            <span>{currentTexts.qrAndShare}</span>
+            <QrCode className="w-4 h-4" />
+            QR
           </button>
         </div>
       </div>
 
-      {/* Multilingual Survey Language Selector (Amharic / Afaan Oromoo / Soomaali) */}
-      <div className={`p-2.5 sm:p-3 rounded-2xl border shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition-all duration-300 ${
-        isDarkMode
-          ? 'bg-slate-900/90 border-slate-800 backdrop-blur-md'
-          : 'bg-white/95 border-slate-200 shadow-slate-200/60 backdrop-blur-md'
-      }`}>
-        <div className="flex items-center space-x-2">
+      {/* Language selector */}
+      <div className={`p-2.5 sm:p-3 rounded-2xl border shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 ${card}`}>
+        <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center border border-amber-500/20">
-            <Globe className="w-4 h-4 text-amber-500" />
+            <Globe className="w-4 h-4" />
           </div>
-          <div>
-            <span className={`text-xs font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
-              {currentTexts.langLabel}
-            </span>
-          </div>
+          <span className={`text-xs font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{tx.langLabel}</span>
         </div>
-
-        {/* Compact Segmented Control / Pill-style Selector */}
         <div
           role="tablist"
           aria-label="Survey Language Selection"
-          className={`inline-flex items-center p-1 rounded-xl border ${
-            isDarkMode ? 'bg-slate-950/90 border-slate-800' : 'bg-slate-100 border-slate-200'
-          }`}
+          className={`grid grid-cols-3 sm:inline-flex items-center p-1 rounded-xl border ${isDarkMode ? 'bg-slate-950/90 border-slate-800' : 'bg-slate-100 border-slate-200'}`}
         >
           {SURVEY_LANG_OPTIONS.map((l) => {
-            const isSelected = surveyLang === l.code;
+            const sel = surveyLang === l.code;
             return (
               <button
                 key={l.code}
                 type="button"
                 role="tab"
-                aria-selected={isSelected}
-                tabIndex={0}
+                aria-selected={sel}
                 onClick={() => handleLanguageChange(l.code)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
-                  isSelected
-                    ? 'bg-amber-500 text-slate-950 shadow-md border border-amber-400 font-black'
+                title={l.name}
+                className={`min-h-[40px] px-3 py-1.5 rounded-lg text-xs sm:text-sm font-black transition-all cursor-pointer ${
+                  sel
+                    ? 'bg-amber-500 text-slate-950 shadow-md'
                     : isDarkMode
                     ? 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-white'
                 }`}
-                title={l.name}
               >
-                <span>{l.label}</span>
-                {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-slate-950"></span>}
+                {l.label}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Survey Title Header (Dynamic Language & Theme) */}
-      <div className={`p-6 sm:p-8 rounded-3xl shadow-xl space-y-3 relative overflow-hidden border transition-all duration-300 ${
-        isDarkMode
-          ? 'bg-gradient-to-r from-blue-950 via-slate-900 to-slate-950 border-blue-500/30 text-white'
-          : 'bg-gradient-to-r from-blue-600 to-blue-700 border-blue-500 text-white shadow-blue-200/50'
-      }`}>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-bold border border-white/30">
-            {currentCategory}
-          </span>
-          {survey.start_date && (
-            <span className="text-white/90 text-xs flex items-center gap-1 font-medium bg-black/20 px-2.5 py-1 rounded-full border border-white/20">
-              <Calendar className="w-3.5 h-3.5 text-amber-300" />
-              <span>{currentTexts.startedAt} {survey.start_date}</span>
-            </span>
-          )}
+      {/* Title card */}
+      <div className="relative overflow-hidden rounded-[2rem] border border-amber-400/30 bg-gradient-to-br from-[#0b1f4a] via-[#0a1733] to-[#140f05] p-6 sm:p-8 shadow-xl">
+        <div className="absolute inset-x-0 top-0 flex h-1.5">
+          <span className="flex-1 bg-emerald-500" />
+          <span className="flex-1 bg-amber-400" />
+          <span className="flex-1 bg-red-500" />
         </div>
-
-        <h1 className="text-xl sm:text-2xl font-black leading-snug">{currentTitle}</h1>
-        <p className="text-xs sm:text-sm text-white/90 leading-relaxed font-normal whitespace-pre-line">{currentDescription}</p>
+        <span className="inline-block rounded-full bg-amber-400/15 border border-amber-400/30 px-3 py-1 text-[11px] font-bold text-amber-300">
+          {currentCategory}
+        </span>
+        <h1 className="mt-3 text-xl sm:text-2xl font-black leading-snug text-white">{currentTitle}</h1>
+        <p className="mt-3 text-sm sm:text-[15px] leading-relaxed text-slate-300 whitespace-pre-line">{currentDescription}</p>
+        <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-slate-300">
+          <span className="inline-flex items-center gap-1.5 rounded-xl bg-slate-950/50 border border-white/10 px-3 py-1.5">
+            <ListChecks className="w-4 h-4 text-amber-300" /> {ui.questionsCount(questionsList.length)}
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-xl bg-slate-950/50 border border-white/10 px-3 py-1.5">
+            <Clock className="w-4 h-4 text-amber-300" /> {ui.minutes}
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-xl bg-slate-950/50 border border-white/10 px-3 py-1.5">
+            <Lock className="w-4 h-4 text-emerald-300" /> {ui.anonymous}
+          </span>
+        </div>
       </div>
 
-      {/* Live Survey Progress System Indicator */}
-      <div className={`rounded-2xl p-4 border shadow-xl space-y-2 transition-all duration-300 ${
-        isDarkMode
-          ? 'bg-slate-900/90 backdrop-blur-md border-slate-800'
-          : 'bg-white/95 backdrop-blur-md border-slate-200 shadow-slate-200/60'
-      }`}>
-        <div className="flex items-center justify-between text-xs font-bold">
-          <div className="flex items-center space-x-2 text-amber-500">
-            <BookmarkCheck className="w-4 h-4 text-amber-500" />
-            <span>
-              {currentTexts.questionProgress} {answeredCount} / {totalQuestions}
-            </span>
-          </div>
-          <span className="text-blue-500 font-mono text-xs font-black">{progressPercent}% {currentTexts.completed}</span>
+      {/* Sticky progress (sits just under the sticky site header) */}
+      <div className={`sticky top-[88px] sm:top-[100px] z-20 rounded-2xl border px-4 py-3 shadow-xl ${isDarkMode ? 'bg-slate-900/95 border-slate-800 backdrop-blur-md' : 'bg-white/95 border-slate-200 backdrop-blur-md'}`}>
+        <div className="flex items-center justify-between text-xs sm:text-sm font-bold">
+          <span className={isDarkMode ? 'text-slate-200' : 'text-slate-700'}>
+            {ui.filled}: <span className="text-amber-500">{doneSteps}</span> / {totalSteps}
+          </span>
+          <span className={progressPercent === 100 ? 'text-emerald-500' : textSub}>
+            {progressPercent === 100 ? ui.ready : `${progressPercent}%`}
+          </span>
         </div>
-
-        {/* Visual Progress Bar */}
-        <div className={`w-full rounded-full h-3.5 p-0.5 border overflow-hidden shadow-inner ${
-          isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-200'
-        }`}>
+        <div className={`mt-2 h-2 w-full overflow-hidden rounded-full ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
           <motion.div
-            className="h-full rounded-full bg-gradient-to-r from-blue-600 to-amber-500 shadow-sm"
-            initial={{ width: '0%' }}
+            className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-amber-400 to-amber-300"
             animate={{ width: `${progressPercent}%` }}
             transition={{ duration: 0.3 }}
           />
         </div>
       </div>
 
-      {/* Mandatory Demographics Section (Translated dynamically) */}
-      <div className={`rounded-3xl p-6 border shadow-xl space-y-5 transition-all duration-300 ${
-        isDarkMode
-          ? 'bg-slate-900/80 backdrop-blur-md border-slate-800'
-          : 'bg-white/95 backdrop-blur-md border-slate-200 shadow-slate-200/60'
-      }`}>
-        <div className={`flex items-center space-x-2.5 border-b pb-3 ${
-          isDarkMode ? 'border-slate-800' : 'border-slate-200'
-        }`}>
-          <div className={`p-2 rounded-xl border ${
-            isDarkMode ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-blue-50 text-blue-600 border-blue-200'
-          }`}>
-            <UserCheck className="w-5 h-5" />
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
+        {/* Section 1 */}
+        <section className={`rounded-[2rem] border p-5 sm:p-7 shadow-xl space-y-5 ${card}`}>
+          <div className="flex items-start gap-3">
+            <div className="w-11 h-11 shrink-0 rounded-2xl bg-blue-500/15 text-blue-500 flex items-center justify-center">
+              <UserRound className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className={`text-lg font-black ${textMain}`}>{ui.aboutYou}</h2>
+              <p className={`text-sm ${textSub}`}>{ui.aboutYouSub}</p>
+            </div>
           </div>
-          <div>
-            <h2 className={`text-sm font-black ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>{currentTexts.demographicSection}</h2>
-            <p className={`text-[11px] ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{currentTexts.demographicSubtitle}</p>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Age Selection */}
-          <div className="space-y-2">
-            <label className={`text-xs font-bold flex items-center space-x-1 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-              <span>{currentTexts.ageGroup}:</span>
-            </label>
-            <div className="flex flex-wrap gap-2">
+          <div ref={(el) => { fieldRefs.current.gender = el; }} className={fieldBox('gender')}>
+            <FieldLabel n={1} label={tx.gender} done={Boolean(demographics.gender)} />
+            <div className="grid grid-cols-2 gap-2 sm:max-w-sm">
+              {GENDERS.map((g) => (
+                <button type="button" key={g} onClick={() => setDemo('gender', g)} className={chip(demographics.gender === g, missing.has('gender'))}>
+                  {g === 'ወንድ' ? tx.male : tx.female}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div ref={(el) => { fieldRefs.current.age_group = el; }} className={fieldBox('age_group')}>
+            <FieldLabel n={2} label={tx.ageGroup} done={Boolean(demographics.age_group)} />
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
               {AGE_GROUPS.map((age) => (
-                <button
-                  type="button"
-                  key={age}
-                  onClick={() => setDemographics((p) => ({ ...p, age_group: age }))}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                    demographics.age_group === age
-                      ? 'bg-blue-600 text-white border-blue-400 shadow-md scale-105'
-                      : isDarkMode
-                      ? 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
-                      : 'bg-slate-100 text-slate-700 border-slate-200 hover:border-slate-300'
-                  }`}
-                >
+                <button type="button" key={age} onClick={() => setDemo('age_group', age)} className={chip(demographics.age_group === age, missing.has('age_group'))}>
                   {age}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Gender Selection */}
-          <div className="space-y-2">
-            <label className={`text-xs font-bold flex items-center space-x-1 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-              <span>{currentTexts.gender}:</span>
-            </label>
-            <div className="flex gap-2">
-              {GENDERS.map((g) => {
-                const isSelected = demographics.gender === g;
-                const label = g === 'ወንድ' ? currentTexts.male : currentTexts.female;
-                return (
-                  <button
-                    type="button"
-                    key={g}
-                    onClick={() => setDemographics((p) => ({ ...p, gender: g }))}
-                    className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                      isSelected
-                        ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-md scale-105'
-                        : isDarkMode
-                        ? 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
-                        : 'bg-slate-100 text-slate-700 border-slate-200 hover:border-slate-300'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
+          <div ref={(el) => { fieldRefs.current.education = el; }} className={fieldBox('education')}>
+            <FieldLabel n={3} label={tx.education} done={Boolean(demographics.education)} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {EDUCATIONS_BY_LANG[surveyLang].map((opt) => (
+                <button
+                  type="button"
+                  key={opt.value}
+                  onClick={() => setDemo('education', opt.value)}
+                  className={`${chip(demographics.education === opt.value, missing.has('education'))} text-left`}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Education Selection */}
-          <div className="space-y-2">
-            <label className={`text-xs font-bold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{currentTexts.education}:</label>
-            <select
-              value={demographics.education || ''}
-              onChange={(e) => setDemographics((p) => ({ ...p, education: e.target.value }))}
-              className={`w-full p-2.5 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 border ${
-                isDarkMode
-                  ? 'bg-slate-950 border-slate-800 text-slate-200'
-                  : 'bg-slate-50 border-slate-200 text-slate-900'
-              }`}
-            >
-              {EDUCATIONS_BY_LANG[surveyLang].map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Residence Category Selection */}
-          <div className="space-y-2">
-            <label className={`text-xs font-bold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{currentTexts.residenceCat}</label>
-            <select
-              value={demographics.residence_category || RESIDENCE_CATEGORIES[0]}
-              onChange={(e) => {
-                const cat = e.target.value;
-                let defaultLoc = SECTOR_INSTITUTIONS[0] as string;
-                if (cat === 'ወረዳ') defaultLoc = URBAN_WOREDAS[0];
-                else if (cat === 'የገጠር ወረዳዎች') defaultLoc = RURAL_WOREDAS[0];
-                setDemographics((p) => ({
-                  ...p,
-                  residence_category: cat,
-                  residence: defaultLoc,
-                }));
-              }}
-              className={`w-full p-2.5 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 border ${
-                isDarkMode
-                  ? 'bg-slate-950 border-slate-800 text-slate-200'
-                  : 'bg-slate-50 border-slate-200 text-slate-900'
-              }`}
-            >
+          <div ref={(el) => { fieldRefs.current.residence = el; }} className={fieldBox('residence')}>
+            <FieldLabel n={4} label={ui.residence} done={Boolean(demographics.residence)} />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {RESIDENCE_CATEGORIES_BY_LANG[surveyLang].map((cat) => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label}
-                </option>
+                <button
+                  type="button"
+                  key={cat.value}
+                  onClick={() => {
+                    if (cat.value !== category) setDemographics((p) => ({ ...p, residence_category: cat.value, residence: '' }));
+                  }}
+                  className={`min-h-[44px] px-4 py-2.5 rounded-xl text-sm font-bold border transition-all cursor-pointer ${
+                    category === cat.value
+                      ? 'bg-blue-600 text-white border-blue-400'
+                      : isDarkMode
+                      ? 'bg-slate-950/70 text-slate-300 border-slate-700 hover:border-slate-500'
+                      : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400'
+                  }`}
+                >
+                  {CATEGORY_ICONS[cat.value]} {cat.label}
+                </button>
               ))}
-            </select>
-          </div>
-
-          {/* Specific Location Selection */}
-          <div className="space-y-2">
-            <label className={`text-xs font-bold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-              {currentTexts.specificRes} ({demographics.residence_category || RESIDENCE_CATEGORIES[0]}):
-            </label>
+            </div>
             <select
               value={demographics.residence || ''}
-              onChange={(e) => setDemographics((p) => ({ ...p, residence: e.target.value }))}
-              className={`w-full p-2.5 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 border ${
-                isDarkMode
-                  ? 'bg-slate-950 border-slate-800 text-slate-200'
-                  : 'bg-slate-50 border-slate-200 text-slate-900'
-              }`}
+              onChange={(e) => setDemo('residence', e.target.value)}
+              aria-label={ui.residence}
+              className={`w-full min-h-[48px] px-4 border rounded-xl text-base font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 ${
+                isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-900'
+              } ${missing.has('residence') ? 'border-red-500/70' : isDarkMode ? 'border-slate-700' : 'border-slate-300'}`}
             >
-              {(demographics.residence_category === 'የሴክተር ተቋማት' || !demographics.residence_category) &&
-                SECTOR_INSTITUTIONS.map((inst) => (
-                  <option key={inst} value={inst}>
-                    🏢 {inst}
-                  </option>
-                ))}
-
-              {demographics.residence_category === 'ወረዳ' &&
-                URBAN_WOREDAS.map((woreda) => (
-                  <option key={woreda} value={woreda}>
-                    📍 {woreda}
-                  </option>
-                ))}
-
-              {demographics.residence_category === 'የገጠር ወረዳዎች' &&
-                RURAL_WOREDAS.map((woreda) => (
-                  <option key={woreda} value={woreda}>
-                    🌾 {woreda}
-                  </option>
-                ))}
+              <option value="" disabled>
+                {ui.choosePlace}
+              </option>
+              {locations.map((loc) => (
+                <option key={loc} value={loc}>
+                  {loc}
+                </option>
+              ))}
             </select>
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* Questions Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {errorMessage && (
-          <div className="p-4 bg-amber-500/15 border border-amber-500 rounded-2xl text-xs sm:text-sm text-amber-500 font-bold flex items-center space-x-2 animate-shake">
-            <AlertTriangle className="w-5 h-5 shrink-0 text-amber-500" />
-            <span>{errorMessage}</span>
+        {/* Section 2 */}
+        <section className="space-y-4">
+          <div className="flex items-start gap-3 px-1">
+            <div className="w-11 h-11 shrink-0 rounded-2xl bg-amber-400/15 text-amber-500 flex items-center justify-center">
+              <MessageSquareText className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className={`text-lg font-black ${textMain}`}>{ui.yourOpinion}</h2>
+              <p className={`text-sm ${textSub}`}>{ui.yourOpinionSub}</p>
+            </div>
           </div>
-        )}
 
-        {(survey.questions || []).map((q, index) => {
-          const displayQ = getQuestionDisplay(q, index);
-          const isAnswered = Boolean(answers[q.id]?.text || answers[q.id]?.rating);
-          const isCollapsed = Boolean(collapsedQuestions[q.id]);
-
-          return (
-            <motion.div
-              key={q.id}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className={`rounded-3xl border transition-all duration-300 shadow-xl overflow-hidden ${
-                isDarkMode
-                  ? 'bg-slate-900/80 backdrop-blur-md border-slate-800'
-                  : 'bg-white/95 backdrop-blur-md border-slate-200 shadow-slate-200/60'
-              }`}
-            >
-              {/* Question Header */}
+          {questionsList.map((q, idx) => {
+            const displayQ = getQuestionDisplay(q, idx);
+            const done = isAnswered(q.id);
+            const invalid = missing.has(`q${q.id}`);
+            const text = answers[q.id]?.text || '';
+            return (
               <div
-                onClick={() => toggleQuestionCollapse(q.id)}
-                className={`p-6 flex items-start justify-between gap-4 cursor-pointer transition-colors ${
-                  isDarkMode ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50'
+                key={q.id}
+                ref={(el) => { fieldRefs.current[`q${q.id}`] = el; }}
+                className={`rounded-[1.75rem] border p-5 sm:p-7 shadow-xl transition-colors ${card} ${
+                  invalid ? '!border-red-500/70 ring-2 ring-red-500/40' : done ? '!border-emerald-500/40' : ''
                 }`}
               >
-                <div className="flex items-start space-x-3.5">
-                  <div
-                    className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black shrink-0 mt-0.5 border ${
-                      isAnswered
-                        ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md'
-                        : isDarkMode
-                        ? 'bg-slate-800 text-slate-300 border-slate-700'
-                        : 'bg-slate-100 text-slate-700 border-slate-200'
+                <div className="flex items-start gap-3">
+                  <span
+                    className={`mt-0.5 w-9 h-9 shrink-0 rounded-xl text-sm font-black flex items-center justify-center ${
+                      done ? 'bg-emerald-500 text-white' : 'bg-amber-400 text-slate-950'
                     }`}
                   >
-                    {index + 1}
-                  </div>
-                  <div>
-                    <h3 className={`text-sm sm:text-base font-bold leading-snug ${
-                      isDarkMode ? 'text-slate-100' : 'text-slate-900'
-                    }`}>
-                      {displayQ.text}
-                    </h3>
+                    {done ? <Check className="w-4 h-4 stroke-[3]" /> : idx + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className={`text-[11px] font-bold uppercase tracking-wide ${textSub}`}>{ui.questionOf(idx + 1, questionsList.length)}</div>
+                    <h3 className={`mt-1 text-[15px] sm:text-base font-semibold leading-relaxed ${textMain}`}>{displayQ.text}</h3>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2 shrink-0">
-                  {isAnswered && (
-                    <span className="p-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/30">
-                      <Check className="w-3.5 h-3.5" />
-                    </span>
+                <div className="mt-4 sm:pl-12">
+                  {q.question_type === 'text' && (
+                    <>
+                      <textarea
+                        rows={5}
+                        value={text}
+                        maxLength={2000}
+                        onChange={(e) => setAnswer(q.id, { text: e.target.value })}
+                        placeholder={tx.textPlaceholder}
+                        aria-label={ui.questionOf(idx + 1, questionsList.length)}
+                        className={`w-full resize-y rounded-2xl border p-4 text-base leading-relaxed focus:outline-none focus:ring-2 focus:ring-amber-400/60 focus:border-amber-400 ${
+                          isDarkMode ? 'bg-slate-950/80 text-slate-100 placeholder-slate-500' : 'bg-slate-50 text-slate-900 placeholder-slate-400'
+                        } ${invalid ? 'border-red-500/70' : isDarkMode ? 'border-slate-700' : 'border-slate-300'}`}
+                      />
+                      <div className={`mt-1.5 flex justify-between text-xs ${textSub}`}>
+                        <span>
+                          {invalid ? (
+                            <span className="text-red-500 font-semibold">{ui.notAnswered}</span>
+                          ) : done ? (
+                            <span className="text-emerald-500 font-semibold">{ui.answered}</span>
+                          ) : null}
+                        </span>
+                        <span>
+                          {text.length} / 2000 {ui.chars}
+                        </span>
+                      </div>
+                    </>
                   )}
-                  {isCollapsed ? (
-                    <ChevronDown className="w-4 h-4 text-slate-400" />
-                  ) : (
-                    <ChevronUp className="w-4 h-4 text-slate-400" />
-                  )}
-                </div>
-              </div>
 
-              {/* Collapsible Question Details */}
-              <AnimatePresence>
-                {!isCollapsed && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className={`p-6 pt-0 border-t ${isDarkMode ? 'border-slate-800/80' : 'border-slate-200'}`}
-                  >
-                    {/* Radio Choice Question */}
-                    {q.question_type === 'radio' && (
-                      <div className="space-y-2.5 pt-4">
-                        {(displayQ.options || []).map((opt) => {
-                          const isSelected = answers[q.id]?.text === opt;
-                          return (
-                            <label
-                              key={opt}
-                              onClick={() => handleRadioSelect(q.id, opt)}
-                              className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
-                                isSelected
-                                  ? isDarkMode
-                                    ? 'bg-blue-950/80 border-blue-500 text-blue-200 ring-2 ring-blue-500/30 shadow-md'
-                                    : 'bg-blue-50 border-blue-500 text-blue-900 ring-2 ring-blue-500/30 shadow-md'
-                                  : isDarkMode
-                                  ? 'bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-800/60'
-                                  : 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100'
+                  {q.question_type === 'radio' && (
+                    <div className="grid gap-2">
+                      {(displayQ.options || []).map((opt: string) => {
+                        const selected = answers[q.id]?.text === opt;
+                        return (
+                          <button
+                            type="button"
+                            key={opt}
+                            onClick={() => setAnswer(q.id, { text: opt })}
+                            className={`min-h-[48px] flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left text-sm sm:text-base font-semibold transition-all cursor-pointer ${
+                              selected
+                                ? 'border-amber-400 bg-amber-400/10 ' + (isDarkMode ? 'text-amber-200' : 'text-amber-800')
+                                : `${isDarkMode ? 'bg-slate-950/70 text-slate-200 hover:border-slate-500' : 'bg-white text-slate-800 hover:border-slate-400'} ${
+                                    invalid ? 'border-red-500/60' : isDarkMode ? 'border-slate-700' : 'border-slate-300'
+                                  }`
+                            }`}
+                          >
+                            <span>{opt}</span>
+                            <span
+                              className={`w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center ${
+                                selected ? 'border-amber-400 bg-amber-400 text-slate-950' : isDarkMode ? 'border-slate-600' : 'border-slate-300'
                               }`}
                             >
-                              <span className="text-xs sm:text-sm font-semibold">{opt}</span>
-                              <div
-                                className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all ${
-                                  isSelected
-                                    ? 'border-blue-500 bg-blue-600 text-white scale-110'
-                                    : isDarkMode
-                                    ? 'border-slate-700 bg-slate-900'
-                                    : 'border-slate-300 bg-white'
-                                }`}
-                              >
-                                {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                              </div>
-                            </label>
+                              {selected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {q.question_type === 'rating' && (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map((star) => {
+                          const filled = star <= (answers[q.id]?.rating || 0);
+                          return (
+                            <button
+                              type="button"
+                              key={star}
+                              onClick={() => setAnswer(q.id, { rating: star })}
+                              aria-label={`${star}`}
+                              className={`flex-1 max-w-[64px] aspect-square rounded-xl border flex flex-col items-center justify-center transition-all cursor-pointer ${
+                                filled
+                                  ? 'border-amber-400 bg-amber-400/15 text-amber-500'
+                                  : isDarkMode
+                                  ? 'border-slate-700 bg-slate-950/70 text-slate-500'
+                                  : 'border-slate-300 bg-white text-slate-400'
+                              }`}
+                            >
+                              <Star className={`w-6 h-6 ${filled ? 'fill-amber-400' : ''}`} />
+                              <span className="text-xs font-black">{star}</span>
+                            </button>
                           );
                         })}
                       </div>
-                    )}
-
-                    {/* Rating Question */}
-                    {q.question_type === 'rating' && (
-                      <div className="pt-4 space-y-3">
-                        <div className="flex items-center space-x-2 sm:space-x-3">
-                          {[1, 2, 3, 4, 5].map((star) => {
-                            const currentRating = answers[q.id]?.rating || 0;
-                            const isFilled = star <= currentRating;
-                            return (
-                              <button
-                                type="button"
-                                key={star}
-                                onClick={() => handleRatingSelect(q.id, star)}
-                                className={`p-3 sm:p-4 rounded-2xl border flex flex-col items-center justify-center transition-all cursor-pointer ${
-                                  isFilled
-                                    ? 'bg-amber-500/20 border-amber-400 text-amber-500 shadow-md scale-110'
-                                    : isDarkMode
-                                    ? 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800/60'
-                                    : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
-                                }`}
-                              >
-                                <Star className={`w-6 h-6 ${isFilled ? 'fill-amber-400 text-amber-500' : ''}`} />
-                                <span className="text-xs font-black mt-1">{star}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                        <div className={`flex justify-between text-xs px-1 max-w-xs font-medium ${
-                          isDarkMode ? 'text-slate-400' : 'text-slate-500'
-                        }`}>
-                          <span>{currentTexts.ratingLow}</span>
-                          <span>{currentTexts.ratingHigh}</span>
-                        </div>
+                      <div className={`flex justify-between max-w-[340px] text-xs ${textSub}`}>
+                        <span>{tx.ratingLow}</span>
+                        <span>{tx.ratingHigh}</span>
                       </div>
-                    )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </section>
 
-                    {/* Open-ended Text Question */}
-                    {q.question_type === 'text' && (
-                      <div className="pt-4 relative">
-                        <div className={`flex items-center space-x-1.5 text-xs mb-2 ${
-                          isDarkMode ? 'text-slate-400' : 'text-slate-500'
-                        }`}>
-                          <PenTool className="w-3.5 h-3.5 text-amber-500" />
-                          <span>{currentTexts.textPrompt}</span>
-                        </div>
-                        <textarea
-                          rows={4}
-                          value={answers[q.id]?.text || ''}
-                          onChange={(e) => handleTextChange(q.id, e.target.value)}
-                          placeholder={currentTexts.textPlaceholder}
-                          className={`w-full p-4 rounded-2xl text-xs sm:text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all border ${
-                            isDarkMode
-                              ? 'bg-slate-950/70 border-slate-800 text-slate-100'
-                              : 'bg-slate-50 border-slate-200 text-slate-900'
-                          }`}
-                        ></textarea>
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          );
-        })}
+        {errorMessage && (
+          <div role="alert" className="flex items-start gap-3 rounded-2xl border border-red-500/50 bg-red-500/10 p-4 text-sm font-semibold text-red-600 dark:text-red-300">
+            <AlertTriangle className="w-5 h-5 shrink-0 text-red-500" />
+            <span className={isDarkMode ? 'text-red-200' : 'text-red-700'}>{errorMessage}</span>
+          </div>
+        )}
 
-
-
-        <div className="pt-2 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={onBack}
-            className={`px-6 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-colors cursor-pointer ${
-              isDarkMode
-                ? 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-            }`}
-          >
-            {currentTexts.cancel}
-          </button>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-8 py-3.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-2xl text-xs sm:text-sm font-black shadow-lg shadow-blue-600/30 transition-all flex items-center space-x-2 cursor-pointer"
-          >
-            {isSubmitting ? (
-              <span>{currentTexts.submitting}</span>
-            ) : (
-              <>
-                <Send className="w-4 h-4 text-amber-400" />
-                <span>{currentTexts.submit}</span>
-              </>
-            )}
-          </button>
+        {/* Submit — sticky at the bottom on phones */}
+        <div
+          className={`fixed inset-x-0 bottom-0 z-40 border-t p-3 backdrop-blur-md sm:static sm:border-0 sm:bg-transparent sm:p-0 ${
+            isDarkMode ? 'border-slate-800 bg-slate-950/95' : 'border-slate-200 bg-white/95'
+          }`}
+        >
+          <div className="max-w-3xl mx-auto">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full min-h-[56px] rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 text-base sm:text-lg font-black shadow-xl shadow-amber-500/25 transition-all hover:brightness-105 disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" /> {tx.submitting}
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5" /> {ui.sendMine}
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </form>
 
-      {/* QR Code & Share Modal */}
-      <AnimatePresence>
-        {showQrModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="max-w-md w-full"
-            >
-              <DgcQrCard
-                url={typeof window !== 'undefined' ? `${window.location.origin}/?survey=${survey.id}` : `https://dgc.gov.et/?survey=${survey.id}`}
-                surveyTitle={currentTitle}
-                onClose={() => setShowQrModal(false)}
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {qrModal}
     </div>
   );
 };
